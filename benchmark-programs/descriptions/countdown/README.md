@@ -1,4 +1,4 @@
-# Count down
+# Count Down
 
 Count down in a loop while using effect operations to decrement a state.
 

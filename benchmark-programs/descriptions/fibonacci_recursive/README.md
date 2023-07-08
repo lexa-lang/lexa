@@ -1,4 +1,4 @@
-# Short benchmark name
+# Fibonacci Recursive
 
 Compute the `n`th fibonacci number in a doubly recursive way.
 
