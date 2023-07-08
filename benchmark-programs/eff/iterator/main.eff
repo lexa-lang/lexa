@@ -1,0 +1,18 @@
+
+effect Emit : int -> unit
+
+let rec range l u =
+  if (l > u)
+    then ()
+    else (
+      perform (Emit l);
+      range (l + 1) u)
+
+let run n =
+  (handle
+    range 0 n
+  with
+  | _ -> fun s -> s
+  | effect (Emit e) k -> fun s ->
+    k () (s + e)) 0
+

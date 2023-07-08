@@ -1,0 +1,75 @@
+
+effect Choose : unit -> bool
+effect Get: unit -> int
+effect Set: int -> unit
+
+type tree
+ = Leaf
+ | Node of tree * int * tree
+
+
+let operator x y = abs (x - (503 * y) + 37) mod 1009
+
+type intlist = Nil | Cons of (int * intlist)
+
+let rec ( @ ) xs ys =
+  match xs with
+  | Nil -> ys
+  | Cons (x, xs) -> Cons (x, xs @ ys)
+
+let rec make = function
+  | 0 -> Leaf
+  | n ->
+    let t = make (n - 1) in
+    Node (t, n, t)
+
+let max a b = if a > b then a else b
+
+let rec maxl acc = function
+  | Nil -> acc
+  | Cons(x, xs) -> maxl (max x acc) xs
+
+(* Eff is currently unable to automatically optimize nested handlers so we merge them by hand *)
+
+let run n =
+  let tree = make n in
+
+  let rec explore t = match t with
+    | Leaf -> perform (Get ())
+    | Node (l, v, r) ->
+      let next = if (perform (Choose ())) then l else r in
+      let state = perform (Get ()) in
+      let q = operator state v in
+      perform (Set q);
+      (operator v (explore next))
+  in
+  let monad_state = handler
+  | y -> (fun u -> (u, Cons(y, Nil)))
+  | effect (Get ()) k -> (
+    fun s -> (k s) s
+    )
+  | effect (Set s) k -> (
+    fun _ -> (k ()) s
+  )
+  | effect (Choose ()) k -> (fun s ->
+      match ((k true) s) with
+      | (s', l) ->
+        ( match ((k false) s') with
+          | (s', r) -> (s', l @ r)
+        )
+  )
+  in
+  let paths () = with monad_state handle explore tree
+  in
+  let rec loop s i =
+    if i = 0 then
+      s
+    else (
+    let s = match (paths () s)
+    with (s', l) -> (
+      maxl 0 l
+    )
+    in loop s (i - 1)
+    )
+  in
+  loop 0 10

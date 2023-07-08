@@ -1,0 +1,19 @@
+import immutable/list
+import immutable/option
+import io/args
+import text/string
+
+def fibonacci(n: Int): Int =
+  if (n == 0) {
+    0
+  } else if (n == 1) {
+    1
+  } else {
+    fibonacci(n - 1) + fibonacci(n - 2)
+  }
+
+def main() = {
+  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 5 };
+  val r = fibonacci(n);
+  println(r)
+}
