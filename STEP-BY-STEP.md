@@ -39,12 +39,12 @@ In section 4.2.2, we claim that
 
 > Effekt outperforms the other languages in most benchmarks, sometimes by an order of magnitude.
 
-While the numbers of the benchmark can vary a bit due the virtualization overhead of Docker, the speedups of Effekt relative to the other languages shown in Figure 10 in the paper should still be mostly visible.
+While the numbers of the benchmarks can vary a bit due the virtualization overhead of Docker, the speedups of Effekt relative to the other languages shown in Figure 10 in the paper should still be mostly visible.
 
 ### Suggested steps for evaluation
 
 We suggest that the reviewers:
-1. Familiarize themselves with the benchmark programs by reading the [desciptions](./benchmark-programs/descriptions).
+1. Familiarize themselves with the benchmark programs by reading the [descriptions](./benchmark-programs/descriptions).
 2. Run the benchmarks.
 3. Compare the results of the benchmarks with the numbers given in the paper, verifying that the relative speedups are mostly reproducible despite the virtualization via Docker.
-4. Potentially modify the given programs or write programs of their own and compile them with the Effekt compiler in the Docker container to verify that it works correctly.
+4. Perhaps modify the given programs or write programs of their own and compile them with the Effekt compiler in the Docker container to verify that it works correctly.
