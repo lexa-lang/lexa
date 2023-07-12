@@ -6,7 +6,7 @@ bench: build
 		'iterator/main 40000000' \
 		'nqueens/main 12' \
 		'tree_explore/main 16' \
-		'triples/main 300 300' \
+		'triples/main 300' \
 		'resume_nontail/main 10000' \
 		'parsing_dollars/main 20000'
 
