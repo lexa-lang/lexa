@@ -2,15 +2,15 @@ LANGS = eff effekt koka ocaml sml
 
 all:
 	@for LANG in $(LANGS); do\
-		echo "Benchmarking $${LANG}...";\
-		make -s -C $${LANG};\
+		echo "\nBenchmarking $${LANG}...";\
+		make -s -C $${LANG} &&\
 		echo "...done!\n";\
 	done
 
 test:
 	@for LANG in $(LANGS); do\
-		echo "Testing $${LANG}...";\
-		make -s -C $${LANG} test;\
+		echo "\nTesting $${LANG}...";\
+		make -s -C $${LANG} test &&\
 		echo "...successful!\n";\
 	done
 
