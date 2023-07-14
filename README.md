@@ -1,6 +1,6 @@
 # Artifact for the OOPSLA 2023 paper 'From Capabilities to Regions'
 
-[![DOI](https://zenodo.org/badge/???.svg)](https://zenodo.org/badge/latestdoi/???)
+[![DOI](https://zenodo.org/badge/663134126.svg)](https://zenodo.org/badge/latestdoi/663134126)
 
 This GitHub repository constitutes the artifact for our paper
 
