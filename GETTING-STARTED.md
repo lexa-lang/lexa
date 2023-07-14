@@ -53,7 +53,7 @@ docker exec -it liftinf-bench-container bash -c "make && make show"
 ```
 
 This will again take roughly 15 minutes.
-In the end, this will print a somewhat prettified version of the results in Markdown-style tables.
+In the end, this will print a somewhat prettified version of the results in Markdown-style tables, with one table per language, containing the mean, standard deviation and median in seconds.
 The latter are available inside the container in the file `/home/ubuntu/benchmark-programs/results.md` and can also be copied out of the container with
 
 ```

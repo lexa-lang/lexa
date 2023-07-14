@@ -47,4 +47,5 @@ We suggest that the reviewers:
 1. Familiarize themselves with the benchmark programs by reading the [descriptions](./benchmark-programs/descriptions).
 2. Run the benchmarks.
 3. Compare the results of the benchmarks with the numbers given in the paper, verifying that the relative speedups are mostly reproducible despite the virtualization via Docker.
+   The results from the paper are included in this repository in the file [`results-paper.md`](results-paper.md) as a table with the mean and standard deviation in milliseconds in one column per language, including a new column for the baseline in SML.
 4. Perhaps modify the given programs or write programs of their own and compile them with the Effekt compiler in the Docker container to verify that it works correctly.
