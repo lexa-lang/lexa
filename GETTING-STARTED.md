@@ -1,5 +1,8 @@
 ## Getting Started
 
+The artifact will likely not work on arm-based architechtures like Apple's M1 and M2.
+It has been tested on x86_64 with linux.
+
 ### Kick-the-tires
 Clone the artifact repository
 
