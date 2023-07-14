@@ -12,8 +12,8 @@ Here, we describe in more detail, how the artifact supports the claims.
 The benchmarks of course do not really support the theorems stated in the paper (for which we have pen-and-paper proofs).
 Still, having an implemented compiler for our approach, which produces correct results for the given programs, gives some confidence in the correctness.
 After entering the container (as described in the [GETTING-STARTED.md](./GETTING-STARTED.md) guide), reviewers can also make changes to the existing programs or write their own programs in Effekt.
-The container has vim installed as an editor, but it runs Ubuntu and other editors can be installed in the usual way for Ubuntu.
-Alternatively, the source file can be written outside of the container and copied inside via
+The container has vim installed as an editor (along with syntax highlighting for Effekt), but it runs Ubuntu and other editors can be installed in the usual way for Ubuntu.
+Alternatively, the source file can be written outside of the container (e.g., in VS Code with the [Effekt plugin](https://github.com/effekt-lang/effekt-vscode)) and copied inside via
 
 ```
 docker cp /path/to/source liftinf-bench-container:/home/ubuntu/benchmark-programs/path/to/destination

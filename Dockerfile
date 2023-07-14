@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM --platform=linux/amd64 ubuntu:22.04
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
@@ -109,6 +109,9 @@ WORKDIR /home/ubuntu
 #RUN sudo apt install -y curl
 RUN curl -sSL https://github.com/koka-lang/koka/releases/download/v2.4.0/install.sh | sudo sh
 
+
+# Enable syntax highlighting for Effekt in vim
+COPY --chown=ubuntu:ubuntu .vim /home/ubuntu/.vim
 
 # Copy benchmark programs
 COPY --chown=ubuntu:ubuntu benchmark-programs /home/ubuntu/benchmark-programs
