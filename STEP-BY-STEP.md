@@ -34,6 +34,7 @@ This results in an executable `main` which can be called with
 
 or potentially with additional command-line arguments (see one of the benchmark programs on how to use command-line arguments).
 Note, however, that due to limitations of SML the compiler does neither support higher-rank-polymorphic function types nor polymorphic effect signatures.
+Moreover, first-class functions are not properly supported, as they are beyond the scope of the paper.
 
 In section 4.2.2, we claim that
 
