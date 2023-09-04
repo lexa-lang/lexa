@@ -1,12 +1,12 @@
-# Artifact for the OOPSLA 2023 paper 'From Capabilities to Regions'
+# Artifact of the paper 'From Capabilities to Regions: Enabling Efficient Compilation of Lexical Effect Handlers'
 
 [![DOI](https://zenodo.org/badge/663134126.svg)](https://zenodo.org/badge/latestdoi/663134126)
 
-This GitHub repository constitutes the artifact for our paper
+This GitHub repository constitutes the artifact of our paper
 
 > From Capabilities to Regions: Enabling Efficient Compilation of Lexical Effect Handlers.
 > Marius Müller, Philipp Schuster, Jonathan Lindegaard Starup, Klaus Ostermann, Jonathan Immanuel Brachthäuser.
-> Conditionally accepted at OOPSLA 2023.
+> Accepted at OOPSLA 2023.
 
 ## Overview
 
