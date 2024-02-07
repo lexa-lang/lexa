@@ -55,6 +55,7 @@ RUN git clone https://github.com/effekt-lang/effekt.git
 WORKDIR /home/ubuntu/effekt
 RUN git submodule set-url kiama https://github.com/effekt-lang/kiama.git
 RUN git submodule update --init --recursive
+RUN cd kiama; git checkout 89515c8d17c2772d1caba6f1ef7a9ff5d1d93022; cd ..
 RUN git checkout 72f0064f105d79a44e4593c63cfc9bebd84babf9
 RUN sudo sbt install
 
