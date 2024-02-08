@@ -1,16 +1,32 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define STACK_SIZE 1024 * 1024
+
+typedef struct node {
+    int value;
+    struct node* next;
+} node;
 
 typedef struct {
   intptr_t fail;
   intptr_t pick;
+} sig_t;
+
+typedef struct {
+  sig_t *funcs;
   intptr_t env;
-  intptr_t pc;
   intptr_t sp;
 } closure_t;
+
+typedef struct {
+  intptr_t _unused1;
+  intptr_t _unused2;
+  intptr_t sp;
+} resumption_t;
 
 char* dup_stack(char* sp) {
     char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
@@ -24,59 +40,108 @@ char* dup_stack(char* sp) {
     return new_sp;
 }
 
-void place(closure_t *handler_closure, int size) {
-  for (int col = size; col >= 1; col--) {
-    // Invoke pick
-    // 1. Copy pc and sp
-    intptr_t pc = handler_closure->pc;
-    intptr_t sp = handler_closure->sp;
-    // 2. Make resumption
-    handler_closure->pc = (intptr_t)&&raise_cont;
-    __asm__("movq %%rsp, %0" : "=g"(handler_closure->sp));
-    // 3. Invoke pick
+bool safe(int queen, int diag, node* xs) {
+  if (xs == NULL) {
+    return true;
+  } else {
+    if (queen != xs->value && queen != xs->value + diag && queen != xs->value - diag) {
+      return safe(queen, diag + 1, xs->next);
+    } else {
+        return false;
+    }
+  }
+}
 
+node* place(closure_t *handler_closure, int size, int column) {
+  if (column == 0) {
+    return NULL;
+  } else {
+    node* rest = place(handler_closure, size, column - 1);
+    int next;
+    // Invoke pick
+    intptr_t sp = handler_closure->sp;
     __asm__ (
-      "mov %1, %%rsp\n\t" // Move sp into rsp
-      "mov %2, %%rdi\n\t" // Move size into rdi
-      "mov %3, %%rsi\n\t" // Move col into rsi
-      "jmp *%0\n\t" // Jump to the instruction address stored in ip
-      : // No output operands
-      : "r"(handler_closure[1]), "r"(handler_closure[4]), "r"(size), "r"(col) // abortive pc and sp, and size and col
-      : "rdi", "rsi" // Clobbered registers
+      // Prepare raise's continuation
+      "addq $-128, %%rsp\n\t"
+      "pushq %1\n\t"
+      "movq %%rsp, %0\n\t"
+      // Swap stack and invoke handler
+      "movq %2, %%rsp\n\t"
+      "jmp *%3\n\t"
+      : "=g"(handler_closure->sp)
+      : "r"(&&raise_cont), "r"(sp), "r"(handler_closure->funcs->pick),
+        "D"(handler_closure->env), "S"(size), "d"(handler_closure)
     );
 
 raise_cont:
+    __asm__(
+      "sub $-128, %%rsp\n\t"
+      "movl %%eax, %0\n\t"
+      : "=r"(next)
+    );
+    if (safe(next, 1, rest)) {
+      node* newNode = (node*)malloc(sizeof(node));
+      if (!newNode) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+      }
+      newNode->value = next;
+      newNode->next = rest;
+      return newNode;
+    } else {
+      // Invoke fail
+      __asm__ (
+        "mov %2, %%rsp\n\t"
+        "jmp *%1\n\t"
+        : // No output operands
+        : "D"(handler_closure->env), "r"(handler_closure->funcs->fail), "r"(handler_closure->sp)
+      );
+      __builtin_unreachable();
+    }
   }
+}
+
+int body(closure_t *handler_closure, int size, int column) {
+  place(handler_closure, size, column);
+  __asm__ (
+    "mov %0, %%rsp\n\t"
+    "ret\n\t"
+    : // No output operands
+    : "r"(handler_closure->sp)
+  );
+  __builtin_unreachable();
 }
 
 int fail(intptr_t env[0]) {
   return 0;
 }
 
-int pick(intptr_t env[0], int size, intptr_t rsp[4]) {
+int pick(intptr_t env[0], int size, resumption_t *rsp) {
   int a = 0;
   for (int i = 1; i <= size; i++) {
-    intptr_t rsp_pc = rsp[2];
-    intptr_t rsp_sp = rsp[3];
+    intptr_t rsp_sp = rsp->sp;
     char* rsp_sp_dup = dup_stack((char*)rsp_sp);
-    // Restore handler's closure
-    rsp[2] = (intptr_t)&&resume_cont;
-    __asm__("movq %%rsp, %0" : "=r"(rsp[3]));
+    int result;
     // Resume the resumption
-    __asm__ volatile (
-      "mov %1, %%rsp\n\t" // Move sp into rsp
-      "mov %3, %%eax\n\t" // Move i into eax
-      "jmp *%0\n\t" // Jump to the instruction address stored in ip
-      : // No output operands
-      : "g"(rsp_pc), "g"(rsp_sp), "g"(i) // abortive pc and sp, and i
+    __asm__ (
+      // Prepare the resume's continuation
+      "addq $-128, %%rsp\n\t"
+      "pushq %3\n\t"
+      "movq %%rsp, %0\n\t"
+      // Swap stack and invoke resumption's return function
+      "mov %2, %%rsp\n\t"
+      "ret\n\t"
+      : "=g"(rsp->sp)
+      : "a"(i), "r"(rsp_sp), "r"(&&resume_cont)
     );
 
 resume_cont:
-    int result;
-    __asm__("movl %%eax, %0" : "=r"(result));
-    // Restore resumption
-    rsp[2] = rsp_pc;
-    rsp[3] = rsp_sp_dup;
+    __asm__(
+      "sub $-128, %%rsp\n\t"
+      "movl %%eax, %0\n\t"
+      : "=r"(result)
+    );
+    rsp->sp = (intptr_t)rsp_sp_dup;
     a += result;
   }
 
@@ -88,42 +153,41 @@ int run(int n){
   // 1. allocate the environment
   intptr_t env[0] = {};
   // 2. allocate the closure
-  closure_t closure[5] = {(intptr_t)&fail, (intptr_t)&pick, (intptr_t)env, (intptr_t)&&handle_cont, (intptr_t)NULL};
+  sig_t funcs = {(intptr_t)&fail, (intptr_t)&pick};
+  closure_t closure = {&funcs, (intptr_t)env, (intptr_t)NULL};
   int out;
-  // 3. fill in the abortive stack pointer
-  __asm__("movq %%rsp, %0" : "=r"(closure->sp));
-
-  // Run the handle body
-
+  // 3. allocate a new stack
+  char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
+  if (!new_stack) {
+    fprintf(stderr, "Failed to allocate memory for the new stack.\n");
+    exit(EXIT_FAILURE);
+  }
+  char* new_sp = new_stack + STACK_SIZE;
+  __asm__(
+    // Prepare handle's continuation
+    "addq $-128, %%rsp\n\t"
+    "pushq %4\n\t"                     // Push return address onto the stack
+    "movq %%rsp, %0\n\t"                 // Move sp into closure
+    // Swap stack and run the body
+    "movq %5, %%rsp\n\t"
+    "jmp body\n\t"
+    : "=g"(closure.sp)
+    : "D"(&closure), "S"(n), "d"(n), "a"(&&handle_cont), "c"(new_sp)
+    : "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rbx", "rbp", "rsp"
+  );
 
 handle_cont:
+  __asm__(
+    "sub $-128, %%rsp\n\t"
+    "movl %%eax, %0\n\t"                 // Move the result to the output variable"
+    : "=r"(out)
+  );
+
+  return out;
 }
 
-int main() {
-    const size_t stackSize = 1024 * 1024; // 1MB stack size
-    unsigned char* newStack = (unsigned char*)malloc(stackSize) + stackSize; // Allocate new stack space and adjust to the end (stack grows downwards on x86)
-    unsigned char* oldStack;
-
-    if (!newStack) {
-        printf("Failed to allocate memory for the new stack.\n");
-        return 1;
-    }
-
-    // Store the current stack pointer
-    __asm__ volatile("movq %%rsp, %0" : "=g" (oldStack));
-
-    // Swap to the new stack
-    __asm__ volatile("movq %0, %%rsp" :: "g" (newStack));
-
-    // Now the new stack is in use, call the Fibonacci function
-    int n = 10; // Example: Compute the 10th Fibonacci number
-    int result = fib(n);
-    printf("Fibonacci(%d) = %llu\n", n, result);
-
-    // Restore the original stack pointer
-    __asm__ volatile("movq %0, %%rsp" :: "g" (oldStack));
-
-    free(newStack - stackSize); // Adjust the pointer back before freeing
-
+int main(int argc, char *argv[]){
+    int out = run(atoi(argv[1]));
+    printf("%d\n", out);
     return 0;
 }

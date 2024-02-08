@@ -46,6 +46,7 @@ int product(closure_t *handler_closure, node* lst) {
         : "D"(handler_closure->env), "r"(handler_closure->done), "r"(handler_closure->sp)
         : // NO need to list any clobbered registers as we are not coming back
       );
+      __builtin_unreachable();
     } else {
       // Recurse
       return lst->value * product(handler_closure, lst->next);
