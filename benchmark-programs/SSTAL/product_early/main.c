@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <setjmp.h>
+#include <longjmp.h>
 #include <stdbool.h>
 
 typedef struct {
   intptr_t funcs[1]; // done
   intptr_t env[1]; // xs
-  jmp_buf* jb;
+  mp_jmpbuf_t* jb;
 } closure_t;
 
 typedef struct node {
@@ -58,7 +58,7 @@ int product(closure_t *handler_closure, node* xs) {
       ctr_ctx.payload.invocation.closure = handler_closure;
       ctr_ctx.payload.invocation.index = 0;
       ctr_ctx.payload.invocation.arg = 0;
-      longjmp(*handler_closure->jb, 1);
+      mp_longjmp(handler_closure->jb);
       __builtin_unreachable();
     } else {
       // Recurse
@@ -71,16 +71,16 @@ void body(closure_t *handler_closure) {
   int out = product(handler_closure, (node*)handler_closure->env[0]);
   ctr_ctx.is_ret = true;
   ctr_ctx.payload.ret_val = out;
-  longjmp(*handler_closure->jb, 1);
+  mp_longjmp(handler_closure->jb);
   __builtin_unreachable();
 }
 
 int runProduct(node* xs) {
   // Stack-allocate the closure for the handler
-  jmp_buf jb;
+  mp_jmpbuf_t jb;
   closure_t closure = {(intptr_t)&done, {(intptr_t)xs}, &jb};
   int out;
-  if (setjmp(*closure.jb) == 0) {
+  if (mp_setjmp(closure.jb) == 0) {
     body(&closure);
     __builtin_unreachable();
   } else {
