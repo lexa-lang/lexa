@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
+#include <stdbool.h>
 
 typedef struct {
-  intptr_t done;
-  intptr_t* env;
+  intptr_t funcs[1]; // done
+  intptr_t env[1]; // xs
   jmp_buf* jb;
 } closure_t;
 
@@ -14,7 +15,19 @@ typedef struct node {
     struct node* next;
 } node;
 
-intptr_t jmp_arg;
+typedef struct {
+  bool is_ret;
+  union {
+    intptr_t ret_val;
+    struct {
+      closure_t* closure;
+      size_t index;
+      intptr_t arg;
+    } invocation;
+  } payload;
+} ctr_ctx_t;
+
+ctr_ctx_t ctr_ctx;
 
 node* enumerate(int n) {
     node* head = NULL;
@@ -31,46 +44,55 @@ node* enumerate(int n) {
     return head; // Return the head of the list
 }
 
-int done(intptr_t env[0], int r) {
+int done(closure_t *handler_closure, int r) {
   return r;
 }
 
-int product(closure_t *handler_closure, node* lst) {
-  if (lst == NULL) {
+int product(closure_t *handler_closure, node* xs) {
+  if (xs == NULL) {
     return 1;
   } else {
-    if (lst->value == 0) {
+    if (xs->value == 0) {
       // Invoke the handler
-      jmp_arg = 0;
+      ctr_ctx.is_ret = false;
+      ctr_ctx.payload.invocation.closure = handler_closure;
+      ctr_ctx.payload.invocation.index = 0;
+      ctr_ctx.payload.invocation.arg = 0;
       longjmp(*handler_closure->jb, 1);
       __builtin_unreachable();
     } else {
       // Recurse
-      return lst->value * product(handler_closure, lst->next);
+      return xs->value * product(handler_closure, xs->next);
     }
   }
 }
 
 void body(closure_t *handler_closure) {
   int out = product(handler_closure, (node*)handler_closure->env[0]);
-  jmp_arg = out;
+  ctr_ctx.is_ret = true;
+  ctr_ctx.payload.ret_val = out;
   longjmp(*handler_closure->jb, 1);
   __builtin_unreachable();
 }
 
-int runProduct(node* lst) {
+int runProduct(node* xs) {
   // Stack-allocate the closure for the handler
-  // 1. allocate the environment
-  intptr_t env[1] = {(intptr_t)lst};
-  // 2. allocate the closure
   jmp_buf jb;
-  closure_t closure = {(intptr_t)&done, env, &jb};
+  closure_t closure = {(intptr_t)&done, {(intptr_t)xs}, &jb};
   int out;
   if (setjmp(*closure.jb) == 0) {
     body(&closure);
     __builtin_unreachable();
   } else {
-    out = jmp_arg;
+    if (ctr_ctx.is_ret) {
+      out = ctr_ctx.payload.ret_val;
+    } else {
+      closure_t* handler_closure = ctr_ctx.payload.invocation.closure;
+      intptr_t index = ctr_ctx.payload.invocation.index;
+      intptr_t arg = ctr_ctx.payload.invocation.arg;
+      intptr_t* funcs = handler_closure->funcs;
+      out = ((int (*)(closure_t*, intptr_t))funcs[index])(handler_closure, arg);
+    }
   }
 
   return out;
@@ -78,9 +100,9 @@ int runProduct(node* lst) {
 
 int run(int n){
   int a = 0;
-  node* lst = enumerate(1000);
+  node* xs = enumerate(1000);
   for (int i = 0; i < n; i++) {
-    a += runProduct(lst);
+    a += runProduct(xs);
   }
   return a;
 }
