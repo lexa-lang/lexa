@@ -1,17 +1,20 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 typedef struct {
   intptr_t done;
-  intptr_t env;
-  intptr_t sp;
+  intptr_t* env;
+  jmp_buf* jb;
 } closure_t;
 
 typedef struct node {
     int value;
     struct node* next;
 } node;
+
+intptr_t jmp_arg;
 
 node* enumerate(int n) {
     node* head = NULL;
@@ -38,14 +41,8 @@ int product(closure_t *handler_closure, node* lst) {
   } else {
     if (lst->value == 0) {
       // Invoke the handler
-      __asm__ (
-        "mov %2, %%rsp\n\t" // Move sp into rsp
-        "xor %%rsi, %%rsi\n\t" // Move 0 into rsi
-        "jmp *%1\n\t" // Jump to the instruction address stored in ip
-        : // No output operands
-        : "D"(handler_closure->env), "r"(handler_closure->done), "r"(handler_closure->sp)
-        : // NO need to list any clobbered registers as we are not coming back
-      );
+      jmp_arg = 0;
+      longjmp(*handler_closure->jb, 1);
       __builtin_unreachable();
     } else {
       // Recurse
@@ -54,29 +51,27 @@ int product(closure_t *handler_closure, node* lst) {
   }
 }
 
+void body(closure_t *handler_closure) {
+  int out = product(handler_closure, (node*)handler_closure->env[0]);
+  jmp_arg = out;
+  longjmp(*handler_closure->jb, 1);
+  __builtin_unreachable();
+}
+
 int runProduct(node* lst) {
   // Stack-allocate the closure for the handler
   // 1. allocate the environment
-  intptr_t env[0] = {};
+  intptr_t env[1] = {(intptr_t)lst};
   // 2. allocate the closure
-  closure_t closure = {(intptr_t)&done, (intptr_t)env, (intptr_t)NULL};
+  jmp_buf jb;
+  closure_t closure = {(intptr_t)&done, env, &jb};
   int out;
-  // 3. fill in the abortive stack pointer
-  __asm__(
-    "addq $-128, %%rsp\n\t"
-    "pushq %3\n\t"                     // Push return address onto the stack
-    "movq %%rsp, %0\n\t"                 // Move sp into closure
-    "jmp product\n\t"
-    : "=g"(closure.sp)
-    : "D"(&closure), "S"(lst), "a"(&&handle_cont)
-    : "rcx", "rdx", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rbx", "rbp", "rsp"
-  );
-handle_cont:
-  __asm__(
-    "sub $-128, %%rsp\n\t"
-    "movl %%eax, %0\n\t"                 // Move the result to the output variable"
-    : "=r"(out)
-  );
+  if (setjmp(*closure.jb) == 0) {
+    body(&closure);
+    __builtin_unreachable();
+  } else {
+    out = jmp_arg;
+  }
 
   return out;
 }
