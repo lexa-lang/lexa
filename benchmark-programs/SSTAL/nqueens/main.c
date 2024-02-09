@@ -142,7 +142,6 @@ int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
 }
 
 int run(int n){
-  // Stack-allocate the closure for the handler
   intptr_t* funcs = (intptr_t*)malloc(2 * sizeof(intptr_t));
   if (!funcs) {
     fprintf(stderr, "Memory allocation failed\n");
