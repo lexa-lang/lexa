@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <longjmp.h>
 
 #define STACK_SIZE 1024 * 1024
 
@@ -12,21 +13,24 @@ typedef struct node {
 } node;
 
 typedef struct {
-  intptr_t fail;
-  intptr_t pick;
-} sig_t;
+  intptr_t *funcs; // fail, pick
+  intptr_t *env; // n
+  mp_jmpbuf_t ctx_jb;
+  mp_jmpbuf_t rsp_jb;
+} handler_t;
 
 typedef struct {
-  sig_t *funcs;
-  intptr_t env;
-  intptr_t sp;
-} closure_t;
+  bool is_ret;
+  union {
+    intptr_t ret_val;
+    struct {
+      size_t index;
+      intptr_t arg;
+    } invocation;
+  } payload;
+} ctr_ctx_t;
 
-typedef struct {
-  intptr_t _unused1;
-  intptr_t _unused2;
-  intptr_t sp;
-} resumption_t;
+ctr_ctx_t ctr_ctx;
 
 char* dup_stack(char* sp) {
     char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
@@ -36,7 +40,8 @@ char* dup_stack(char* sp) {
     }
     char* new_sp = new_stack + STACK_SIZE;
     size_t num_bytes = STACK_SIZE - (intptr_t)sp % STACK_SIZE;
-    memcpy(new_sp - num_bytes, sp - num_bytes, num_bytes);
+    new_sp -= num_bytes;
+    memcpy(new_sp, sp, num_bytes);
     return new_sp;
 }
 
@@ -52,33 +57,23 @@ bool safe(int queen, int diag, node* xs) {
   }
 }
 
-node* place(closure_t *handler_closure, int size, int column) {
+node* place(handler_t *handler_closure, int size, int column) {
   if (column == 0) {
     return NULL;
   } else {
     node* rest = place(handler_closure, size, column - 1);
     int next;
     // Invoke pick
-    intptr_t sp = handler_closure->sp;
-    __asm__ (
-      // Prepare raise's continuation
-      "addq $-128, %%rsp\n\t"
-      "pushq %1\n\t"
-      "movq %%rsp, %0\n\t"
-      // Swap stack and invoke handler
-      "movq %2, %%rsp\n\t"
-      "jmp *%3\n\t"
-      : "=g"(handler_closure->sp)
-      : "r"(&&raise_cont), "r"(sp), "r"(handler_closure->funcs->pick),
-        "D"(handler_closure->env), "S"(size), "d"(handler_closure)
-    );
+    if (mp_setjmp(&handler_closure->rsp_jb) == 0) {
+      ctr_ctx.is_ret = false;
+      ctr_ctx.payload.invocation.index = 1;
+      ctr_ctx.payload.invocation.arg = (intptr_t)size;
+      mp_longjmp(&handler_closure->ctx_jb);
+      __builtin_unreachable();
+    } else {
+      next = ctr_ctx.payload.ret_val;
+    }
 
-raise_cont:
-    __asm__(
-      "sub $-128, %%rsp\n\t"
-      "movl %%eax, %0\n\t"
-      : "=r"(next)
-    );
     if (safe(next, 1, rest)) {
       node* newNode = (node*)malloc(sizeof(node));
       if (!newNode) {
@@ -90,58 +85,54 @@ raise_cont:
       return newNode;
     } else {
       // Invoke fail
-      __asm__ (
-        "mov %2, %%rsp\n\t"
-        "jmp *%1\n\t"
-        : // No output operands
-        : "D"(handler_closure->env), "r"(handler_closure->funcs->fail), "r"(handler_closure->sp)
-      );
+      ctr_ctx.is_ret = false;
+      ctr_ctx.payload.invocation.index = 0;
+      ctr_ctx.payload.invocation.arg = 0;
+      mp_longjmp(&handler_closure->ctx_jb);
       __builtin_unreachable();
     }
   }
 }
 
-int body(closure_t *handler_closure, int size, int column) {
-  place(handler_closure, size, column);
-  __asm__ (
-    "mov %0, %%rsp\n\t"
-    "ret\n\t"
-    : // No output operands
-    : "r"(handler_closure->sp)
-  );
+void body(handler_t *hdl_stub) {
+  place(hdl_stub, hdl_stub->env[0], hdl_stub->env[0]);
+  ctr_ctx.is_ret = true;
+  ctr_ctx.payload.ret_val = 1;
+  mp_longjmp(&hdl_stub->ctx_jb);
   __builtin_unreachable();
 }
 
-int fail(intptr_t env[0]) {
+int fail(intptr_t env[1], handler_t *rsp_stub, int r) {
   return 0;
 }
 
-int pick(intptr_t env[0], int size, resumption_t *rsp) {
+int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
+  mp_jmpbuf_t rsp_jb_backup;
+  memcpy(&rsp_jb_backup, &rsp_stub->rsp_jb, sizeof(mp_jmpbuf_t));
+  rsp_jb_backup.reg_sp = (void*)dup_stack((char*)rsp_stub->rsp_jb.reg_sp);
   int a = 0;
   for (int i = 1; i <= size; i++) {
-    intptr_t rsp_sp = rsp->sp;
-    char* rsp_sp_dup = dup_stack((char*)rsp_sp);
     int result;
-    // Resume the resumption
-    __asm__ (
-      // Prepare the resume's continuation
-      "addq $-128, %%rsp\n\t"
-      "pushq %3\n\t"
-      "movq %%rsp, %0\n\t"
-      // Swap stack and invoke resumption's return function
-      "mov %2, %%rsp\n\t"
-      "ret\n\t"
-      : "=g"(rsp->sp)
-      : "a"(i), "r"(rsp_sp), "r"(&&resume_cont)
-    );
 
-resume_cont:
-    __asm__(
-      "sub $-128, %%rsp\n\t"
-      "movl %%eax, %0\n\t"
-      : "=r"(result)
-    );
-    rsp->sp = (intptr_t)rsp_sp_dup;
+    if (mp_setjmp(&rsp_stub->ctx_jb) == 0) {
+      mp_jmpbuf_t rsp_jb_dup;
+      memcpy(&rsp_jb_dup, &rsp_jb_backup, sizeof(mp_jmpbuf_t));
+      rsp_jb_dup.reg_sp = (void*)dup_stack((char*)rsp_jb_backup.reg_sp);
+
+      ctr_ctx.is_ret = true; // not necessary
+      ctr_ctx.payload.ret_val = i;
+      mp_longjmp(&rsp_jb_dup);
+      __builtin_unreachable();
+    } else {
+      if (ctr_ctx.is_ret) {
+        result = ctr_ctx.payload.ret_val;
+      } else {
+        size_t index = ctr_ctx.payload.invocation.index;
+        void* func = (void*)rsp_stub->funcs[index];
+        intptr_t arg = ctr_ctx.payload.invocation.arg;
+        result = ((int(*)(intptr_t*, handler_t*, int))func)(env, rsp_stub, arg);
+      }
+    }
     a += result;
   }
 
@@ -150,38 +141,54 @@ resume_cont:
 
 int run(int n){
   // Stack-allocate the closure for the handler
-  // 1. allocate the environment
-  intptr_t env[0] = {};
-  // 2. allocate the closure
-  sig_t funcs = {(intptr_t)&fail, (intptr_t)&pick};
-  closure_t closure = {&funcs, (intptr_t)env, (intptr_t)NULL};
-  int out;
-  // 3. allocate a new stack
-  char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
-  if (!new_stack) {
-    fprintf(stderr, "Failed to allocate memory for the new stack.\n");
+  intptr_t* funcs = (intptr_t*)malloc(2 * sizeof(intptr_t));
+  if (!funcs) {
+    fprintf(stderr, "Memory allocation failed\n");
     exit(EXIT_FAILURE);
   }
-  char* new_sp = new_stack + STACK_SIZE;
-  __asm__(
-    // Prepare handle's continuation
-    "addq $-128, %%rsp\n\t"
-    "pushq %4\n\t"                     // Push return address onto the stack
-    "movq %%rsp, %0\n\t"                 // Move sp into closure
-    // Swap stack and run the body
-    "movq %5, %%rsp\n\t"
-    "jmp body\n\t"
-    : "=g"(closure.sp)
-    : "D"(&closure), "S"(n), "d"(n), "a"(&&handle_cont), "c"(new_sp)
-    : "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rbx", "rbp", "rsp"
-  );
+  funcs[0] = (intptr_t)&fail;
+  funcs[1] = (intptr_t)&pick;
 
-handle_cont:
-  __asm__(
-    "sub $-128, %%rsp\n\t"
-    "movl %%eax, %0\n\t"                 // Move the result to the output variable"
-    : "=r"(out)
-  );
+  intptr_t* env = (intptr_t*)malloc(sizeof(intptr_t));
+  if (!env) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  }
+  env[0] = n;
+
+  handler_t* closure = (handler_t*)malloc(sizeof(handler_t));
+  if (!closure) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  }
+  closure->funcs = funcs;
+  closure->env = env;
+
+  int out;
+  if (mp_setjmp(&closure->ctx_jb) == 0) {
+    char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
+    if (!new_stack) {
+      fprintf(stderr, "Failed to allocate memory for the new stack.\n");
+      exit(EXIT_FAILURE);
+    }
+    char* new_sp = new_stack + STACK_SIZE;
+    __asm__(
+      "movq %0, %%rsp\n\t"
+      : // No output operands
+      : "r"(new_sp)
+    );
+    body(closure);
+    __builtin_unreachable();
+  } else {
+    if (ctr_ctx.is_ret) {
+      out = ctr_ctx.payload.ret_val;
+    } else {
+        size_t index = ctr_ctx.payload.invocation.index;
+        void* func = (void*)closure->funcs[index];
+        intptr_t arg = ctr_ctx.payload.invocation.arg;
+        out = ((int(*)(intptr_t*, handler_t*, int))func)(env, closure, arg);
+    }
+  }
 
   return out;
 }
