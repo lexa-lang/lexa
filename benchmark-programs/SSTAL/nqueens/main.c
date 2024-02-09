@@ -109,13 +109,13 @@ int fail(intptr_t env[1], handler_t *rsp_stub, int r) {
 int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
   mp_jmpbuf_t rsp_jb_dup;
   memcpy(&rsp_jb_dup, &rsp_stub->rsp_jb, sizeof(mp_jmpbuf_t));
-  rsp_jb_dup.reg_sp = (void*)dup_stack((char*)rsp_stub->rsp_jb.reg_sp);
+  void* sp_dup = rsp_stub->rsp_jb.reg_sp;
   int a = 0;
   for (int i = 1; i <= size; i++) {
     int result;
     void* new_sp;
     if (mp_setjmp(&rsp_stub->ctx_jb) == 0) {
-      new_sp = (void*)dup_stack((char*)rsp_jb_dup.reg_sp);
+      new_sp = (void*)dup_stack((char*)sp_dup);
       rsp_jb_dup.reg_sp = new_sp;
 
       ctr_ctx.is_ret = true; // not necessary
