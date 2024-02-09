@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 typedef struct {
+  //TODO: do not flatten funcs and env
   intptr_t funcs[1]; // done
   intptr_t env[1]; // xs
   mp_jmpbuf_t* jb;
