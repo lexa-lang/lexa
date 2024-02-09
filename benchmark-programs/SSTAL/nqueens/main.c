@@ -5,7 +5,8 @@
 #include <string.h>
 #include <longjmp.h>
 
-#define STACK_SIZE 1024 * 1024
+//TODO: Investigate how to set to smaller
+#define STACK_SIZE 4096
 
 typedef struct node {
     int value;
@@ -38,9 +39,8 @@ char* dup_stack(char* sp) {
         fprintf(stderr, "Failed to allocate memory for the new stack.\n");
         exit(EXIT_FAILURE);
     }
-    char* new_sp = new_stack + STACK_SIZE;
     size_t num_bytes = STACK_SIZE - (intptr_t)sp % STACK_SIZE;
-    new_sp -= num_bytes;
+    char* new_sp = new_stack + STACK_SIZE - num_bytes;
     memcpy(new_sp, sp, num_bytes);
     return new_sp;
 }
@@ -61,8 +61,8 @@ node* place(handler_t *handler_closure, int size, int column) {
   if (column == 0) {
     return NULL;
   } else {
-    node* rest = place(handler_closure, size, column - 1);
     int next;
+    node* rest = place(handler_closure, size, column - 1);
     // Invoke pick
     if (mp_setjmp(&handler_closure->rsp_jb) == 0) {
       ctr_ctx.is_ret = false;
@@ -107,17 +107,16 @@ int fail(intptr_t env[1], handler_t *rsp_stub, int r) {
 }
 
 int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
-  mp_jmpbuf_t rsp_jb_backup;
-  memcpy(&rsp_jb_backup, &rsp_stub->rsp_jb, sizeof(mp_jmpbuf_t));
-  rsp_jb_backup.reg_sp = (void*)dup_stack((char*)rsp_stub->rsp_jb.reg_sp);
+  mp_jmpbuf_t rsp_jb_dup;
+  memcpy(&rsp_jb_dup, &rsp_stub->rsp_jb, sizeof(mp_jmpbuf_t));
+  rsp_jb_dup.reg_sp = (void*)dup_stack((char*)rsp_stub->rsp_jb.reg_sp);
   int a = 0;
   for (int i = 1; i <= size; i++) {
     int result;
-
+    void* new_sp;
     if (mp_setjmp(&rsp_stub->ctx_jb) == 0) {
-      mp_jmpbuf_t rsp_jb_dup;
-      memcpy(&rsp_jb_dup, &rsp_jb_backup, sizeof(mp_jmpbuf_t));
-      rsp_jb_dup.reg_sp = (void*)dup_stack((char*)rsp_jb_backup.reg_sp);
+      new_sp = (void*)dup_stack((char*)rsp_jb_dup.reg_sp);
+      rsp_jb_dup.reg_sp = new_sp;
 
       ctr_ctx.is_ret = true; // not necessary
       ctr_ctx.payload.ret_val = i;
@@ -132,6 +131,9 @@ int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
         intptr_t arg = ctr_ctx.payload.invocation.arg;
         result = ((int(*)(intptr_t*, handler_t*, int))func)(env, rsp_stub, arg);
       }
+      // Optionally free the stack
+      // char* stack = (char*)((intptr_t)new_sp / STACK_SIZE * STACK_SIZE);
+      // free(stack);
     }
     a += result;
   }
