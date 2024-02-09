@@ -1,5 +1,6 @@
 dump*
 a.out
 perf.data
+perf.data.old
 .vscode/
-
+flamegraph.svg
