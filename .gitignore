@@ -1,6 +1,8 @@
 dump*
-a.out
+*.out
+*.out.*
 perf.data
 perf.data.old
 .vscode/
 flamegraph.svg
+*.svg

@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <longjmp.h>
-
-#define STACK_SIZE (1024 * 4)
+#include <stack_pool.h>
 
 typedef struct node {
     int value;
@@ -31,18 +30,6 @@ typedef struct {
 } ctr_ctx_t;
 
 ctr_ctx_t ctr_ctx;
-
-char* dup_stack(char* sp) {
-    char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
-    if (!new_stack) {
-        fprintf(stderr, "Failed to allocate memory for the new stack.\n");
-        exit(EXIT_FAILURE);
-    }
-    size_t num_bytes = STACK_SIZE - (intptr_t)sp % STACK_SIZE;
-    char* new_sp = new_stack + STACK_SIZE - num_bytes;
-    memcpy(new_sp, sp, num_bytes);
-    return new_sp;
-}
 
 // size_t largest_stack_size = 0;
 
@@ -122,9 +109,9 @@ int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
   int a = 0;
   for (int i = 1; i <= size; i++) {
     int result;
-    void* new_sp = (void*)dup_stack((char*)sp_dup);
+    char* new_sp = dup_stack(sp_dup);
     if (mp_setjmp(&rsp_stub->ctx_jb) == 0) {
-      rsp_jb_dup.reg_sp = new_sp;
+      rsp_jb_dup.reg_sp = (void*)new_sp;
 
       ctr_ctx.is_ret = true; // not necessary
       ctr_ctx.payload.ret_val = i;
@@ -141,8 +128,8 @@ int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
       }
 
     }
-    char* new_stack = (char*)((intptr_t)new_sp / STACK_SIZE * STACK_SIZE);
-    free(new_stack);
+    
+    free_stack(new_sp);
     a += result;
   }
 
@@ -174,17 +161,16 @@ int run(int n){
   closure->env = env;
 
   int out;
-  char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
+  char* new_stack = get_stack();
   if (!new_stack) {
     fprintf(stderr, "Failed to allocate memory for the new stack.\n");
     exit(EXIT_FAILURE);
   }
   if (mp_setjmp(&closure->ctx_jb) == 0) {
-    char* new_sp = new_stack + STACK_SIZE;
     __asm__(
       "movq %0, %%rsp\n\t"
       : // No output operands
-      : "r"(new_sp)
+      : "r"(new_stack)
     );
     body(closure);
     __builtin_unreachable();
@@ -201,14 +187,17 @@ int run(int n){
   free(funcs);
   free(env);
   free(closure);
-  free(new_stack);
+  
+  free_stack(new_stack);
 
   return out;
 }
 
 int main(int argc, char *argv[]){
+    init_stack_pool();
     int out = run(atoi(argv[1]));
     printf("%d\n", out);
     // printf("Largest stack size: %zu\n", largest_stack_size);
+    destroy_stack_pool();
     return 0;
 }

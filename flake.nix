@@ -20,9 +20,13 @@
         devShell = with pkgs; mkShell {
           buildInputs = [
             clang_17
+            valgrind
             jemalloc
             gperftools
             boehmgc
+
+            ghostscript
+            graphviz
           ];
           shellHook = ''
             zsh
