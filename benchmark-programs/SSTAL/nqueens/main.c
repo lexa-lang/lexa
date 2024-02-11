@@ -5,8 +5,7 @@
 #include <string.h>
 #include <longjmp.h>
 
-//TODO: Investigate how to set to smaller
-#define STACK_SIZE 4096
+#define STACK_SIZE (1024 * 4)
 
 typedef struct node {
     int value;
@@ -45,7 +44,17 @@ char* dup_stack(char* sp) {
     return new_sp;
 }
 
+// size_t largest_stack_size = 0;
+
 bool safe(int queen, int diag, node* xs) {
+  void *rsp;
+  // __asm__(
+  //   "movq %%rsp, %0\n\t"
+  //   : "=r"(rsp)
+  // );
+  // if (STACK_SIZE - (intptr_t)rsp % STACK_SIZE > largest_stack_size) {
+  //   largest_stack_size = STACK_SIZE - (intptr_t)rsp % STACK_SIZE;
+  // }
   if (xs == NULL) {
     return true;
   } else {
@@ -113,9 +122,8 @@ int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
   int a = 0;
   for (int i = 1; i <= size; i++) {
     int result;
-    void* new_sp;
+    void* new_sp = (void*)dup_stack((char*)sp_dup);
     if (mp_setjmp(&rsp_stub->ctx_jb) == 0) {
-      new_sp = (void*)dup_stack((char*)sp_dup);
       rsp_jb_dup.reg_sp = new_sp;
 
       ctr_ctx.is_ret = true; // not necessary
@@ -131,10 +139,10 @@ int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
         intptr_t arg = ctr_ctx.payload.invocation.arg;
         result = ((int(*)(intptr_t*, handler_t*, int))func)(env, rsp_stub, arg);
       }
-      // Optionally free the stack
-      // char* stack = (char*)((intptr_t)new_sp / STACK_SIZE * STACK_SIZE);
-      // free(stack);
+
     }
+    char* new_stack = (char*)((intptr_t)new_sp / STACK_SIZE * STACK_SIZE);
+    free(new_stack);
     a += result;
   }
 
@@ -166,12 +174,12 @@ int run(int n){
   closure->env = env;
 
   int out;
+  char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
+  if (!new_stack) {
+    fprintf(stderr, "Failed to allocate memory for the new stack.\n");
+    exit(EXIT_FAILURE);
+  }
   if (mp_setjmp(&closure->ctx_jb) == 0) {
-    char* new_stack = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
-    if (!new_stack) {
-      fprintf(stderr, "Failed to allocate memory for the new stack.\n");
-      exit(EXIT_FAILURE);
-    }
     char* new_sp = new_stack + STACK_SIZE;
     __asm__(
       "movq %0, %%rsp\n\t"
@@ -190,6 +198,10 @@ int run(int n){
         out = ((int(*)(intptr_t*, handler_t*, int))func)(env, closure, arg);
     }
   }
+  free(funcs);
+  free(env);
+  free(closure);
+  free(new_stack);
 
   return out;
 }
@@ -197,5 +209,6 @@ int run(int n){
 int main(int argc, char *argv[]){
     int out = run(atoi(argv[1]));
     printf("%d\n", out);
+    // printf("Largest stack size: %zu\n", largest_stack_size);
     return 0;
 }
