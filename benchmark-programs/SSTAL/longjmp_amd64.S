@@ -66,8 +66,8 @@ mp_setjmp:                   /* rdi: jmpbuf */
   movq    %r14, 48 (%rdi)
   movq    %r15, 56 (%rdi)
 
-  stmxcsr 64 (%rdi)          /* save sse control word */
-  fnstcw  68 (%rdi)          /* save fpu control word */
+  #stmxcsr 64 (%rdi)          /* save sse control word */
+  #fnstcw  68 (%rdi)          /* save fpu control word */
   
   xor     %rax, %rax         /* return 0 */
   ret
@@ -85,8 +85,8 @@ mp_longjmp:                  /* rdi: jmp_buf */
   movq  56 (%rdi), %r15
 
   /*fnclex*/                  /* clear fpu exception flags */
-  ldmxcsr 64 (%rdi)           /* restore sse control word */
-  fldcw   68 (%rdi)           /* restore fpu control word */
+  #ldmxcsr 64 (%rdi)           /* restore sse control word */
+  #fldcw   68 (%rdi)           /* restore fpu control word */
     
   movq  $1, %rax            
   jmpq  *(%rdi)               /* and jump to rip */

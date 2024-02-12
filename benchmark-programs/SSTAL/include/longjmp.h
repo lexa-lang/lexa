@@ -159,8 +159,8 @@ struct mp_jmpbuf_s {
   int64_t   reg_r13;
   int64_t   reg_r14;
   int64_t   reg_r15;
-  uint32_t  reg_mxcrs;
-  uint16_t  reg_fpcr;
+  // uint32_t  reg_mxcrs;
+  // uint16_t  reg_fpcr;
   uint16_t  context_padding;
 };
 
