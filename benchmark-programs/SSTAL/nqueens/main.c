@@ -14,8 +14,8 @@ typedef struct node {
 typedef struct {
   intptr_t *funcs; // fail, pick
   intptr_t *env; // n
-  mp_jmpbuf_t ctx_jb;
-  mp_jmpbuf_t rsp_jb;
+  mp_jmpbuf_t *ctx_jb;
+  mp_jmpbuf_t *rsp_jb;
 } handler_t;
 
 typedef struct {
@@ -30,6 +30,7 @@ typedef struct {
 } ctr_ctx_t;
 
 ctr_ctx_t ctr_ctx;
+intptr_t ret_val;
 
 void* xmalloc(size_t size) {
   void* p = malloc(size);
@@ -68,9 +69,18 @@ node* place(handler_t *handler_closure, int size, int column) {
     node* rest = place(handler_closure, size, column - 1);
     // Invoke pick
     mp_jmpbuf_t* rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t));
+    handler_closure->rsp_jb = rsp_jb;
+    if (mp_setjmp(handler_closure->rsp_jb) == 0) {
+      __asm__ (
+        "movq %1, %%rsp\n\t"
+        "jmp *%0\n\t"
+        : // No output operands
+        : "r"(handler_closure->funcs[1]), "r"(handler_closure->ctx_jb->reg_sp),
+        "D"(handler_closure->env), "S"(handler_closure), "d"(size)
+      );
       __builtin_unreachable();
     } else {
-      next = ctr_ctx.payload.ret_val;
+      next = ret_val;
     }
 
     if (safe(next, 1, rest)) {
@@ -80,59 +90,62 @@ node* place(handler_t *handler_closure, int size, int column) {
       return newNode;
     } else {
       // Invoke fail
-      ctr_ctx.is_ret = false;
-      ctr_ctx.payload.invocation.index = 0;
-      ctr_ctx.payload.invocation.arg = 0;
-      mp_longjmp(&handler_closure->ctx_jb);
+      __asm__ (
+        "movq %1, %%rsp\n\t"
+        "jmp *%0\n\t"
+        : // No output operands
+        : "r"(handler_closure->funcs[0]), "r"(handler_closure->ctx_jb->reg_sp),
+        "D"(handler_closure->env), "S"(handler_closure), "d"(0)
+      );
       __builtin_unreachable();
     }
   }
 }
 
+// no prologue or epilogue
 void body(handler_t *hdl_stub) {
   place(hdl_stub, hdl_stub->env[0], hdl_stub->env[0]);
-  ctr_ctx.is_ret = true;
-  ctr_ctx.payload.ret_val = 1;
-  mp_longjmp(&hdl_stub->ctx_jb);
+  ret_val = 1;
+  mp_longjmp(hdl_stub->ctx_jb);
   __builtin_unreachable();
 }
 
-int fail(intptr_t env[1], handler_t *rsp_stub, int r) {
-  return 0;
+// no prologue or epilogue
+void fail(intptr_t env[1], handler_t *rsp_stub, int r) {
+  ret_val = 0;
+  mp_longjmp(rsp_stub->ctx_jb);
 }
 
-int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
-  mp_jmpbuf_t rsp_jb_dup;
-  memcpy(&rsp_jb_dup, &rsp_stub->rsp_jb, sizeof(mp_jmpbuf_t));
-  void* sp_dup = rsp_stub->rsp_jb.reg_sp;
+// no prologue or epilogue
+void pick(intptr_t env[1], handler_t *rsp_stub, int size) {
+  mp_jmpbuf_t* ctx_jb = rsp_stub->ctx_jb;
+  mp_jmpbuf_t* rsp_jb = rsp_stub->rsp_jb;
+  rsp_stub->ctx_jb = NULL;
+  rsp_stub->rsp_jb = NULL;
+  void* rsp_jb_sp = rsp_jb->reg_sp;
+
+  mp_jmpbuf_t my_jb;
   int a = 0;
   for (int i = 1; i <= size; i++) {
     int result;
-    char* new_sp = dup_stack(sp_dup);
-    if (mp_setjmp(&rsp_stub->ctx_jb) == 0) {
-      rsp_jb_dup.reg_sp = (void*)new_sp;
+    char* new_sp = dup_stack(rsp_jb_sp);
+    rsp_jb->reg_sp = (void*)new_sp;
 
-      ctr_ctx.is_ret = true; // not necessary
-      ctr_ctx.payload.ret_val = i;
-      mp_longjmp(&rsp_jb_dup);
+    ret_val = i;
+    rsp_stub->ctx_jb = &my_jb;
+    if (mp_setjmp(&my_jb) == 0) {
+      mp_longjmp(rsp_jb);
       __builtin_unreachable();
     } else {
-      if (ctr_ctx.is_ret) {
-        result = ctr_ctx.payload.ret_val;
-      } else {
-        size_t index = ctr_ctx.payload.invocation.index;
-        void* func = (void*)rsp_stub->funcs[index];
-        intptr_t arg = ctr_ctx.payload.invocation.arg;
-        result = ((int(*)(intptr_t*, handler_t*, int))func)(env, rsp_stub, arg);
-      }
-
+      result = ret_val;
     }
-    
     free_stack(new_sp);
     a += result;
   }
+  free(rsp_jb);
 
-  return a;
+  ret_val = a;
+  mp_longjmp(ctx_jb);
 }
 
 int run(int n){
@@ -148,8 +161,12 @@ int run(int n){
   closure->env = env;
 
   int out;
+
+  mp_jmpbuf_t my_jb;
+  closure->ctx_jb = &my_jb;
+
   char* new_stack = get_stack();
-  if (mp_setjmp(&closure->ctx_jb) == 0) {
+  if (mp_setjmp(&my_jb) == 0) {
     __asm__(
       "movq %0, %%rsp\n\t"
       : // No output operands
@@ -158,14 +175,7 @@ int run(int n){
     body(closure);
     __builtin_unreachable();
   } else {
-    if (ctr_ctx.is_ret) {
-      out = ctr_ctx.payload.ret_val;
-    } else {
-        size_t index = ctr_ctx.payload.invocation.index;
-        void* func = (void*)closure->funcs[index];
-        intptr_t arg = ctr_ctx.payload.invocation.arg;
-        out = ((int(*)(intptr_t*, handler_t*, int))func)(env, closure, arg);
-    }
+    out = ret_val;
   }
   free(funcs);
   free(env);
