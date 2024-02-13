@@ -8,7 +8,7 @@
 #define ALIGN_DOWN(ptr, alignment) ((intptr_t)(ptr) & ~((alignment) - 1))
 
 static char* buffer;
-static u_int64_t bitmap;
+static uint64_t bitmap;
 
 void init_stack_pool() {
     buffer = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE * PREALLOCATED_STACKS);
