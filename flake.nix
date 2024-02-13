@@ -17,9 +17,8 @@
         };
       in {
         # Define the devShell for your project
-        devShell = with pkgs; mkShell {
+        devShell = with pkgs; mkShell.override {stdenv = llvmPackages_15.stdenv;} {
           buildInputs = [
-            clang_17
             valgrind
             jemalloc
             gperftools
