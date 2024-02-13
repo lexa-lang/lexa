@@ -31,7 +31,14 @@ typedef struct {
 
 ctr_ctx_t ctr_ctx;
 
-// size_t largest_stack_size = 0;
+void* xmalloc(size_t size) {
+  void* p = malloc(size);
+  if (!p) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  }
+  return p;
+}
 
 bool safe(int queen, int diag, node* xs) {
   void *rsp;
@@ -60,22 +67,14 @@ node* place(handler_t *handler_closure, int size, int column) {
     int next;
     node* rest = place(handler_closure, size, column - 1);
     // Invoke pick
-    if (mp_setjmp(&handler_closure->rsp_jb) == 0) {
-      ctr_ctx.is_ret = false;
-      ctr_ctx.payload.invocation.index = 1;
-      ctr_ctx.payload.invocation.arg = (intptr_t)size;
-      mp_longjmp(&handler_closure->ctx_jb);
+    mp_jmpbuf_t* rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t));
       __builtin_unreachable();
     } else {
       next = ctr_ctx.payload.ret_val;
     }
 
     if (safe(next, 1, rest)) {
-      node* newNode = (node*)malloc(sizeof(node));
-      if (!newNode) {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-      }
+      node* newNode = (node*)xmalloc(sizeof(node));
       newNode->value = next;
       newNode->next = rest;
       return newNode;
@@ -137,35 +136,19 @@ int pick(intptr_t env[1], handler_t *rsp_stub, int size) {
 }
 
 int run(int n){
-  intptr_t* funcs = (intptr_t*)malloc(2 * sizeof(intptr_t));
-  if (!funcs) {
-    fprintf(stderr, "Memory allocation failed\n");
-    exit(EXIT_FAILURE);
-  }
+  intptr_t* funcs = (intptr_t*)xmalloc(2 * sizeof(intptr_t));
   funcs[0] = (intptr_t)&fail;
   funcs[1] = (intptr_t)&pick;
 
-  intptr_t* env = (intptr_t*)malloc(sizeof(intptr_t));
-  if (!env) {
-    fprintf(stderr, "Memory allocation failed\n");
-    exit(EXIT_FAILURE);
-  }
+  intptr_t* env = (intptr_t*)xmalloc(sizeof(intptr_t));
   env[0] = n;
 
-  handler_t* closure = (handler_t*)malloc(sizeof(handler_t));
-  if (!closure) {
-    fprintf(stderr, "Memory allocation failed\n");
-    exit(EXIT_FAILURE);
-  }
+  handler_t* closure = (handler_t*)xmalloc(sizeof(handler_t));
   closure->funcs = funcs;
   closure->env = env;
 
   int out;
   char* new_stack = get_stack();
-  if (!new_stack) {
-    fprintf(stderr, "Failed to allocate memory for the new stack.\n");
-    exit(EXIT_FAILURE);
-  }
   if (mp_setjmp(&closure->ctx_jb) == 0) {
     __asm__(
       "movq %0, %%rsp\n\t"
