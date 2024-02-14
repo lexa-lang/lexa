@@ -15,10 +15,44 @@
         pkgs = import nixpkgs {
           inherit system;
         };
+        clang_main = pkgs.stdenv.mkDerivation rec {
+          pname = "llvm-project";
+          version = "main";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "llvm";
+            repo = pname;
+            rev = "e06f3522cc55cec60084a1278109ab236ef7a3ee";
+            sha256 = "sha256-AqtIi+G7wL18opmTfZkvOVexkk6YJP+Q5i/zIMKEcr8="; 
+          };
+
+          buildInputs = [ pkgs.python38 ];
+          nativeBuildInputs = [ pkgs.cmake pkgs.ninja ];
+          dontUseCmakeConfigure=true;
+          dontPatchELF= true;
+
+          buildPhase = ''
+            cmake -S llvm -B build -G Ninja 
+              -DLLVM_ENABLE_PROJECTS="clang" 
+              -DCMAKE_BUILD_TYPE=Release
+              -DLLVM_INCLUDE_TESTS=OFF
+              -DLLVM_TARGETS_TO_BUILD=X86
+            ninja -C build clang
+          '';
+
+          installPhase = ''
+            mkdir -p $out
+            cp -r build/bin $out/bin
+            cp -r build/lib $out/lib
+          '';
+
+        };
       in {
         # Define the devShell for your project
-        devShell = with pkgs; mkShell.override {stdenv = llvmPackages_15.stdenv;} {
+        devShell = with pkgs; mkShell.override {stdenv = llvmPackages_17.stdenv;} {
           buildInputs = [
+            clang_main
+
             valgrind
             jemalloc
             gperftools
