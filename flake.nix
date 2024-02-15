@@ -29,11 +29,12 @@
           buildInputs = [ pkgs.python38 ];
           nativeBuildInputs = [ pkgs.cmake pkgs.ninja ];
           dontUseCmakeConfigure=true;
+          dontStrip=true;
 
           buildPhase = ''
             cmake -S llvm -B build -G Ninja \
               -DLLVM_ENABLE_PROJECTS="clang" \
-              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_BUILD_TYPE=Debug \
               -DLLVM_INCLUDE_TESTS=OFF \
               -DLLVM_TARGETS_TO_BUILD=X86
             ninja -C build clang
@@ -47,11 +48,46 @@
 
           passthru.isClang = true;  
         });
+        clang_17 = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
+          pname = "llvm-project";
+          version = "llvmorg-17.0.6";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "llvm";
+            repo = pname;
+            rev = "llvmorg-17.0.6";
+            sha256 = "sha256-AqtIi+G7wL18opmTfZkvOVexkk6YJP+Q5i/zIMKEcr8="; 
+          };
+
+          buildInputs = [ pkgs.python38 ];
+          nativeBuildInputs = [ pkgs.cmake pkgs.ninja ];
+          dontUseCmakeConfigure=true;
+          dontStrip=true;
+
+          buildPhase = ''
+            cmake -S llvm -B build -G Ninja \
+              -DLLVM_ENABLE_PROJECTS="clang" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DLLVM_INCLUDE_TESTS=OFF \
+              -DLLVM_TARGETS_TO_BUILD=X86
+            ninja -C build
+          '';
+
+          installPhase = ''
+            mkdir -p $out/bin
+            cp build/bin/clang $out/bin
+            cp build/bin/opt $out/bin
+            cp -r build/lib $out/lib
+          '';
+
+          passthru.isClang = true;  
+        });
       in {
         # Define the devShell for your project
         devShell = with pkgs; mkShell {
           nativeBuildInputs = [
-            clang_main
+            # clang_main
+            clang_17
           ];
           buildInputs = [
             valgrind
