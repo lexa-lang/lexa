@@ -20,6 +20,7 @@ void destroy_stack_pool() {
     bitmap = 0;
 }
 
+__attribute__((noinline))
 char* get_stack() {
     int index = __builtin_ffsll(bitmap);
     if (index == 0) {
@@ -32,17 +33,19 @@ char* get_stack() {
     return buffer + (index * STACK_SIZE) + STACK_SIZE;
 }
 
+__attribute__((noinline))
 void free_stack(char* stack) {
     int index = ((intptr_t)stack - (intptr_t)buffer - 1) / STACK_SIZE;
     bitmap |= (1 << index);
 }
 
 // Does not work for an empty stack. But such situation should not happen.
+__attribute__((noinline))
 char* dup_stack(char* sp) {
     char* new_stack = get_stack();
     size_t num_bytes = STACK_SIZE - (intptr_t)sp % STACK_SIZE;
     char* new_sp = new_stack - num_bytes;
-    // memcpy(new_sp, sp, num_bytes);
-    avx2_memcpy_totally_aligned((void*)ALIGN_DOWN(new_sp, 32), (void*)ALIGN_DOWN(sp, 32), (num_bytes / 32 + 1) * 32);
+    memcpy(new_sp, sp, num_bytes);
+    // avx2_memcpy_totally_aligned((void*)ALIGN_DOWN(new_sp, 32), (void*)ALIGN_DOWN(sp, 32), (num_bytes / 32 + 1) * 32);
     return new_sp;
 }
