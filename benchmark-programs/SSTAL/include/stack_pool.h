@@ -25,8 +25,7 @@ char* get_stack() {
     int index = __builtin_ffsll(bitmap);
     if (index == 0) {
         // Out of stack space
-        exit(1);
-        // return (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
+        return (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
     }
     index -= 1;
     bitmap &= ~(1 << index);
@@ -35,8 +34,15 @@ char* get_stack() {
 
 __attribute__((noinline))
 void free_stack(char* stack) {
-    int index = ((intptr_t)stack - (intptr_t)buffer - 1) / STACK_SIZE;
-    bitmap |= (1 << index);
+    if (stack >= buffer && stack < buffer + (STACK_SIZE * PREALLOCATED_STACKS)) {
+        int index = ((intptr_t)stack - (intptr_t)buffer) / STACK_SIZE;
+        bitmap |= (1 << index);
+    } else {
+        // NB: why -1? Think what should happen when an empty stack is freeed.
+        // Because an empty stack is +STACK_SIZE from the beginning of the buffer,
+        // If we don't -1, the stack pointer will be pointing to the start of the next stack.
+        free((void*)(((intptr_t)stack - 1) / STACK_SIZE * STACK_SIZE));
+    }
 }
 
 // Does not work for an empty stack. But such situation should not happen.
@@ -46,6 +52,5 @@ char* dup_stack(char* sp) {
     size_t num_bytes = STACK_SIZE - (intptr_t)sp % STACK_SIZE;
     char* new_sp = new_stack - num_bytes;
     memcpy(new_sp, sp, num_bytes);
-    // avx2_memcpy_totally_aligned((void*)ALIGN_DOWN(new_sp, 32), (void*)ALIGN_DOWN(sp, 32), (num_bytes / 32 + 1) * 32);
     return new_sp;
 }
