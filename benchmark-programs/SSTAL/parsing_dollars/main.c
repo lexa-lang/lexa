@@ -5,33 +5,17 @@
 #include <string.h>
 #include <longjmp.h>
 
-//TODO: Investigate how to set to smaller
-#define STACK_SIZE 4096
-
 typedef struct node {
     int value;
     struct node* next;
 } node;
 
 typedef struct {
-  intptr_t *funcs; // fail, pick
-  intptr_t *env; // n
-  mp_jmpbuf_t ctx_jb;
-  mp_jmpbuf_t rsp_jb;
-} handler_t;
+  mp_jmpbuf_t *ctx_jb;
+  mp_jmpbuf_t *rsp_jb;
+} exchanger_t;
 
-typedef struct {
-  bool is_ret;
-  union {
-    intptr_t ret_val;
-    struct {
-      size_t index;
-      intptr_t arg;
-    } invocation;
-  } payload;
-} ctr_ctx_t;
-
-ctr_ctx_t ctr_ctx;
+static intptr_t ret_val;
 
 #define newline 10
 #define dollar 36
@@ -158,8 +142,11 @@ int sum(int (*action)(handler_t*, intptr_t*), intptr_t *action_env) {
   return *s;
 }
 
-int sum_action(handler_t* emit_stub, intptr_t env[1]) {
-  intptr_t n = env[0];
+int sum_action(intptr_t self_env[1], 
+  void (*const emit)(const env_t* const, exchanger_t*, int),
+  const env_t* const emit_env,
+  exchanger_t *emit_exchanger) {
+  intptr_t n = self_env[0];
   intptr_t action_env[2] = {n, (intptr_t)emit_stub};
   return catch(&catch_action, action_env);
 }
