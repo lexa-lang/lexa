@@ -6,15 +6,22 @@
 #include <longjmp.h>
 #include <stack_pool.h>
 
-typedef struct node {
-    int value;
-    struct node* next;
-} node;
-
 typedef struct {
   mp_jmpbuf_t *ctx_jb;
   mp_jmpbuf_t *rsp_jb;
 } exchanger_t;
+
+typedef struct {
+  void (*fail)(const intptr_t* const, exchanger_t*, int);
+  void (*pick)(const intptr_t* const, exchanger_t*, int);
+  const intptr_t* env;
+  exchanger_t* exchanger;
+} handler_t;
+
+typedef struct node {
+    int value;
+    struct node* next;
+} node;
 
 static intptr_t ret_val;
 
@@ -40,25 +47,21 @@ bool safe(int queen, int diag, node* xs) {
   }
 }
 
-static node* place(
-  void (*const fail)(const intptr_t* const, exchanger_t*, int),
-  void (*const pick)(const intptr_t* const, exchanger_t*, int),
-  const intptr_t* const env,
-  exchanger_t *exchanger, int size, int column) {
+static node* place(handler_t* stub, int size, int column) {
   if (column == 0) {
     return NULL;
   } else {
     int next;
-    node* rest = place(fail, pick, env, exchanger, size, column - 1);
+    node* rest = place(stub, size, column - 1);
     // Invoke pick
     mp_jmpbuf_t* rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t));
-    exchanger->rsp_jb = rsp_jb;
-    if (mp_setjmp(exchanger->rsp_jb) == 0) {
+    stub->exchanger->rsp_jb = rsp_jb;
+    if (mp_setjmp(stub->exchanger->rsp_jb) == 0) {
       __asm__ (
         "movq %0, %%rsp\n\t"
-        :: "r"(exchanger->ctx_jb->reg_sp)
+        :: "r"(stub->exchanger->ctx_jb->reg_sp)
       );
-      pick(env, exchanger, size);
+      stub->pick(stub->env, stub->exchanger, size);
       __builtin_unreachable();
     } else {
       next = ret_val;
@@ -72,23 +75,19 @@ static node* place(
     } else {
       __asm__ (
         "movq %0, %%rsp\n\t"
-        :: "r"(exchanger->ctx_jb->reg_sp)
+        :: "r"(stub->exchanger->ctx_jb->reg_sp)
       );
-      fail(env, exchanger, 0);
+      stub->fail(stub->env, stub->exchanger, 0);
       __builtin_unreachable();
     }
   }
 }
 
 __attribute__((preserve_none))
-static void body(
-  void (*const fail)(const intptr_t* const, exchanger_t*, int),
-  void (*const pick)(const intptr_t* const, exchanger_t*, int),
-  const intptr_t* const env,
-  exchanger_t *exchanger) {
-  place(fail, pick, env, exchanger, env[0], env[0]);
+static void body(handler_t* stub) {
+  place(stub, stub->env[0], stub->env[0]);
   ret_val = 1;
-  mp_longjmp(exchanger->ctx_jb);
+  mp_longjmp(stub->exchanger->ctx_jb);
   __builtin_unreachable();
 }
 
@@ -136,12 +135,19 @@ int run(int n){
   intptr_t* env = (intptr_t*)xmalloc(sizeof(intptr_t));
   env[0] = n;
 
-  exchanger_t* exchanger = (exchanger_t*)xmalloc(sizeof(exchanger_t));
-
   int out;
 
   mp_jmpbuf_t* my_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t));
+
+  exchanger_t* exchanger = (exchanger_t*)xmalloc(sizeof(exchanger_t));
   exchanger->ctx_jb = my_jb;
+  exchanger->rsp_jb = NULL;
+
+  handler_t* stub = (handler_t*)xmalloc(sizeof(handler_t));
+  stub->fail = fail;
+  stub->pick = pick;
+  stub->env = env;
+  stub->exchanger = exchanger;
 
   char* new_stack = get_stack();
   if (mp_setjmp(my_jb) == 0) {
@@ -150,7 +156,7 @@ int run(int n){
       :: "r"(new_stack)
       : "rsp" // have to clobber rsp because we use rsp addressing in &exchanger
     );
-    body(fail, pick, env, exchanger);
+    body(stub);
     __builtin_unreachable();
   } else {
     out = ret_val;
