@@ -25,14 +25,22 @@ typedef struct node {
 
 static intptr_t ret_val;
 
-void* xmalloc(size_t size) {
-  void* p = malloc(size);
-  if (!p) {
-    fprintf(stderr, "Memory allocation failed\n");
-    exit(EXIT_FAILURE);
-  }
-  return p;
-}
+#define xmalloc(size) ({                \
+    void *_ptr = malloc(size);          \
+    if (_ptr == NULL) {                 \
+        exit(EXIT_FAILURE);             \
+    }                                   \
+    _ptr;                               \
+})
+
+// void* xmalloc(size_t size) {
+//   void* p = malloc(size);
+//   if (!p) {
+//     fprintf(stderr, "Memory allocation failed\n");
+//     exit(EXIT_FAILURE);
+//   }
+//   return p;
+// }
 
 bool safe(int queen, int diag, node* xs) {
   void *rsp;
@@ -47,7 +55,7 @@ bool safe(int queen, int diag, node* xs) {
   }
 }
 
-static node* place(handler_t* stub, int size, int column) {
+static node* place(handler_t* restrict stub, int size, int column) {
   if (column == 0) {
     return NULL;
   } else {
@@ -83,8 +91,8 @@ static node* place(handler_t* stub, int size, int column) {
   }
 }
 
-__attribute__((preserve_none))
-static void body(handler_t* stub) {
+// __attribute__((preserve_none))
+static void body(handler_t* restrict stub) {
   place(stub, stub->env[0], stub->env[0]);
   ret_val = 1;
   mp_longjmp(stub->exchanger->ctx_jb);
@@ -154,7 +162,6 @@ int run(int n){
     __asm__(
       "movq %0, %%rsp\n\t"
       :: "r"(new_stack)
-      : "rsp" // have to clobber rsp because we use rsp addressing in &exchanger
     );
     body(stub);
     __builtin_unreachable();
