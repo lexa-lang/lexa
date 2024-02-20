@@ -170,6 +170,7 @@
             
             cmake
             ninja
+            hyperfine
             
             valgrind
             jemalloc
