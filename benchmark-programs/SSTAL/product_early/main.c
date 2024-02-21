@@ -5,39 +5,35 @@
 #include <stdbool.h>
 
 typedef struct {
-  //TODO: do not flatten funcs and env
-  intptr_t funcs[1]; // done
-  intptr_t env[1]; // xs
-  mp_jmpbuf_t* jb;
-} closure_t;
+  mp_jmpbuf_t *ctx_jb;
+  mp_jmpbuf_t *rsp_jb;
+} exchanger_t;
+
+typedef struct {
+  void (*func)(const intptr_t* const, exchanger_t*, int64_t);
+  const intptr_t* env;
+  exchanger_t* exchanger;
+} handler_t;
 
 typedef struct node {
-    int value;
+    int64_t value;
     struct node* next;
 } node;
 
-typedef struct {
-  bool is_ret;
-  union {
-    intptr_t ret_val;
-    struct {
-      closure_t* closure;
-      size_t index;
-      intptr_t arg;
-    } invocation;
-  } payload;
-} ctr_ctx_t;
+static intptr_t ret_val;
 
-ctr_ctx_t ctr_ctx;
+#define xmalloc(size) ({                \
+    void *_ptr = malloc(size);          \
+    if (_ptr == NULL) {                 \
+        exit(EXIT_FAILURE);             \
+    }                                   \
+    _ptr;                               \
+})
 
 node* enumerate(int n) {
     node* head = NULL;
     for (int i = 0; i < n; i++) {
-        node* newNode = (node*)malloc(sizeof(node));
-        if (!newNode) {
-            fprintf(stderr, "Memory allocation failed\n");
-            exit(EXIT_FAILURE);
-        }
+        node* newNode = (node*)xmalloc(sizeof(node));
         newNode->value = i;
         newNode->next = head; // New node points to the previous head
         head = newNode; // New node becomes the new head
@@ -45,62 +41,58 @@ node* enumerate(int n) {
     return head; // Return the head of the list
 }
 
-int done(closure_t *handler_closure, int r) {
-  return r;
+void done(const intptr_t* const env, exchanger_t* exc, int64_t r) {
+  ret_val = r;
+  mp_longjmp(exc->ctx_jb);
+  __builtin_unreachable();
 }
 
-int product(closure_t *handler_closure, node* xs) {
+int64_t product(handler_t *done_stub, node* xs) {
   if (xs == NULL) {
-    return 1;
+    return 0;
   } else {
     if (xs->value == 0) {
-      // Invoke the handler
-      ctr_ctx.is_ret = false;
-      ctr_ctx.payload.invocation.closure = handler_closure;
-      ctr_ctx.payload.invocation.index = 0;
-      ctr_ctx.payload.invocation.arg = 0;
-      mp_longjmp(handler_closure->jb);
+      // invoke done
+      __asm__ (
+        "movq %0, %%rsp\n\t"
+        :: "r"(done_stub->exchanger->ctx_jb->reg_sp)
+      );
+      done_stub->func(done_stub->env, done_stub->exchanger, 0);
       __builtin_unreachable();
     } else {
-      // Recurse
-      return xs->value * product(handler_closure, xs->next);
+      return xs->value * product(done_stub, xs->next);
     }
   }
 }
 
-void body(closure_t *handler_closure) {
-  int out = product(handler_closure, (node*)handler_closure->env[0]);
-  ctr_ctx.is_ret = true;
-  ctr_ctx.payload.ret_val = out;
-  mp_longjmp(handler_closure->jb);
+void body(handler_t *done_stub) {
+  int64_t out = product(done_stub, (node*)done_stub->env[0]);
+  ret_val = out;
+
+  mp_longjmp(done_stub->exchanger->ctx_jb);
   __builtin_unreachable();
 }
 
-int runProduct(node* xs) {
-  // Stack-allocate the closure for the handler
-  mp_jmpbuf_t jb;
-  closure_t closure = {(intptr_t)&done, {(intptr_t)xs}, &jb};
-  int out;
-  if (mp_setjmp(closure.jb) == 0) {
-    body(&closure);
+int64_t runProduct(node* xs) {
+  
+  exchanger_t *exc = &(exchanger_t){.ctx_jb = &(mp_jmpbuf_t){}, .rsp_jb = NULL};
+
+  intptr_t done_env[1] = {(intptr_t)xs};
+  handler_t *done_stub = &(handler_t){.func = done, .env = done_env, .exchanger = exc};
+
+  int64_t out;
+  if (mp_setjmp(exc->ctx_jb) == 0) {
+    body(done_stub);
     __builtin_unreachable();
   } else {
-    if (ctr_ctx.is_ret) {
-      out = ctr_ctx.payload.ret_val;
-    } else {
-      closure_t* handler_closure = ctr_ctx.payload.invocation.closure;
-      intptr_t index = ctr_ctx.payload.invocation.index;
-      intptr_t arg = ctr_ctx.payload.invocation.arg;
-      intptr_t* funcs = handler_closure->funcs;
-      out = ((int (*)(closure_t*, intptr_t))funcs[index])(handler_closure, arg);
-    }
+    out = ret_val;
   }
 
   return out;
 }
 
-int run(int n){
-  int a = 0;
+int64_t run(int64_t n) {
+  int64_t a = 0;
   node* xs = enumerate(1000);
   for (int i = 0; i < n; i++) {
     a += runProduct(xs);
@@ -108,7 +100,7 @@ int run(int n){
   return a;
 }
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     int out = run(atoi(argv[1]));
     printf("%d\n", out);
     return 0;
