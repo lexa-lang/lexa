@@ -38,20 +38,14 @@ static intptr_t ret_val;
     _ptr;                               \
 })
 
-void append_helper(node* xs1, node* xs2) {
-  if (xs1->next == NULL) {
-    xs1->next = xs2;
-  } else {
-    append_helper(xs1->next, xs2);
-  }
-}
-
 node* append(node* xs1, node* xs2) {
   if (xs1 == NULL) {
     return xs2;
   } else {
-    append_helper(xs1, xs2);
-    return xs1;
+    node* new_node = (node*)xmalloc(sizeof(node));
+    new_node->value = xs1->value;
+    new_node->next = append(xs1->next, xs2);
+    return new_node;
   }
 }
 
