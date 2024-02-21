@@ -12,18 +12,18 @@ typedef struct {
 } exchanger_t;
 
 typedef struct {
-  void (*func)(const intptr_t* const, exchanger_t*, int);
+  void (*func)(const intptr_t* const, exchanger_t*, int64_t);
   const intptr_t* env;
   exchanger_t* exchanger;
 } handler_t;
 
 typedef struct node {
-    int value;
+    int64_t value;
     struct node* next;
 } node;
 
 typedef struct tree {
-    int value;
+    int64_t value;
     struct tree* left;
     struct tree* right;
 } tree;
@@ -49,11 +49,11 @@ node* append(node* xs1, node* xs2) {
   }
 }
 
-int max(node* xs) {
+int64_t max(node* xs) {
   if (xs == NULL) {
     return 0;
   } else {
-    int m = max(xs->next);
+    int64_t m = max(xs->next);
     if (xs->value > m) {
       return xs->value;
     } else {
@@ -62,7 +62,7 @@ int max(node* xs) {
   }
 }
 
-tree* make(int n) {
+tree* make(int64_t n) {
   if (n == 0) {
     return NULL;
   } else {
@@ -75,11 +75,11 @@ tree* make(int n) {
   }
 }
 
-int operator(int x, int y) {
-  return abs(x - (503 * y) + 37) % 1009;
+int64_t operator(int64_t x, int64_t y) {
+  return labs(x - (503 * y) + 37) % 1009;
 }
 
-void choose(const intptr_t* self_env, exchanger_t* exc, int _) {
+void choose(const intptr_t* self_env, exchanger_t* exc, int64_t _) {
   mp_jmpbuf_t* ctx_jb = exc->ctx_jb;
   mp_jmpbuf_t* rsp_jb = exc->rsp_jb;
   void* rsp_jb_sp = rsp_jb->reg_sp;
@@ -115,8 +115,8 @@ void choose(const intptr_t* self_env, exchanger_t* exc, int _) {
   mp_longjmp(ctx_jb);
 }
 
-int explore(const intptr_t* self_env, handler_t* choose_stub, tree* t) {
-  int* state = (int*)self_env[0];
+int64_t explore(const intptr_t* self_env, handler_t* choose_stub, tree* t) {
+  int64_t* state = (int64_t*)self_env[0];
   if (t == NULL) {
     return *state;
   } else {
@@ -147,10 +147,10 @@ int explore(const intptr_t* self_env, handler_t* choose_stub, tree* t) {
 }
 
 void body(handler_t* choose_stub) {
-  int (*explore_func)(const intptr_t* const, handler_t*, tree*) = (int(*)(const intptr_t* const, handler_t*, tree*))choose_stub->env[1];
+  int64_t (*explore_func)(const intptr_t* const, handler_t*, tree*) = (int64_t(*)(const intptr_t* const, handler_t*, tree*))choose_stub->env[1];
   const intptr_t* explore_env = (const intptr_t*)choose_stub->env[2];
 
-  int result = explore_func(explore_env, choose_stub, (tree*)choose_stub->env[0]);
+  int64_t result = explore_func(explore_env, choose_stub, (tree*)choose_stub->env[0]);
 
   node* n = (node*)xmalloc(sizeof(node));
   n->value = result;
@@ -196,9 +196,9 @@ node* paths(const intptr_t* self_env) {
   return out;
 }
 
-int run(int n){
+int64_t run(int64_t n){
   tree* t = make(n);
-  int* state = (int*)xmalloc(sizeof(int));
+  int64_t* state = (int64_t*)xmalloc(sizeof(int64_t));
   *state = 0;
 
   intptr_t* explore_env = (intptr_t*)xmalloc(sizeof(intptr_t));
@@ -210,7 +210,7 @@ int run(int n){
   paths_env[2] = (intptr_t)explore_env;
 
 
-  for (int i = 10; i != 0; i--) {
+  for (int64_t i = 10; i != 0; i--) {
     *state = max(paths(paths_env));
   }
 
@@ -220,7 +220,7 @@ int run(int n){
 
 int main(int argc, char *argv[]){
     init_stack_pool();
-    int out = run(atoi(argv[1]));
+    int64_t out = run(atoi(argv[1]));
     printf("%d\n", out);
     destroy_stack_pool();
     return 0;
