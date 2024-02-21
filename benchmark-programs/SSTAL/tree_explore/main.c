@@ -108,6 +108,7 @@ void choose(const intptr_t* self_env, exchanger_t* exc, int64_t _) {
   } else {
     result2 = (node*)ret_val;
   }
+  free(rsp_jb);
 
   node* result = append(result1, result2);
   ret_val = (intptr_t)result;
