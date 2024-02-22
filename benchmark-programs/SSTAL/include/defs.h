@@ -38,7 +38,9 @@ typedef struct node {
 typedef void(*HandlerFuncType)(const intptr_t* const, exchanger_t*, int64_t);
 typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
 
-#define RAISE(out, stub, index, arg) \
+#define RAISE(stub, index, arg) \
+    ({ \
+    intptr_t out; \
     switch (stub->defs[index].behavior) { \
         case GENERAL: \
             stub->exchanger->rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t)); \
@@ -63,4 +65,6 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
             ); \
             ((HandlerFuncType)stub->defs[index].func)(stub->env, stub->exchanger, arg); \
             __builtin_unreachable(); \
-    }
+    }; \
+    out; \
+    })

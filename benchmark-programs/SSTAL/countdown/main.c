@@ -17,14 +17,11 @@ int64_t set(intptr_t *env, int64_t n){
 
 // NOTE: declare functions with `static` sometimes helps the compiler to optimize the code
 static int64_t countdown(handler_t* hdl_stub){
-    int64_t out;
-    RAISE(out, hdl_stub, 0, 0);
-    int64_t i = out;
+    int64_t i = RAISE(hdl_stub, 0, 0);
     if(i == 0){
         return i;
     } else {
-        int64_t out;
-        RAISE(out, hdl_stub, 1, i - 1);
+        RAISE(hdl_stub, 1, i - 1);
         // NOTE: due to the presence of `setjmp` in the current function, the compiler refuses to do tail call optimization
         //     so we need to use the `musttail` attribute to force the tail call optimization
         __attribute__((musttail)) return countdown(hdl_stub); 
