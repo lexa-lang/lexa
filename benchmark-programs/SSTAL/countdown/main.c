@@ -5,11 +5,13 @@
 static intptr_t ret_val;
 
 int64_t get(intptr_t *env, int64_t _){
-    return *(int64_t*)env[0];
+    intptr_t *s = (intptr_t*)env[0];
+    return s[0];
 }
 
 int64_t set(intptr_t *env, int64_t n){
-    *(int64_t*)env[0] = n;
+    intptr_t *s = (intptr_t*)env[0];
+    s[0] = n;
     return 0;
 }
 
