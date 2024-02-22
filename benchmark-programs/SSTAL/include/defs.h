@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <longjmp.h>
+#include <stack_pool.h>
 
 typedef struct {
   mp_jmpbuf_t *ctx_jb;
@@ -7,7 +8,8 @@ typedef struct {
 } exchanger_t;
 
 typedef enum {
-    GENERAL = 0,
+    SINGLESHOT = 0,
+    DOUBLESHOT,
     TAIL,
     ABORT
 } behaviour_t;
@@ -21,11 +23,6 @@ typedef struct {
   const intptr_t* env;
   exchanger_t* exchanger;
 } handler_t;
-
-typedef struct node {
-    int64_t value;
-    struct node* next;
-} node;
 
 #define xmalloc(size) ({                \
     void *_ptr = malloc(size);          \
@@ -42,7 +39,8 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
     ({ \
     intptr_t out; \
     switch (stub->defs[index].behavior) { \
-        case GENERAL: \
+        case SINGLESHOT: \
+        case DOUBLESHOT: \
             stub->exchanger->rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t)); \
             if (mp_setjmp(stub->exchanger->rsp_jb) == 0) { \
                 __asm__ ( \
