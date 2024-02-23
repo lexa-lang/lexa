@@ -22,7 +22,7 @@ void done(const intptr_t* const env, exchanger_t* exc, int64_t r) {
   __builtin_unreachable();
 }
 
-int64_t product(handler_t *abort_stub, node_t* xs) {
+static int64_t product(handler_t *abort_stub, node_t* xs) {
   return (listIsEmpty(xs)) ? ({
     0;
   }) : ({
@@ -36,7 +36,7 @@ int64_t product(handler_t *abort_stub, node_t* xs) {
   });
 }
 
-int64_t body(handler_t *abort_stub) {
+static int64_t body(handler_t *abort_stub) {
   ret_val = ({
     product(abort_stub, (node_t*)abort_stub->env[0]);
   });
@@ -45,14 +45,14 @@ int64_t body(handler_t *abort_stub) {
   __builtin_unreachable();
 }
 
-int64_t runProduct(node_t* xs) {
+static int64_t runProduct(node_t* xs) {
   return ({
     intptr_t env[1] = {(intptr_t)xs};
     HANDLE_ONE(body, ABORT, done, env);
   });
 }
 
-int64_t loop(node_t* xs, int64_t i, int64_t a) {
+static int64_t loop(node_t* xs, int64_t i, int64_t a) {
   return (i == 0) ? ({
     a;
   }) : ({
@@ -60,7 +60,7 @@ int64_t loop(node_t* xs, int64_t i, int64_t a) {
   });
 }
 
-int64_t run(int64_t n) {
+static int64_t run(int64_t n) {
   return ({
     node_t* xs = enumerate(1000);
     loop(xs, n, 0);
