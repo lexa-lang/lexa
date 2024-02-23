@@ -8,7 +8,7 @@
 
 static intptr_t ret_val;
 
-tree_t* make(int64_t n) {
+static tree_t* make(int64_t n) {
   return (n == 0) ? ({
     treeLeaf();
   }) : ({
@@ -21,7 +21,7 @@ tree_t* make(int64_t n) {
   });
 }
 
-int64_t operator(int64_t x, int64_t y) {
+static int64_t operator(int64_t x, int64_t y) {
   return mathAbs(x - (503 * y) + 37) % 1009;
 }
 
@@ -37,7 +37,7 @@ void choose(const intptr_t* self_env, exchanger_t* exc, int64_t _) {
   mp_longjmp(ctx_jb);
 }
 
-int64_t explore(intptr_t* const state, tree_t* tree, handler_t* choose_stub) {
+static int64_t explore(intptr_t* const state, tree_t* tree, handler_t* choose_stub) {
   return (treeIsLeaf(tree)) ?
     ({ 
       state[0];
@@ -55,7 +55,7 @@ int64_t explore(intptr_t* const state, tree_t* tree, handler_t* choose_stub) {
     });
 }
 
-int64_t body(handler_t* choose_stub) {
+static int64_t body(handler_t* choose_stub) {
   ret_val = (intptr_t)({
     listNode(
       #pragma clang diagnostic ignored "-Wint-conversion"
@@ -68,13 +68,13 @@ int64_t body(handler_t* choose_stub) {
   __builtin_unreachable();
 }
 
-node_t* paths(intptr_t* const state, tree_t* tree) {
+static node_t* paths(intptr_t* const state, tree_t* tree) {
   intptr_t choose_env[2] = {(intptr_t)state, (intptr_t)tree};
 
   return (node_t*)HANDLE_ONE(body, MULTISHOT, choose, choose_env);
 }
 
-int64_t loop(intptr_t* const state, tree_t* tree, int64_t i) {
+static int64_t loop(intptr_t* const state, tree_t* tree, int64_t i) {
   return (i == 0) ? ({
     state[0];
   }) : ({
@@ -83,7 +83,7 @@ int64_t loop(intptr_t* const state, tree_t* tree, int64_t i) {
   });
 }
 
-int64_t run(int64_t n){
+static int64_t run(int64_t n){
   tree_t* tree = make(n);
 
   int64_t* state = (int64_t*)xmalloc(sizeof(int64_t) * 1);
