@@ -16,15 +16,15 @@ int64_t set(intptr_t *env, int64_t n){
 }
 
 // NOTE: declare functions with `static` sometimes helps the compiler to optimize the code
-static int64_t countdown(handler_t* hdl_stub){
-    int64_t i = RAISE(hdl_stub, 0, 0);
+static int64_t countdown(handler_t* state_stub){
+    int64_t i = RAISE(state_stub, 0, 0);
     if(i == 0){
         return i;
     } else {
-        RAISE(hdl_stub, 1, i - 1);
+        RAISE(state_stub, 1, i - 1);
         // NOTE: due to the presence of `setjmp` in the current function, the compiler refuses to do tail call optimization
         //     so we need to use the `musttail` attribute to force the tail call optimization
-        __attribute__((musttail)) return countdown(hdl_stub); 
+        __attribute__((musttail)) return countdown(state_stub); 
     }
 }
 
@@ -36,18 +36,8 @@ static int64_t run(int64_t n){
     int64_t* s = (int64_t*)xmalloc(1 * sizeof(int64_t));
     *s = n;
 
-    // NOTE: let's always allocate handler stubs on the stack. Only in very rare cases we need to allocate it on the heap,
-    //     and let's not worry about that for now.
-    // stack allocate the handles' definitions
-    handler_def_t hdl_defs[2] = {{TAIL, (void*)get}, {TAIL, (void*)set}};
-    // stack allocate the handler and handle body's environment
-    intptr_t hdl_env[1] = {(intptr_t)s};
-    // stack allocate the handler struct
-    // NOTE: the `exchanger` field is set to `NULL` because all handlers we have are tail-recursive
-    handler_t *hdl_stub = &(handler_t){.defs = hdl_defs, .env = hdl_env, .exchanger = NULL};
-    // run the handle body
-    int64_t out = countdown(hdl_stub);
-    return out;
+    intptr_t env[1] = {(intptr_t)s};
+    return HANDLE_TWO(countdown, TAIL, (void*)get, TAIL, (void*)set, env);
 }
 
 int main(int argc, char *argv[]){

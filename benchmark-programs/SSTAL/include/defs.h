@@ -8,10 +8,10 @@ typedef struct {
 } exchanger_t;
 
 typedef enum {
-    SINGLESHOT = 0,
-    MULTISHOT,
-    TAIL,
-    ABORT
+    SINGLESHOT = 1 << 0,
+    MULTISHOT = 1 << 1,
+    TAIL = 1 << 2,
+    ABORT = 1 << 3
 } handler_mode_t;
 
 typedef struct {
@@ -54,6 +54,36 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
         exc.ctx_jb = &ctx_jb; \
         handler_t *stub = &(handler_t){defs, env, &exc}; \
         if (mode == MULTISHOT || mode == SINGLESHOT) { \
+            char* new_sp = get_stack(); \
+            if (mp_setjmp(exc.ctx_jb) == 0) { \
+                SWITCH_SP(new_sp); \
+                body(stub); \
+                __builtin_unreachable(); \
+            } \
+            free_stack(new_sp); \
+            free(exc.rsp_jb); \
+        } else { \
+            body(stub); \
+            __builtin_unreachable(); \
+        } \
+        out = (intptr_t)ret_val; \
+    } \
+    out; \
+    })
+
+#define HANDLE_TWO(body, mode1, func1, mode2, func2, env) \
+    ({ \
+    intptr_t out; \
+    handler_def_t defs[2] = {{mode1, (void*)func1}, {mode2, (void*)func2}}; \
+    if ((mode1 | mode2) == TAIL) { \
+        handler_t *stub = &(handler_t){defs, env, NULL}; \
+        out = body(stub); \
+    } else { \
+        exchanger_t exc; \
+        mp_jmpbuf_t ctx_jb; \
+        exc.ctx_jb = &ctx_jb; \
+        handler_t *stub = &(handler_t){defs, env, &exc}; \
+        if ((mode1 | mode2 & MULTISHOT) || (mode1 | mode2 & SINGLESHOT)) { \
             char* new_sp = get_stack(); \
             if (mp_setjmp(exc.ctx_jb) == 0) { \
                 SWITCH_SP(new_sp); \
