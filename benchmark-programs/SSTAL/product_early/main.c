@@ -29,6 +29,8 @@ static int64_t product(handler_t *abort_stub, node_t* xs) {
     int64_t y = listHead(xs);
     node_t* ys = listTail(xs);
     (y == 0) ? ({
+      // TODO: RAISE introduces returns_twice which prohibits optimziation.
+      // Fixit.
       RAISE(abort_stub, 0, 0);
     }): ({
       y * product(abort_stub, ys);
