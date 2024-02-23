@@ -61,7 +61,6 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
                 __builtin_unreachable(); \
             } \
             free_stack(new_sp); \
-            free(exc.rsp_jb); \
         } else { \
             body(stub); \
             __builtin_unreachable(); \
@@ -91,7 +90,6 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
                 __builtin_unreachable(); \
             } \
             free_stack(new_sp); \
-            free(exc.rsp_jb); \
         } else { \
             body(stub); \
             __builtin_unreachable(); \
@@ -159,6 +157,7 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
     } else { \
         out = (intptr_t)ret_val; \
     } \
+    free(rsp_jb); \
     out; \
     })
 
