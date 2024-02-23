@@ -12,10 +12,10 @@ typedef enum {
     MULTISHOT,
     TAIL,
     ABORT
-} behaviour_t;
+} handler_mode_t;
 
 typedef struct {
-  const behaviour_t behavior;
+  const handler_mode_t mode;
   const void *func;
 } handler_def_t;
 typedef struct {
@@ -35,38 +35,51 @@ typedef struct {
 typedef void(*HandlerFuncType)(const intptr_t* const, exchanger_t*, int64_t);
 typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
 
-#define HANDLE(stub, body) \
+#define SWITCH_SP(sp) \
+    __asm__ ( \
+        "movq %0, %%rsp\n\t" \
+        :: "r"(sp) : "rsp" \
+    )
+
+#define HANDLE_ONE(body, mode, func, env) \
     ({ \
     intptr_t out; \
-    mp_jmpbuf_t ctx_jb; \
-    stub->exchanger->ctx_jb = &ctx_jb; \
-    char* new_sp = get_stack(); \
-    if (mp_setjmp(stub->exchanger->ctx_jb) == 0) { \
-        __asm__ ( \
-            "movq %0, %%rsp\n\t" \
-            :: "r"(new_sp) \
-        ); \
-        body(stub); \
-        __builtin_unreachable(); \
+    handler_def_t defs[1] = {{mode, (void*)func}}; \
+    if (mode == TAIL) { \
+        handler_t *stub = &(handler_t){defs, env, NULL}; \
+        out = body(stub); \
     } else { \
+        exchanger_t exc; \
+        mp_jmpbuf_t ctx_jb; \
+        exc.ctx_jb = &ctx_jb; \
+        handler_t *stub = &(handler_t){defs, env, &exc}; \
+        if (mode == MULTISHOT || mode == SINGLESHOT) { \
+            char* new_sp = get_stack(); \
+            if (mp_setjmp(exc.ctx_jb) == 0) { \
+                SWITCH_SP(new_sp); \
+                body(stub); \
+                __builtin_unreachable(); \
+            } \
+            free_stack(new_sp); \
+            free(exc.rsp_jb); \
+        } else { \
+            body(stub); \
+            __builtin_unreachable(); \
+        } \
         out = (intptr_t)ret_val; \
     } \
-    free_stack(new_sp); \
     out; \
     })
 
 #define RAISE(stub, index, arg) \
     ({ \
     intptr_t out; \
-    switch (stub->defs[index].behavior) { \
+    switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
             stub->exchanger->rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t)); \
             if (mp_setjmp(stub->exchanger->rsp_jb) == 0) { \
-                __asm__ ( \
-                    "movq %0, %%rsp\n\t" \
-                    :: "r"(stub->exchanger->ctx_jb->reg_sp) \
-                ); \
+                SWITCH_SP(stub->exchanger->ctx_jb->reg_sp); \
                 ((HandlerFuncType)stub->defs[index].func)(stub->env, stub->exchanger, arg); \
                 __builtin_unreachable(); \
             } else { \
@@ -78,10 +91,7 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
             out = ((TailHandlerFuncType)stub->defs[index].func)(stub->env, arg); \
             break; \
         case ABORT: \
-            __asm__ ( \
-                "movq %0, %%rsp\n\t" \
-                :: "r"(stub->exchanger->ctx_jb->reg_sp) \
-            ); \
+            SWITCH_SP(stub->exchanger->ctx_jb->reg_sp); \
             ((HandlerFuncType)stub->defs[index].func)(stub->env, stub->exchanger, arg); \
             __builtin_unreachable(); \
     }; \
