@@ -55,7 +55,7 @@ int64_t explore(intptr_t* const state, tree_t* tree, handler_t* choose_stub) {
     });
 }
 
-void body(handler_t* choose_stub) {
+int64_t body(handler_t* choose_stub) {
   ret_val = (intptr_t)({
     listNode(
       #pragma clang diagnostic ignored "-Wint-conversion"
@@ -69,16 +69,9 @@ void body(handler_t* choose_stub) {
 }
 
 node_t* paths(intptr_t* const state, tree_t* tree) {
-  
-
-  exchanger_t exc;
-
-  handler_def_t choose_defs[1] = {{MULTISHOT, (void*)choose}};
   intptr_t choose_env[2] = {(intptr_t)state, (intptr_t)tree};
-  handler_t choose_closure = {choose_defs, choose_env, &exc};
-  handler_t* choose_stub = &choose_closure;
 
-  return (node_t*)HANDLE(choose_stub, body);
+  return (node_t*)HANDLE_ONE(body, MULTISHOT, choose, choose_env);
 }
 
 int64_t loop(intptr_t* const state, tree_t* tree, int64_t i) {
