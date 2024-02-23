@@ -50,8 +50,10 @@ def paths(state: <Int>, tree: Tree): List<Int> {
             ~listNode({explore({env[0]}, {env[1]})}, 
                      {~listEnd()})
         }
-    with general fn(env: <<Int>, Tree>, _: Int, k: Resumption) {
-        ~listAppend( { throw k True }, { throw k False } )
+    with Choose {
+        general choose(env: <<Int>, Tree>, _: Int, k: Resumption) {
+            ~listAppend( { throw k True }, { throw k False } )
+        }
     }
 }
 
