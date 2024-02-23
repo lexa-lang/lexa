@@ -41,7 +41,6 @@ static int64_t run(int64_t n){
 }
 
 int main(int argc, char *argv[]){
-    int64_t out = run(atoi(argv[1]));
-    printf("%ld\n", out);
+    printInt(run(readInt()));
     return 0;
 }

@@ -73,9 +73,5 @@ def run(n: Int): Int {
 }
 
 def main() = {
-    let n: Int = ~readInt() in {
-        let r: Int = run(n) in {
-            ~printInt(r)
-        }
-    }
+    ~printInt(run(~readInt()))
 }

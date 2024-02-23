@@ -25,9 +25,5 @@ def run(n) {
 }
 
 def main() = {
-    let n = ~readInt in { // `~` denotes builtin functions
-        let r = run n in {
-            ~printInt r
-        }
-    }
+    ~printInt(run(~readInt()))
 }

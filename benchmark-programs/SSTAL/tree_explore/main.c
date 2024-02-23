@@ -95,8 +95,7 @@ int64_t run(int64_t n){
 
 int main(int argc, char *argv[]){
     init_stack_pool();
-    int64_t out = run(atoi(argv[1]));
-    printf("%ld\n", out);
+    printInt(run(readInt()));
     destroy_stack_pool();
     return 0;
 }

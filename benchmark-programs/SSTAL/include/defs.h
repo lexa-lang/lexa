@@ -165,3 +165,6 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
 int64_t mathAbs(int64_t a) {
   return labs(a);
 }
+
+#define readInt() atoi(argv[1])
+#define printInt(x) printf("%ld\n", x)
