@@ -38,7 +38,7 @@ void choose(const intptr_t* self_env, exchanger_t* exc, int64_t _) {
 }
 
 static int64_t explore(intptr_t* const state, tree_t* tree, handler_t* choose_stub) {
-  return (treeIsLeaf(tree)) ?
+  return (treeIsEmpty(tree)) ?
     ({ 
       state[0];
     }) 

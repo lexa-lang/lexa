@@ -32,6 +32,18 @@ node_t* listEnd() {
   return NULL;
 }
 
+bool listIsEmpty(node_t* xs) {
+  return xs == NULL;
+}
+
+int64_t listHead(node_t* xs) {
+  return xs->value;
+}
+
+node_t* listTail(node_t* xs) {
+  return xs->next;
+}
+
 node_t* listAppend(node_t* xs1, node_t* xs2) {
   if (xs1 == NULL) {
     return xs2;
@@ -58,7 +70,7 @@ tree_t* treeLeaf() {
   return NULL;
 }
 
-bool treeIsLeaf(tree_t* t) {
+bool treeIsEmpty(tree_t* t) {
   return t == NULL;
 }
 

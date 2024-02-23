@@ -1,0 +1,77 @@
+type Tree;
+dcl treeLeaf : () -> Tree;
+dcl treeNode : (Tree, Int, Tree) -> Tree;
+dcl treeIsEmpty : Tree -> Bool;
+dcl treeLeft : Tree -> Tree;
+dcl treeRight : Tree -> Tree;
+dcl treeValue : Tree -> Int;
+type List;
+dcl listNode : (Int, List) -> List;
+dcl listEnd : () -> List;
+dcl listHead : List -> Int;
+dcl listTail : List -> List;
+dcl listAppend : (List, List) -> List;
+dcl listMax : List -> Int;
+
+dcl readInt : () -> Int;
+dcl printInt : Int -> ();
+dcl mathAbs : Int -> Int;
+
+effect Abort {
+  dcl done
+}
+
+def product(xs: List): Int / Abort {
+    if (~listIsEmpty(xs)) {
+        0
+    } else {
+        let y: Int = ~listHead(xs) in {
+        let ys: List = ~listTail(xs) in {
+            if (y == 0) {
+                raise done 0
+            } else {
+                y * product(ys)
+            }
+        }
+        }
+    }
+}
+
+def enumerate(i: Int): List {
+    if (i < 0) {
+        ~listEnd()
+    } else {
+        ~listNode(i, enumerate(i - 1))
+    }
+}
+
+
+def runProduct(xs: List): Int {
+    handle <xs>
+        fn(env: <<List>>) {
+            product({env[0]})
+        }
+    with Abort {
+        abortive done(env: <<List>>, r: Int) {
+            r
+        }
+    }
+}
+
+def loop(xs: List, i: Int, a: Int): Int {
+    if (i == 0) {
+        a
+    } else {
+        loop(xs, i - 1, a + runProduct(xs))
+    }
+}
+
+def run(n: Int): Int {
+    let xs: List = enumerate(1000) in {
+        loop(xs, n, 0)
+    }
+}
+
+def main() = {
+    ~printInt(run(~readInt()))
+}
