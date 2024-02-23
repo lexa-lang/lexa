@@ -1,24 +1,30 @@
+effect State {
+    dcl get
+    dcl set
+}
 
-def countdown (h) { // `def` defines top-level functions
-    let i = raise h^0 0 in // raising the 0th handler of h. Our language support installing multiple handlers at the same delimiter
+def countdown() / State {
+    let i = raise get 0 in
     if (i == 0) {
         i
     } else {
-        raise h^1 (i-1); // semi-colon is a syntactic sugar for `let _ = ... in ...`
+        raise set (i-1);
         countdown h
     }
 }
 
-def run (n) {
+def run(n) {
     let s = newref <n> in {
         handle <s>
-            fn(env, hdl) { countdown(hdl) } // env is not used in the body
-        with tail fn(env, _) { let s = env[0] in { s[0] } }
-        with tail fn(env, i) { let s = env[0] in { s[0] := i; 0 } }
+            fn(env) { countdown() }
+        with State {
+            tail get(env, _) { let s = env[0] in { s[0] } }
+            tail set(env, i) { let s = env[0] in { s[0] := i; 0 } }
+        }
     }
 }
 
-def main() = { // `main` is a special top-level function that is the entry point of the program
+def main() = {
     let n = ~readInt in { // `~` denotes builtin functions
         let r = run n in {
             ~printInt r

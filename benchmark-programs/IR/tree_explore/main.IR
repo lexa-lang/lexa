@@ -15,6 +15,10 @@ dcl readInt : () -> Int;
 dcl printInt : Int -> ();
 dcl mathAbs : Int -> Int;
 
+effect Choose {
+  dcl choose
+}
+
 def operator(x: Int, y: Int): Int {
     {~mathAbs(x - (503 * y) + 37)} % 1009
 }
@@ -29,11 +33,11 @@ def make(n: Int): Tree {
     }
 }
 
-def explore(state: <Int>, tree: Tree, h: Handler): Int {
+def explore(state: <Int>, tree: Tree): Int / Choose {
     if (~treeIsLeaf(tree)) {
         state[0]
     } else {
-      let next: Tree = { if (raise h^0 0) { ~treeLeft(tree) } else { ~treeRight(tree) } } in {
+      let next: Tree = { if (raise choose 0) { ~treeLeft(tree) } else { ~treeRight(tree) } } in {
           state[0] := operator(state[0], ~treeValue(tree));
           operator(~treeValue(tree), explore(state, next, h))
       }
@@ -42,8 +46,8 @@ def explore(state: <Int>, tree: Tree, h: Handler): Int {
 
 def paths(state: <Int>, tree: Tree): List<Int> {
     handle <state, tree>
-        fn(env: <<Int>, Tree>, hdl: Handler) {
-            ~listNode({explore({env[0]}, {env[1]}, hdl)}, 
+        fn(env: <<Int>, Tree>) {
+            ~listNode({explore({env[0]}, {env[1]})}, 
                      {~listEnd()})
         }
     with general fn(env: <<Int>, Tree>, _: Int, k: Resumption) {
