@@ -1,0 +1,77 @@
+type Tree;
+dcl treeLeaf : () -> Tree;
+dcl treeNode : (Tree, Int, Tree) -> Tree;
+dcl treeIsLeaf : Tree -> Bool;
+dcl treeLeft : Tree -> Tree;
+dcl treeRight : Tree -> Tree;
+dcl treeValue : Tree -> Int;
+type List;
+dcl listNode : (Int, List) -> List;
+dcl listEnd : () -> List;
+dcl listAppend : (List, List) -> List;
+dcl listMax : List -> Int;
+
+dcl readInt : () -> Int;
+dcl printInt : Int -> ();
+dcl mathAbs : Int -> Int;
+
+def operator(x: Int, y: Int): Int {
+    {~mathAbs(x - (503 * y) + 37)} % 1009
+}
+
+def make(n: Int): Tree {
+    if (n == 0) {
+        ~treeLeaf()
+    } else {
+        let t: Tree = make(n - 1) in {
+            ~treeNode(t, n, t)
+        }
+    }
+}
+
+def explore(state: <Int>, tree: Tree, h: Handler): Int {
+    if (~treeIsLeaf(tree)) {
+        state[0]
+    } else {
+      let next: Tree = { if (raise h^0 0) { ~treeLeft(tree) } else { ~treeRight(tree) } } in {
+          state[0] := operator(state[0], ~treeValue(tree));
+          operator(~treeValue(tree), explore(state, next, h))
+      }
+    }
+}
+
+def paths(state: <Int>, tree: Tree): List<Int> {
+    handle <state, tree>
+        fn(env: <<Int>, Tree>, hdl: Handler) {
+            ~listNode({explore({env[0]}, {env[1]}, hdl)}, 
+                     {~listEnd()})
+        }
+    with general fn(env: <<Int>, Tree>, _: Int, k: Resumption) {
+        ~listAppend( { throw k True }, { throw k False } )
+    }
+}
+
+def loop(state: <Int>, tree: Tree, i: Int): Int {
+    if (i == 0) {
+        state[0]
+    } else {
+        state[0] := ~listMax({paths(state, tree)});
+        loop(state, tree, i - 1)
+    }
+}
+
+def run(n: Int): Int {
+    let tree: Tree = make(n) in {
+    let state: <Int> = newref <0> in {
+        loop(state, tree, n)
+    }
+    }
+}
+
+def main() = {
+    let n: Int = ~readInt() in {
+        let r: Int = run(n) in {
+            ~printInt(r)
+        }
+    }
+}
