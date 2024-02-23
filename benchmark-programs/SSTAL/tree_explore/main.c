@@ -31,7 +31,7 @@ void choose(const intptr_t* self_env, exchanger_t* exc, int64_t _) {
   void* rsp_sp = rsp_jb->reg_sp;
 
   node_t* result = listAppend((node_t*)THROW(rsp_jb, rsp_sp, exc, true), 
-                              (node_t*)FINAL_THROW(rsp_jb, exc, false));
+                              (node_t*)FINAL_THROW(rsp_jb, rsp_sp, exc, false));
   ret_val = (intptr_t)result;
 
   mp_longjmp(ctx_jb);

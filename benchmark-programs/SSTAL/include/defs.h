@@ -106,12 +106,13 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
     out; \
     })
 
-#define FINAL_THROW(rsp_jb, exc, arg) \
+#define FINAL_THROW(rsp_jb, rsp_sp, exc, arg) \
     ({ \
     ret_val = arg; \
     intptr_t out; \
     mp_jmpbuf_t new_ctx_jb; \
     exc->ctx_jb = &new_ctx_jb; \
+    rsp_jb->reg_sp = (void*)rsp_sp; \
     if (mp_setjmp(exc->ctx_jb) == 0) { \
         mp_longjmp(rsp_jb); \
         __builtin_unreachable(); \
