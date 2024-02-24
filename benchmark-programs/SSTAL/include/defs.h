@@ -35,11 +35,37 @@ typedef struct {
 typedef void(*HandlerFuncType)(const intptr_t* const, exchanger_t*, int64_t);
 typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
 
+extern intptr_t ret_val;
+
 #define SWITCH_SP(sp) \
     __asm__ ( \
         "movq %0, %%rsp\n\t" \
         :: "r"(sp) : "rsp" \
     )
+
+__attribute__((noinline)) // ensure that caller-saved registers are saved by the prologue
+int64_t save_switch_and_run(mp_jmpbuf_t* jb, void* sp, HandlerFuncType func, const intptr_t* const env, exchanger_t* exc, int64_t arg) {
+    __asm__ (
+        "leaq    (%%rsp), %%rcx      \n\t"
+        "movq    %%rax,  0(%%rdi)      \n\t"
+        "movq    %%rbx,  8(%%rdi)    \n\t"
+        "movq    %%rcx, 16(%%rdi)    \n\t"
+        "movq    %%rbp, 24(%%rdi)    \n\t"
+        "movq    %%r12, 32(%%rdi)    \n\t"
+        "movq    %%r13, 40(%%rdi)    \n\t"
+        "movq    %%r14, 48(%%rdi)    \n\t"
+        "movq    %%r15, 56(%%rdi)    \n\t"
+        :: "D" (jb), "A" (&&cont) : "rcx"
+    );
+    __asm__ (
+        "movq %0, %%rsp\n\t"
+        :: "r"(sp) : "rsp"
+    );
+    func(env, exc, arg);
+    __builtin_unreachable();
+cont:
+    return ret_val;
+}
 
 #define HANDLE_ONE(body, mode, func, env) \
     ({ \
@@ -110,13 +136,7 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
         case SINGLESHOT: \
         case MULTISHOT: {\
             stub->exchanger->rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t)); \
-            if (mp_setjmp(stub->exchanger->rsp_jb) == 0) { \
-                SWITCH_SP(stub->exchanger->ctx_jb->reg_sp); \
-                ((HandlerFuncType)stub->defs[index].func)(stub->env, stub->exchanger, arg); \
-                __builtin_unreachable(); \
-            } else { \
-                out = (int64_t)ret_val; \
-            } \
+            out = save_switch_and_run(stub->exchanger->rsp_jb, stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub->env, stub->exchanger, arg); \
             break; \
         } \
         case TAIL: \
