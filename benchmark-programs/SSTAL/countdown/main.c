@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <defs.h>
 
-static intptr_t ret_val;
+intptr_t ret_val;
 
 int64_t get(intptr_t *env, int64_t _){
     intptr_t *s = (intptr_t*)env[0];

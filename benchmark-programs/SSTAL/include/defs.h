@@ -43,26 +43,28 @@ extern intptr_t ret_val;
         :: "r"(sp) : "rsp" \
     )
 
-__attribute__((noinline)) // ensure that caller-saved registers are saved by the prologue
+// This function is used in place of setjmp, and therefore avoids the setjmp's returns_twice attribute from
+// preventing optimizations. Being a setjmp-like function, we need to ensure that the caller-saved
+// registers are saved by the prologue, so we use the noinline attribute to prevent inlining.
+__attribute__((noinline))
 int64_t save_switch_and_run(mp_jmpbuf_t* jb, void* sp, HandlerFuncType func, const intptr_t* const env, exchanger_t* exc, int64_t arg) {
     __asm__ (
-        "leaq    (%%rsp), %%rcx      \n\t"
-        "movq    %%rax,  0(%%rdi)      \n\t"
-        "movq    %%rbx,  8(%%rdi)    \n\t"
-        "movq    %%rcx, 16(%%rdi)    \n\t"
-        "movq    %%rbp, 24(%%rdi)    \n\t"
-        "movq    %%r12, 32(%%rdi)    \n\t"
-        "movq    %%r13, 40(%%rdi)    \n\t"
-        "movq    %%r14, 48(%%rdi)    \n\t"
-        "movq    %%r15, 56(%%rdi)    \n\t"
-        :: "D" (jb), "A" (&&cont) : "rcx"
+        "movq    %1,  0(%0)      \n\t"
+        "movq    %%rbx,  8(%0)    \n\t"
+        "leaq    (%%rsp), %1      \n\t"
+        "movq    %1, 16(%0)    \n\t"
+        "movq    %%rbp, 24(%0)    \n\t"
+        "movq    %%r12, 32(%0)    \n\t"
+        "movq    %%r13, 40(%0)    \n\t"
+        "movq    %%r14, 48(%0)    \n\t"
+        "movq    %%r15, 56(%0)    \n\t"
+        :: "r" (jb), "r" (&&cont)
     );
     __asm__ (
         "movq %0, %%rsp\n\t"
         :: "r"(sp) : "rsp"
     );
     func(env, exc, arg);
-    __builtin_unreachable();
 cont:
     return ret_val;
 }

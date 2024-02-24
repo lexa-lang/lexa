@@ -6,7 +6,7 @@
 #include <defs.h>
 #include <datastructure.h>
 
-static intptr_t ret_val;
+intptr_t ret_val;
 
 static tree_t* make(int64_t n) {
   return (n == 0) ? ({
