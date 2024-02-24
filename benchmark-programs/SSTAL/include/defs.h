@@ -69,6 +69,35 @@ cont:
     return ret_val;
 }
 
+__attribute__((noinline))
+int64_t save_and_restore(mp_jmpbuf_t* jb1, mp_jmpbuf_t* jb2) {
+    __asm__ (
+        "movq    %1,  0(%0)      \n\t"
+        "movq    %%rbx,  8(%0)    \n\t"
+        "leaq    (%%rsp), %1      \n\t"
+        "movq    %1, 16(%0)    \n\t"
+        "movq    %%rbp, 24(%0)    \n\t"
+        "movq    %%r12, 32(%0)    \n\t"
+        "movq    %%r13, 40(%0)    \n\t"
+        "movq    %%r14, 48(%0)    \n\t"
+        "movq    %%r15, 56(%0)    \n\t"
+        :: "r" (jb1), "r" (&&cont)
+    );
+    __asm__ (
+        "movq  8(%0), %%rbx    \n\t"
+        "movq 16(%0), %%rsp    \n\t"
+        "movq 24(%0), %%rbp    \n\t"
+        "movq 32(%0), %%r12    \n\t"
+        "movq 40(%0), %%r13    \n\t"
+        "movq 48(%0), %%r14    \n\t"
+        "movq 56(%0), %%r15    \n\t"
+        "jmpq *(%0)            \n\t"
+        :: "r" (jb2)
+    );
+cont:
+    return ret_val;
+}
+
 #define HANDLE_ONE(body, mode, func, env) \
     ({ \
     intptr_t out; \
@@ -160,12 +189,7 @@ cont:
     exc->ctx_jb = &new_ctx_jb; \
     char* new_sp = dup_stack((char*)rsp_sp); \
     rsp_jb->reg_sp = (void*)new_sp; \
-    if (mp_setjmp(exc->ctx_jb) == 0) { \
-        mp_longjmp(rsp_jb); \
-        __builtin_unreachable(); \
-    } else { \
-        out = (intptr_t)ret_val; \
-    } \
+    out = save_and_restore(exc->ctx_jb, rsp_jb); \
     free_stack(new_sp); \
     out; \
     })
@@ -177,12 +201,7 @@ cont:
     mp_jmpbuf_t new_ctx_jb; \
     exc->ctx_jb = &new_ctx_jb; \
     rsp_jb->reg_sp = (void*)rsp_sp; \
-    if (mp_setjmp(exc->ctx_jb) == 0) { \
-        mp_longjmp(rsp_jb); \
-        __builtin_unreachable(); \
-    } else { \
-        out = (intptr_t)ret_val; \
-    } \
+    out = save_and_restore(exc->ctx_jb, rsp_jb); \
     free(rsp_jb); \
     out; \
     })
