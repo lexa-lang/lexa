@@ -93,8 +93,10 @@ typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
             } \
             free_stack(new_sp); \
         } else { \
-            body(stub); \
-            __builtin_unreachable(); \
+            if (mp_setjmp(exc.ctx_jb) == 0) { \
+                body(stub); \
+                __builtin_unreachable(); \
+            } \
         } \
         out = (intptr_t)ret_val; \
     } \
