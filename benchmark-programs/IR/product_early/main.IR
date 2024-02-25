@@ -1,34 +1,16 @@
-type Tree;
-dcl treeLeaf : () -> Tree;
-dcl treeNode : (Tree, Int, Tree) -> Tree;
-dcl treeIsEmpty : Tree -> Bool;
-dcl treeLeft : Tree -> Tree;
-dcl treeRight : Tree -> Tree;
-dcl treeValue : Tree -> Int;
-type List;
-dcl listNode : (Int, List) -> List;
-dcl listEnd : () -> List;
-dcl listHead : List -> Int;
-dcl listTail : List -> List;
-dcl listAppend : (List, List) -> List;
-dcl listMax : List -> Int;
-
-dcl readInt : () -> Int;
-dcl printInt : Int -> ();
-dcl mathAbs : Int -> Int;
 
 effect Abort {
   dcl done
 }
 
-def product(xs: List): Int / Abort {
+def product(xs, abort_stub) {
     if (~listIsEmpty(xs)) {
         0
     } else {
-        let y: Int = ~listHead(xs) in {
-        let ys: List = ~listTail(xs) in {
+        let y = ~listHead(xs) in {
+        let ys = ~listTail(xs) in {
             if (y == 0) {
-                raise done 0
+                raise abort_stub.done 0
             } else {
                 y * product(ys)
             }
@@ -37,7 +19,7 @@ def product(xs: List): Int / Abort {
     }
 }
 
-def enumerate(i: Int): List {
+def enumerate(i) {
     if (i < 0) {
         ~listEnd()
     } else {
@@ -45,20 +27,19 @@ def enumerate(i: Int): List {
     }
 }
 
-
-def runProduct(xs: List): Int {
+def runProduct(xs) {
     handle <xs>
-        fn(env: <<List>>) {
-            product({env[0]})
+        fn(env, abort_stub) {
+            product({env[0]}, abort_stub)
         }
     with Abort {
-        abortive done(env: <<List>>, r: Int) {
+        abortive done(env, r) {
             r
         }
     }
 }
 
-def loop(xs: List, i: Int, a: Int): Int {
+def loop(xs, i, a) {
     if (i == 0) {
         a
     } else {
@@ -66,8 +47,8 @@ def loop(xs: List, i: Int, a: Int): Int {
     }
 }
 
-def run(n: Int): Int {
-    let xs: List = enumerate(1000) in {
+def run(n) {
+    let xs = enumerate(1000) in {
         loop(xs, n, 0)
     }
 }

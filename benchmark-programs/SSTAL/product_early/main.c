@@ -6,15 +6,15 @@
 
 intptr_t ret_val;
 
-node_t* enumerate(int i) {
+intptr_t enumerate(intptr_t i) {
   return (i < 0) ? ({
-    listEnd();
+    (intptr_t)listEnd();
    }) : ({
-    listNode(i, enumerate(i - 1));
+    (intptr_t)listNode(i, (node_t*)enumerate(i - 1));
    });
 }
 
-void done(const intptr_t* const env, exchanger_t* exc, int64_t r) {
+void done(const intptr_t* const env, exchanger_t* exc, intptr_t r) {
   ret_val = ({
     r;
   });
@@ -22,12 +22,12 @@ void done(const intptr_t* const env, exchanger_t* exc, int64_t r) {
   __builtin_unreachable();
 }
 
-static int64_t product(handler_t *abort_stub, node_t* xs) {
-  return (listIsEmpty(xs)) ? ({
+static intptr_t product(handler_t *abort_stub, intptr_t xs) {
+  return (listIsEmpty((node_t*)xs)) ? ({
     0;
   }) : ({
-    int64_t y = listHead(xs);
-    node_t* ys = listTail(xs);
+    intptr_t y = (intptr_t)listHead((node_t*)xs);
+    intptr_t ys = (intptr_t)listTail((node_t*)xs);
     (y == 0) ? ({
       RAISE(abort_stub, 0, 0);
     }): ({
@@ -36,23 +36,23 @@ static int64_t product(handler_t *abort_stub, node_t* xs) {
   });
 }
 
-static int64_t body(handler_t *abort_stub) {
+static intptr_t body(handler_t * abort_stub) {
   ret_val = ({
-    product(abort_stub, (node_t*)abort_stub->env[0]);
+    product(abort_stub, abort_stub->env[0]);
   });
 
   mp_longjmp(abort_stub->exchanger->ctx_jb);
   __builtin_unreachable();
 }
 
-static int64_t runProduct(node_t* xs) {
+static intptr_t runProduct(intptr_t xs) {
   return ({
     intptr_t env[1] = {(intptr_t)xs};
     HANDLE_ONE(body, ABORT, done, env);
   });
 }
 
-static int64_t loop(node_t* xs, int64_t i, int64_t a) {
+static intptr_t loop(intptr_t xs, intptr_t i, intptr_t a) {
   return (i == 0) ? ({
     a;
   }) : ({
@@ -60,9 +60,9 @@ static int64_t loop(node_t* xs, int64_t i, int64_t a) {
   });
 }
 
-static int64_t run(int64_t n) {
+static intptr_t run(intptr_t n) {
   return ({
-    node_t* xs = enumerate(1000);
+    intptr_t xs = enumerate(1000);
     loop(xs, n, 0);
   });
 }
