@@ -1,63 +1,48 @@
-type Tree;
-dcl treeLeaf : () -> Tree;
-dcl treeNode : (Tree, Int, Tree) -> Tree;
-dcl treeIsEmpty : Tree -> Bool;
-dcl treeLeft : Tree -> Tree;
-dcl treeRight : Tree -> Tree;
-dcl treeValue : Tree -> Int;
-type List;
-dcl listNode : (Int, List) -> List;
-dcl listEnd : () -> List;
-dcl listAppend : (List, List) -> List;
-dcl listMax : List -> Int;
 
-dcl readInt : () -> Int;
-dcl printInt : Int -> ();
-dcl mathAbs : Int -> Int;
 
 effect Choose {
   dcl choose
 }
 
-def operator(x: Int, y: Int): Int {
+def operator(x, y) {
     {~mathAbs(x - (503 * y) + 37)} % 1009
 }
 
-def make(n: Int): Tree {
+def make(n) {
     if (n == 0) {
         ~treeLeaf()
     } else {
-        let t: Tree = make(n - 1) in {
+        let t = make(n - 1) in {
             ~treeNode(t, n, t)
         }
     }
 }
 
-def explore(state: <Int>, tree: Tree): Int / Choose {
+def explore(state, tree, choose_stub) {
     if (~treeIsEmpty(tree)) {
         state[0]
     } else {
-      let next: Tree = { if (raise choose 0) { ~treeLeft(tree) } else { ~treeRight(tree) } } in {
+      let next = { if (raise choose_stub.choose 0) { ~treeLeft(tree) } else { ~treeRight(tree) } } in {
           state[0] := operator(state[0], ~treeValue(tree));
           operator(~treeValue(tree), explore(state, next, h))
       }
     }
 }
 
-def paths(state: <Int>, tree: Tree): List<Int> {
+def paths(state, tree) {
     handle <state, tree>
-        fn(env: <<Int>, Tree>) {
-            ~listNode({explore({env[0]}, {env[1]})}, 
+        fn(env, choose_stub) {
+            ~listNode({explore({env[0]}, {env[1]}, choose_stub)}, 
                      {~listEnd()})
         }
     with Choose {
-        general choose(env: <<Int>, Tree>, _: Int, k: Resumption) {
+        general choose(env, _, k) {
             ~listAppend( { throw k True }, { throw k False } )
         }
     }
 }
 
-def loop(state: <Int>, tree: Tree, i: Int): Int {
+def loop(state, tree, i) {
     if (i == 0) {
         state[0]
     } else {
@@ -66,9 +51,9 @@ def loop(state: <Int>, tree: Tree, i: Int): Int {
     }
 }
 
-def run(n: Int): Int {
-    let tree: Tree = make(n) in {
-    let state: <Int> = newref <0> in {
+def run(n) {
+    let tree = make(n) in {
+    let state = newref <0> in {
         loop(state, tree, n)
     }
     }

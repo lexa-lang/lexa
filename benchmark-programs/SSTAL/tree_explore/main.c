@@ -8,24 +8,20 @@
 
 intptr_t ret_val;
 
-static tree_t* make(int64_t n) {
+static intptr_t make(intptr_t n) {
   return (n == 0) ? ({
-    treeLeaf();
+    (intptr_t)treeLeaf();
   }) : ({
-    tree_t* t = make(n - 1);
-    tree_t* newTree = (tree_t*)xmalloc(sizeof(tree_t));
-    newTree->value = n;
-    newTree->left = t;
-    newTree->right = t;
-    newTree;
+    intptr_t t = make(n - 1);
+    (intptr_t)treeNode(n, (tree_t*)t, (tree_t*)t);
   });
 }
 
-static int64_t operator(int64_t x, int64_t y) {
+static intptr_t operator(intptr_t x, intptr_t y) {
   return mathAbs(x - (503 * y) + 37) % 1009;
 }
 
-void choose(const intptr_t* self_env, exchanger_t* exc, int64_t _) {
+void choose(intptr_t env, exchanger_t* exc, intptr_t _) {
   mp_jmpbuf_t* ctx_jb = exc->ctx_jb;
   mp_jmpbuf_t* rsp_jb = exc->rsp_jb;
   void* rsp_sp = rsp_jb->reg_sp;
@@ -37,21 +33,21 @@ void choose(const intptr_t* self_env, exchanger_t* exc, int64_t _) {
   mp_longjmp(ctx_jb);
 }
 
-static int64_t explore(intptr_t* const state, tree_t* tree, handler_t* choose_stub) {
-  return (treeIsEmpty(tree)) ?
+static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choose_stub) {
+  return (treeIsEmpty((tree_t*)tree)) ?
     ({ 
-      state[0];
+      ((intptr_t*)state)[0];
     }) 
     : ({
-      tree_t* next = ({
+      intptr_t next = ({
         (RAISE(choose_stub, 0, 0)) ? ({
-          treeLeft(tree);
+          (intptr_t)treeLeft((tree_t*)tree);
         }) : ({
-          treeRight(tree);
+          (intptr_t)treeRight((tree_t*)tree);
         });
       });
-      state[0] = operator(state[0], treeValue(tree));
-      operator(treeValue(tree), explore(state, next, choose_stub));
+      ((intptr_t*)state)[0] = operator(((intptr_t*)state)[0], treeValue((tree_t*)tree));
+      operator(treeValue((tree_t*)tree), explore(state, next, choose_stub));
     });
 }
 
@@ -68,28 +64,28 @@ static int64_t body(handler_t* choose_stub) {
   __builtin_unreachable();
 }
 
-static node_t* paths(intptr_t* const state, tree_t* tree) {
-  intptr_t choose_env[2] = {(intptr_t)state, (intptr_t)tree};
+static intptr_t paths(intptr_t state, intptr_t tree) {
+  intptr_t choose_env[2] = {state, tree};
 
-  return (node_t*)HANDLE_ONE(body, MULTISHOT, choose, choose_env);
+  return HANDLE_ONE(body, MULTISHOT, choose, choose_env);
 }
 
-static int64_t loop(intptr_t* const state, tree_t* tree, int64_t i) {
+static intptr_t loop(intptr_t state, intptr_t tree, intptr_t i) {
   return (i == 0) ? ({
-    state[0];
+    ((intptr_t*)state)[0];
   }) : ({
-    state[0] = listMax(paths(state, tree));
+    ((intptr_t*)state)[0] = listMax((node_t*)paths(state, tree));
     loop(state, tree, i - 1);
   });
 }
 
-static int64_t run(int64_t n){
-  tree_t* tree = make(n);
+static intptr_t run(intptr_t n){
+  intptr_t tree = make(n);
 
-  int64_t* state = (int64_t*)xmalloc(sizeof(int64_t) * 1);
-  state[0] = 0;
+  intptr_t state = (intptr_t)xmalloc(sizeof(intptr_t) * 1);
+  ((intptr_t*)state)[0] = 0;
 
-  int64_t out = loop(state, tree, 10);
+  intptr_t out = loop(state, tree, 10);
   return out;
 }
 

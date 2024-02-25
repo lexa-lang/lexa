@@ -66,6 +66,14 @@ int64_t listMax(node_t* xs) {
   return m;
 }
 
+tree_t* treeNode(int64_t value, tree_t* left, tree_t* right) {
+  tree_t* new_node = (tree_t*)xmalloc(sizeof(tree_t));
+  new_node->value = value;
+  new_node->left = left;
+  new_node->right = right;
+  return new_node;
+}
+
 tree_t* treeLeaf() {
   return NULL;
 }
