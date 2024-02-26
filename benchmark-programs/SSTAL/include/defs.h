@@ -197,15 +197,15 @@ cont:
     ret_val = arg; \
     intptr_t out; \
     mp_jmpbuf_t new_ctx_jb; \
-    exc->ctx_jb = &new_ctx_jb; \
+    ((exchanger_t*)exc)->ctx_jb = &new_ctx_jb; \
     char* new_sp = dup_stack((char*)rsp_sp); \
     rsp_jb->reg_sp = (void*)new_sp; \
-    out = save_and_restore(exc->ctx_jb, rsp_jb); \
+    out = save_and_restore(((exchanger_t*)exc)->ctx_jb, rsp_jb); \
     free_stack(new_sp); \
     out; \
     })
 
-#define FINAL_THROW(rsp_jb, rsp_sp, exc, arg) \
+#define FINAL_THROW(exc, arg) \
     ({ \
     ret_val = arg; \
     intptr_t out; \
