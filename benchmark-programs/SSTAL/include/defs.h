@@ -4,8 +4,8 @@
 
 typedef struct {
   mp_jmpbuf_t *ctx_jb;
-  void* sp_backup;
   mp_jmpbuf_t *rsp_jb;
+  void* sp_backup;
 } exchanger_t;
 
 typedef enum {
@@ -37,6 +37,30 @@ typedef void(*HandlerFuncType)(const intptr_t* const, int64_t, exchanger_t*);
 typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
 
 extern intptr_t ret_val;
+
+#define ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _, ...) _
+#define NARGS(...) ARG_N(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+
+#define STACK_ALLOC_STRUCT(type, ...) \
+    &(type){__VA_ARGS__};
+#define STACK_ALLOC_ARRAY(type, ...) \
+    (type[]){__VA_ARGS__}; 
+// Heap allocate and initialize a variable number of intptr_t
+// The compiler is smart enough to eliminate the intermediate stack allocation and memcpy
+#define HEAP_ALLOC_STRUCT(type, ...) \
+    ({ \
+    type st = {__VA_ARGS__}; \
+    type* hst = xmalloc(sizeof(type)); \
+    memcpy(hst, &st, sizeof(type)); \
+    hst; \
+    })
+#define HEAP_ALLOC_ARRAY(type, ...) \
+    ({ \
+    type arr[] = {__VA_ARGS__}; \
+    type* harr = xmalloc(sizeof(type)*NARGS(__VA_ARGS__)); \
+    memcpy(harr, arr, sizeof(type)*NARGS(__VA_ARGS__));\
+    harr;\
+    })
 
 #define SWITCH_SP(sp) \
     __asm__ ( \
@@ -131,21 +155,20 @@ cont:
     out; \
     })
 
-#define HANDLE_TWO(body, mode1, func1, mode2, func2, env) \
+#define HANDLE_TWO(body, mode1, func1, mode2, func2, ...) \
     ({ \
     intptr_t out; \
-    handler_def_t defs[2] = {{mode1, (void*)func1}, {mode2, (void*)func2}}; \
     if ((mode1 | mode2) == TAIL) { \
-        handler_t *stub = &(handler_t){defs, env, NULL}; \
+        handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
+        intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
+        handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env, NULL); \
         out = body(stub); \
     } else { \
-        exchanger_t* exc = (exchanger_t*)xmalloc(sizeof(exchanger_t)); \
-        mp_jmpbuf_t* ctx_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t)); \
-        exc->ctx_jb = ctx_jb; \
-        handler_t *stub = (handler_t*)xmalloc(sizeof(handler_t)); \
-        stub->defs = defs; \
-        stub->env = env; \
-        stub->exchanger = exc; \
+        handler_def_t* defs = HEAP_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
+        intptr_t* env = HEAP_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
+        mp_jmpbuf_t* ctx_jb = HEAP_ALLOC_STRUCT(mp_jmpbuf_t); \
+        exchanger_t* exc = HEAP_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL, NULL); \
+        handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env, exc); \
         if ((mode1 | mode2 & MULTISHOT) || (mode1 | mode2 & SINGLESHOT)) { \
             char* new_sp = get_stack(); \
             if (mp_setjmp(exc->ctx_jb) == 0) { \
