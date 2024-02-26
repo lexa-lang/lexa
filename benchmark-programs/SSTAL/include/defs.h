@@ -4,6 +4,7 @@
 
 typedef struct {
   mp_jmpbuf_t *ctx_jb;
+  void* sp_backup;
   mp_jmpbuf_t *rsp_jb;
 } exchanger_t;
 
@@ -182,6 +183,12 @@ cont:
     out; \
     })
 
+// Handler preamble backup the stack pointer of the resumption
+// into a special field in the exchanger.
+// When resuming, the stack is copied from this stack pointer.
+#define HANDLER_PREAMBLE(exc) \
+    ((exchanger_t*)exc)->sp_backup = ((exchanger_t*)exc)->rsp_jb->reg_sp
+
 #define THROW(rsp_jb, rsp_sp, exc, arg) \
     ({ \
     ret_val = arg; \
@@ -199,10 +206,11 @@ cont:
     ({ \
     ret_val = arg; \
     intptr_t out; \
-    mp_jmpbuf_t new_ctx_jb; \
-    exc->ctx_jb = &new_ctx_jb; \
-    rsp_jb->reg_sp = (void*)rsp_sp; \
-    out = save_and_restore(exc->ctx_jb, rsp_jb); \
+    mp_jmpbuf_t new_ctx_jb, *rsp_jb; \
+    ((exchanger_t*)exc)->ctx_jb = &new_ctx_jb; \
+    rsp_jb = ((exchanger_t*)exc)->rsp_jb; \
+    rsp_jb->reg_sp = (void*)((exchanger_t*)exc)->sp_backup; \
+    out = save_and_restore(((exchanger_t*)exc)->ctx_jb, ((exchanger_t*)exc)->rsp_jb); \
     free(rsp_jb); \
     out; \
     })
