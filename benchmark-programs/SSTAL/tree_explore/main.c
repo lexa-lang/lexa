@@ -21,7 +21,7 @@ static intptr_t operator(intptr_t x, intptr_t y) {
   return mathAbs(x - (503 * y) + 37) % 1009;
 }
 
-void choose(intptr_t env, exchanger_t* exc, intptr_t _) {
+void choose(intptr_t env, intptr_t _, exchanger_t* exc) {
   mp_jmpbuf_t* ctx_jb = exc->ctx_jb;
   mp_jmpbuf_t* rsp_jb = exc->rsp_jb;
   void* rsp_sp = rsp_jb->reg_sp;

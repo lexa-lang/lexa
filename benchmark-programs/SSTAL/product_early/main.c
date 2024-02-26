@@ -14,7 +14,7 @@ intptr_t enumerate(intptr_t i) {
    });
 }
 
-void done(const intptr_t* const env, exchanger_t* exc, intptr_t r) {
+void done(const intptr_t* const env, intptr_t r, exchanger_t* exc) {
   ret_val = ({
     r;
   });

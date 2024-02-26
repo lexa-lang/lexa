@@ -33,7 +33,7 @@ typedef struct {
     _ptr;                               \
 })
 
-typedef void(*HandlerFuncType)(const intptr_t* const, exchanger_t*, int64_t);
+typedef void(*HandlerFuncType)(const intptr_t* const, int64_t, exchanger_t*);
 typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
 
 extern intptr_t ret_val;
@@ -48,7 +48,7 @@ extern intptr_t ret_val;
 // preventing optimizations. Being a setjmp-like function, we need to ensure that the caller-saved
 // registers are saved by the prologue, so we use the noinline attribute to prevent inlining.
 __attribute__((noinline))
-int64_t save_switch_and_run(mp_jmpbuf_t* jb, void* sp, HandlerFuncType func, const intptr_t* const env, exchanger_t* exc, int64_t arg) {
+int64_t save_switch_and_run(mp_jmpbuf_t* jb, void* sp, HandlerFuncType func, const intptr_t* const env, int64_t arg, exchanger_t* exc) {
     __asm__ (
         "movq    %1,  0(%0)      \n\t"
         "movq    %%rbx,  8(%0)    \n\t"
@@ -66,7 +66,7 @@ int64_t save_switch_and_run(mp_jmpbuf_t* jb, void* sp, HandlerFuncType func, con
         "movq %0, %%rsp\n\t"
         :: "r"(sp) : "rsp"
     );
-    func(env, exc, arg);
+    func(env, arg, exc);
 cont:
     return ret_val;
 }
@@ -169,7 +169,7 @@ cont:
         case SINGLESHOT: \
         case MULTISHOT: {\
             stub->exchanger->rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t)); \
-            out = save_switch_and_run(stub->exchanger->rsp_jb, stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub->env, stub->exchanger, arg); \
+            out = save_switch_and_run(stub->exchanger->rsp_jb, stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub->env, arg, stub->exchanger); \
             break; \
         } \
         case TAIL: \
@@ -177,7 +177,7 @@ cont:
             break; \
         case ABORT: \
             SWITCH_SP(stub->exchanger->ctx_jb->reg_sp); \
-            ((HandlerFuncType)stub->defs[index].func)(stub->env, stub->exchanger, arg); \
+            ((HandlerFuncType)stub->defs[index].func)(stub->env, arg, stub->exchanger); \
             __builtin_unreachable(); \
     }; \
     out; \
