@@ -107,12 +107,7 @@ static i64 body(handler_t * sch_stub) {
 
 static i64 spawn(i64 job_closure, i64 suspend_closure, i64 runnext_closure){
   return ({
-    // TODO: allocate env in the MACRO
-    i64 *env = (i64*)xmalloc(sizeof(i64) * 3);
-    env[0] = job_closure;
-    env[1] = suspend_closure;
-    env[2] = runnext_closure;
-    HANDLE_TWO(body, SINGLESHOT, yield, SINGLESHOT, fork, env);
+    HANDLE_TWO(body, SINGLESHOT, yield, SINGLESHOT, fork, job_closure, suspend_closure, runnext_closure);
 
     i64 runnext_func = ((i64*)runnext_closure)[0];
     i64 job_queue = ((i64*)runnext_closure)[1];
