@@ -60,6 +60,7 @@ int64_t save_switch_and_run(mp_jmpbuf_t* jb, void* sp, HandlerFuncType func, con
         "movq    %%r15, 56(%0)    \n\t"
         :: "r" (jb), "r" (&&cont)
     );
+    sp = (void*)((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
     __asm__ (
         "movq %0, %%rsp\n\t"
         :: "r"(sp) : "rsp"
