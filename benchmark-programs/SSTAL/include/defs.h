@@ -16,12 +16,12 @@ typedef enum {
 } handler_mode_t;
 
 typedef struct {
-  const handler_mode_t mode;
-  const void *func;
+  handler_mode_t mode;
+  void *func;
 } handler_def_t;
 typedef struct {
-  const handler_def_t* const defs;
-  const intptr_t* env;
+  handler_def_t* defs;
+  intptr_t* env;
   exchanger_t* exchanger;
 } handler_t;
 
@@ -139,20 +139,23 @@ cont:
         handler_t *stub = &(handler_t){defs, env, NULL}; \
         out = body(stub); \
     } else { \
-        exchanger_t exc; \
-        mp_jmpbuf_t ctx_jb; \
-        exc.ctx_jb = &ctx_jb; \
-        handler_t *stub = &(handler_t){defs, env, &exc}; \
+        exchanger_t* exc = (exchanger_t*)xmalloc(sizeof(exchanger_t)); \
+        mp_jmpbuf_t* ctx_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t)); \
+        exc->ctx_jb = ctx_jb; \
+        handler_t *stub = (handler_t*)xmalloc(sizeof(handler_t)); \
+        stub->defs = defs; \
+        stub->env = env; \
+        stub->exchanger = exc; \
         if ((mode1 | mode2 & MULTISHOT) || (mode1 | mode2 & SINGLESHOT)) { \
             char* new_sp = get_stack(); \
-            if (mp_setjmp(exc.ctx_jb) == 0) { \
+            if (mp_setjmp(exc->ctx_jb) == 0) { \
                 SWITCH_SP(new_sp); \
                 body(stub); \
                 __builtin_unreachable(); \
             } \
             free_stack(new_sp); \
         } else { \
-            if (mp_setjmp(exc.ctx_jb) == 0) { \
+            if (mp_setjmp(exc->ctx_jb) == 0) { \
                 body(stub); \
                 __builtin_unreachable(); \
             } \
