@@ -73,6 +73,11 @@ def spawn(job_closure, suspend_closure, runnext_closure) {
             };
             spawn(newjob_closure, {env[1]}, {env[2]})
         }
+    };
+    let runnext_func = runnext_closure[0] in {
+    let job_queue = runnext_closure[1] in {
+        runnext_func(job_queue)
+    }
     }
 }
 

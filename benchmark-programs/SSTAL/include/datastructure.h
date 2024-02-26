@@ -110,7 +110,7 @@ bool queueIsEmpty(queue_t* q) {
   return q->front == NULL;
 }
 
-void queueEnq(queue_t* q, int64_t value) {
+int64_t queueEnq(queue_t* q, int64_t value) {
   node_t* new_node = listNode(value, NULL);
   if (q->front == NULL) {
     q->front = new_node;
@@ -118,6 +118,7 @@ void queueEnq(queue_t* q, int64_t value) {
     q->rear->next = new_node;
   }
   q->rear = new_node;
+  return value;
 }
 
 int64_t queueDeq(queue_t* q) {
