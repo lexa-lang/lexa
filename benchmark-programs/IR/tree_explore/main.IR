@@ -1,6 +1,6 @@
 
 
-effect Choose {
+effect Choice {
   dcl choose
 }
 
@@ -18,28 +18,32 @@ def make(n) {
     }
 }
 
-def explore(state, tree, choose_stub) {
+def explore(state, tree, choice_stub) {
     if (~treeIsEmpty(tree)) {
         state[0]
     } else {
-      let next = { if (raise choose_stub.choose 0) { ~treeLeft(tree) } else { ~treeRight(tree) } } in {
+      let next = { if (raise choice_stub.choose 0) { ~treeLeft(tree) } else { ~treeRight(tree) } } in {
           state[0] := operator(state[0], ~treeValue(tree));
           operator(~treeValue(tree), explore(state, next, h))
       }
     }
 }
 
+obj choice(env) {
+    hdl choose(_, k) {
+        ~listAppend( { throw k True }, { throw k False } )
+    }
+}
+
+def body(env, choice_stub) {
+    ~listNode({explore({env[0]}, {env[1]}, choice_stub)}, 
+                {~listEnd()})
+}
+
 def paths(state, tree) {
     handle <state, tree>
-        fn(env, choose_stub) {
-            ~listNode({explore({env[0]}, {env[1]}, choose_stub)}, 
-                     {~listEnd()})
-        }
-    with Choose {
-        general choose(env, _, k) {
-            ~listAppend( { throw k True }, { throw k False } )
-        }
-    }
+        body
+    with choice: Choice;
 }
 
 def loop(state, tree, i) {

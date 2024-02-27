@@ -27,16 +27,20 @@ def enumerate(i) {
     }
 }
 
+obj abort(env) {
+    exc done(r) {
+        r
+    }
+}
+
+def body(env, abort_stub) {
+    product(env[0], abort_stub)
+}
+
 def runProduct(xs) {
     handle <xs>
-        fn(env, abort_stub) {
-            product({env[0]}, abort_stub)
-        }
-    with Abort {
-        abortive done(env, r) {
-            r
-        }
-    }
+        body
+    with abort: Abort;
 }
 
 def loop(xs, i, a) {

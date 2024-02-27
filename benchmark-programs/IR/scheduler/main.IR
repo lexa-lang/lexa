@@ -1,3 +1,8 @@
+effect Scheduler {
+    dcl yield
+    dcl fork
+}
+
 def job(env, sch_stub) {
     {env[0]}[0] := {env[0]}[0] + 1;
     raise sch_stub.yield 0;
@@ -35,45 +40,51 @@ def runnext(job_queue) {
     }
 }
 
+obj scheduler(env) {
+    hdl yield(_, k) {
+        let suspend_closure = env[1] in {
+        let suspend_func = suspend_closure[0] in {
+        let job_queue = suspend_closure[1] in {
+            suspend_func(job_queue, k)
+        }
+        }
+        };
+        let runnext_closure = env[2] in {
+        let runnext_func = runnext_closure[0] in {
+        let job_queue = runnext_closure[1] in {
+            runnext_func(job_queue)
+        }
+        }
+        }
+    }
+
+    hdl fork(newjob_closure, k) {
+        let suspend_closure = env[1] in {
+        let suspend_func = suspend_closure[0] in {
+        let suspend_env = suspend_closure[1] in {
+            suspend_func(suspend_env, k)
+        }
+        }
+        };
+        spawn(newjob_closure, {env[1]}, {env[2]})
+    }
+}
+
+def body(env, sch_stub) {
+    let job_closure = env[0] in {
+    let job_func = job_closure[0] in {
+    let job_env = job_closure[1] in {
+        job_func(job_env)
+    }
+    }
+    }
+}
+
+
 def spawn(job_closure, suspend_closure, runnext_closure) {
     handle <job_closure, suspend_closure, runnext_closure>
-        fn(env, sch_stub) {
-            let job_closure = env[0] in {
-            let job_func = job_closure[0] in {
-            let job_env = job_closure[1] in {
-                job_func(job_env)
-            }
-            }
-            }
-        }
-    with Scheduler {
-        general yield(env, _, k) {
-            let suspend_closure = env[1] in {
-            let suspend_func = suspend_closure[0] in {
-            let job_queue = suspend_closure[1] in {
-                suspend_func(job_queue, k)
-            }
-            }
-            };
-            let runnext_closure = env[2] in {
-            let runnext_func = runnext_closure[0] in {
-            let job_queue = runnext_closure[1] in {
-                runnext_func(job_queue)
-            }
-            }
-            }
-        }
-        general fork(env, newjob_closure, k) {
-            let suspend_closure = env[1] in {
-            let suspend_func = suspend_closure[0] in {
-            let suspend_env = suspend_closure[1] in {
-                suspend_func(suspend_env, k)
-            }
-            }
-            };
-            spawn(newjob_closure, {env[1]}, {env[2]})
-        }
-    };
+        body
+    with scheduler: Scheduler;
     let runnext_func = runnext_closure[0] in {
     let job_queue = runnext_closure[1] in {
         runnext_func(job_queue)

@@ -33,34 +33,34 @@ void choose(intptr_t env, intptr_t _, exchanger_t* exc) {
   mp_longjmp(ctx_jb);
 }
 
-static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choose_stub) {
+static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choice_stub) {
   return (treeIsEmpty((tree_t*)tree)) ?
     ({ 
       ((intptr_t*)state)[0];
     }) 
     : ({
       intptr_t next = ({
-        (RAISE(choose_stub, 0, 0)) ? ({
+        (RAISE(choice_stub, 0, 0)) ? ({
           (intptr_t)treeLeft((tree_t*)tree);
         }) : ({
           (intptr_t)treeRight((tree_t*)tree);
         });
       });
       ((intptr_t*)state)[0] = operator(((intptr_t*)state)[0], treeValue((tree_t*)tree));
-      operator(treeValue((tree_t*)tree), explore(state, next, choose_stub));
+      operator(treeValue((tree_t*)tree), explore(state, next, choice_stub));
     });
 }
 
-static int64_t body(handler_t* choose_stub) {
+static int64_t body(handler_t* choice_stub) {
   ret_val = (intptr_t)({
     listNode(
       #pragma clang diagnostic ignored "-Wint-conversion"
-      explore(choose_stub->env[0], choose_stub->env[1], choose_stub), 
+      explore(choice_stub->env[0], choice_stub->env[1], choice_stub), 
       #pragma clang diagnostic warning "-Wint-conversion"
       listEnd());
   });
 
-  mp_longjmp(choose_stub->exchanger->ctx_jb);
+  mp_longjmp(choice_stub->exchanger->ctx_jb);
   __builtin_unreachable();
 }
 
