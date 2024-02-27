@@ -124,28 +124,30 @@ cont:
     return ret_val;
 }
 
-#define HANDLE_ONE(body, mode, func, env) \
+#define HANDLE_ONE(body, mode, func, ...) \
     ({ \
     intptr_t out; \
-    handler_def_t defs[1] = {{mode, (void*)func}}; \
     if (mode == TAIL) { \
-        handler_t *stub = &(handler_t){defs, env, NULL}; \
+        handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode, (void*)func}); \
+        intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
+        handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env, NULL); \
         out = body(stub); \
     } else { \
-        exchanger_t exc; \
-        mp_jmpbuf_t ctx_jb; \
-        exc.ctx_jb = &ctx_jb; \
-        handler_t *stub = &(handler_t){defs, env, &exc}; \
+        handler_def_t* defs = HEAP_ALLOC_ARRAY(handler_def_t, {mode, (void*)func}); \
+        intptr_t* env = HEAP_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
+        mp_jmpbuf_t* ctx_jb = HEAP_ALLOC_STRUCT(mp_jmpbuf_t); \
+        exchanger_t* exc = HEAP_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL); \
+        handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env, exc); \
         if (mode == MULTISHOT || mode == SINGLESHOT) { \
             char* new_sp = get_stack(); \
-            if (mp_setjmp(exc.ctx_jb) == 0) { \
+            if (mp_setjmp(exc->ctx_jb) == 0) { \
                 SWITCH_SP(new_sp); \
                 body(stub); \
                 __builtin_unreachable(); \
             } \
             free_stack(new_sp); \
         } else { \
-            if (mp_setjmp(exc.ctx_jb) == 0) { \
+            if (mp_setjmp(exc->ctx_jb) == 0) { \
                 body(stub); \
                 __builtin_unreachable(); \
             } \
