@@ -5,8 +5,13 @@
 typedef struct {
   mp_jmpbuf_t *ctx_jb;
   mp_jmpbuf_t *rsp_jb;
-  void* sp_backup;
 } exchanger_t;
+
+typedef struct {
+    mp_jmpbuf_t *rsp_jb;
+    void* sp_backup;
+    exchanger_t* exc;
+} resumption_t;
 
 typedef enum {
     SINGLESHOT = 1 << 0,
@@ -211,35 +216,31 @@ cont:
     out; \
     })
 
-// Handler preamble backup the stack pointer of the resumption
-// into a special field in the exchanger.
-// When resuming, the stack is copied from this stack pointer.
-#define HANDLER_PREAMBLE(exc) \
-    ((exchanger_t*)exc)->sp_backup = ((exchanger_t*)exc)->rsp_jb->reg_sp
+#define MAKE_RESUMPTION(exc) \
+    HEAP_ALLOC_STRUCT(resumption_t, exc->rsp_jb, exc->rsp_jb->reg_sp, exc)
 
-#define THROW(rsp_jb, rsp_sp, exc, arg) \
+#define THROW(k, arg) \
     ({ \
     ret_val = arg; \
     intptr_t out; \
     mp_jmpbuf_t new_ctx_jb; \
-    ((exchanger_t*)exc)->ctx_jb = &new_ctx_jb; \
-    char* new_sp = dup_stack((char*)rsp_sp); \
-    rsp_jb->reg_sp = (void*)new_sp; \
-    out = save_and_restore(((exchanger_t*)exc)->ctx_jb, rsp_jb); \
+    k->exc->ctx_jb = &new_ctx_jb; \
+    char* new_sp = dup_stack((char*)k->sp_backup); \
+    k->rsp_jb->reg_sp = (void*)new_sp; \
+    out = save_and_restore(k->exc->ctx_jb, k->rsp_jb); \
     free_stack(new_sp); \
     out; \
     })
 
-#define FINAL_THROW(exc, arg) \
+#define FINAL_THROW(k, arg) \
     ({ \
     ret_val = arg; \
     intptr_t out; \
-    mp_jmpbuf_t new_ctx_jb, *rsp_jb; \
-    ((exchanger_t*)exc)->ctx_jb = &new_ctx_jb; \
-    rsp_jb = ((exchanger_t*)exc)->rsp_jb; \
-    rsp_jb->reg_sp = (void*)((exchanger_t*)exc)->sp_backup; \
-    out = save_and_restore(((exchanger_t*)exc)->ctx_jb, ((exchanger_t*)exc)->rsp_jb); \
-    free(rsp_jb); \
+    mp_jmpbuf_t new_ctx_jb; \
+    k->exc->ctx_jb = &new_ctx_jb; \
+    k->rsp_jb->reg_sp = (void*)k->sp_backup; \
+    out = save_and_restore(k->exc->ctx_jb, k->rsp_jb); \
+    free(k->rsp_jb); \
     out; \
     })
 
