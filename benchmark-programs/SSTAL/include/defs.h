@@ -180,7 +180,7 @@ cont:
             handler_def_t* defs = HEAP_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
             intptr_t* env = HEAP_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
             mp_jmpbuf_t* ctx_jb = HEAP_ALLOC_STRUCT(mp_jmpbuf_t); \
-            exchanger_t* exc = HEAP_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL, NULL); \
+            exchanger_t* exc = HEAP_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL); \
             handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env, exc); \
             char* new_sp = get_stack(); \
             if (mp_setjmp(exc->ctx_jb) == 0) { \
@@ -190,7 +190,7 @@ cont:
             } \
             free_stack(new_sp); \
         } else { \
-            handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode, (void*)func}); \
+            handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
             intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
             mp_jmpbuf_t* ctx_jb = STACK_ALLOC_STRUCT(mp_jmpbuf_t); \
             exchanger_t* exc = STACK_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL); \

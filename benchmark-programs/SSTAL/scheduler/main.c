@@ -51,14 +51,14 @@ static i64 runnext(i64 job_queue){
       0;
     }) : ({
       i64 k = (i64)queueDeq((queue_t*)job_queue);
-      FINAL_THROW(k, 0);
+      FINAL_THROW(((resumption_t*)k), 0);
     });
   });
 }
 
-i64 yield(i64 env, i64 _, i64 k){
-  HANDLER_PREAMBLE(k);
-  mp_jmpbuf_t* ctx_jb = ((exchanger_t*)k)->ctx_jb;
+i64 yield(i64 env, i64 _, i64 exc){
+  i64 k = (i64)MAKE_RESUMPTION(((exchanger_t*)exc));
+  mp_jmpbuf_t* ctx_jb = ((exchanger_t*)exc)->ctx_jb;
 
   ret_val = ({
     ({
@@ -78,9 +78,9 @@ i64 yield(i64 env, i64 _, i64 k){
   mp_longjmp(ctx_jb);
 }
 
-i64 fork(i64 env, i64 job_closure, i64 k){
-  HANDLER_PREAMBLE(k);
-  mp_jmpbuf_t* ctx_jb = ((exchanger_t*)k)->ctx_jb;
+i64 fork(i64 env, i64 job_closure, i64 exc){
+  i64 k = (i64)MAKE_RESUMPTION(((exchanger_t*)exc));
+  mp_jmpbuf_t* ctx_jb = ((exchanger_t*)exc)->ctx_jb;
 
   ret_val = ({
     i64 suspend_closure = ((i64*)env)[1];
