@@ -22,13 +22,13 @@ static intptr_t operator(intptr_t x, intptr_t y) {
 }
 
 void choose(intptr_t env, intptr_t _, exchanger_t* exc) {
+  resumption_t* k = MAKE_RESUMPTION(exc);
   mp_jmpbuf_t* ctx_jb = exc->ctx_jb;
-  mp_jmpbuf_t* rsp_jb = exc->rsp_jb;
-  void* rsp_sp = rsp_jb->reg_sp;
 
-  node_t* result = listAppend((node_t*)THROW(rsp_jb, rsp_sp, exc, true), 
-                              (node_t*)FINAL_THROW(rsp_jb, rsp_sp, exc, false));
-  ret_val = (intptr_t)result;
+  ret_val = ({
+    (intptr_t)listAppend((node_t*)THROW(k, true), 
+                          (node_t*)FINAL_THROW(k, false));
+  });
 
   mp_longjmp(ctx_jb);
 }
@@ -65,9 +65,7 @@ static int64_t body(handler_t* choose_stub) {
 }
 
 static intptr_t paths(intptr_t state, intptr_t tree) {
-  intptr_t choose_env[2] = {state, tree};
-
-  return HANDLE_ONE(body, MULTISHOT, choose, choose_env);
+  return HANDLE_ONE(body, MULTISHOT, choose, state, tree);
 }
 
 static intptr_t loop(intptr_t state, intptr_t tree, intptr_t i) {
