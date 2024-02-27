@@ -47,8 +47,7 @@ static intptr_t body(handler_t * abort_stub) {
 
 static intptr_t runProduct(intptr_t xs) {
   return ({
-    intptr_t env[1] = {(intptr_t)xs};
-    HANDLE_ONE(body, ABORT, done, env);
+    HANDLE_ONE(body, ABORT, done, xs);
   });
 }
 
