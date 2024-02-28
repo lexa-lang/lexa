@@ -1,6 +1,31 @@
 #include <stdlib.h>
 #include <stack_pool.h>
 
+// #define FAST_SWITCH
+#ifdef FAST_SWITCH
+typedef struct {
+  void*     reg_ip;
+  void*     reg_sp;
+  void*     reg_rbp;
+} jb_t;
+
+#define SAVE_CONTEXT(jb, cont) \
+    __asm__ ( \
+        "movq    %1,  0(%0)      \n\t" \
+        "leaq    (%%rsp), %1      \n\t" \
+        "movq    %1, 8(%0)    \n\t" \
+        "movq    %%rbp, 16(%0)    \n\t" \
+        :: "D" (jb), "S" (&&cont) \
+    )
+
+#define RESTORE_CONTEXT(jb) \
+    __asm__ ( \
+        "movq 8(%0), %%rsp    \n\t" \
+        "movq 16(%0), %%rbp    \n\t" \
+        "jmpq *(%0)            \n\t" \
+        :: "D" (jb) \
+    )
+#else
 typedef struct {
   void*     reg_ip;
   int64_t   reg_rbx;
@@ -11,6 +36,34 @@ typedef struct {
   int64_t   reg_r14;
   int64_t   reg_r15;
 } jb_t;
+
+#define SAVE_CONTEXT(jb, cont) \
+    __asm__ ( \
+        "movq    %1,  0(%0)      \n\t" \
+        "movq    %%rbx,  8(%0)    \n\t" \
+        "leaq    (%%rsp), %1      \n\t" \
+        "movq    %1, 16(%0)    \n\t" \
+        "movq    %%rbp, 24(%0)    \n\t" \
+        "movq    %%r12, 32(%0)    \n\t" \
+        "movq    %%r13, 40(%0)    \n\t" \
+        "movq    %%r14, 48(%0)    \n\t" \
+        "movq    %%r15, 56(%0)    \n\t" \
+        :: "D" (jb), "S" (&&cont) \
+    )
+
+#define RESTORE_CONTEXT(jb) \
+    __asm__ ( \
+        "movq  8(%0), %%rbx    \n\t" \
+        "movq 16(%0), %%rsp    \n\t" \
+        "movq 24(%0), %%rbp    \n\t" \
+        "movq 32(%0), %%r12    \n\t" \
+        "movq 40(%0), %%r13    \n\t" \
+        "movq 48(%0), %%r14    \n\t" \
+        "movq 56(%0), %%r15    \n\t" \
+        "jmpq *(%0)            \n\t" \
+        :: "D" (jb) \
+    )
+#endif
 
 typedef struct {
   jb_t *ctx_jb;
@@ -85,37 +138,10 @@ extern intptr_t ret_val;
         :: "r"(sp) : "rsp" \
     )
 
-#define SAVE_CONTEXT(jb, cont) \
-    __asm__ ( \
-        "movq    %1,  0(%0)      \n\t" \
-        "movq    %%rbx,  8(%0)    \n\t" \
-        "leaq    (%%rsp), %1      \n\t" \
-        "movq    %1, 16(%0)    \n\t" \
-        "movq    %%rbp, 24(%0)    \n\t" \
-        "movq    %%r12, 32(%0)    \n\t" \
-        "movq    %%r13, 40(%0)    \n\t" \
-        "movq    %%r14, 48(%0)    \n\t" \
-        "movq    %%r15, 56(%0)    \n\t" \
-        :: "D" (jb), "S" (&&cont) \
-    )
-
-#define RESTORE_CONTEXT(jb) \
-    __asm__ ( \
-        "movq  8(%0), %%rbx    \n\t" \
-        "movq 16(%0), %%rsp    \n\t" \
-        "movq 24(%0), %%rbp    \n\t" \
-        "movq 32(%0), %%r12    \n\t" \
-        "movq 40(%0), %%r13    \n\t" \
-        "movq 48(%0), %%r14    \n\t" \
-        "movq 56(%0), %%r15    \n\t" \
-        "jmpq *(%0)            \n\t" \
-        :: "D" (jb) \
-    )
-
-// This function is used in place of setjmp, and therefore avoids the setjmp's returns_twice attribute from
-// preventing optimizations. Being a setjmp-like function, we need to ensure that the caller-saved
-// registers are saved by the prologue, so we use the noinline attribute to prevent inlining.
 __attribute__((noinline))
+#ifdef FAST_SWITCH
+__attribute__((preserve_none))
+#endif
 int64_t save_switch_and_run_handler(jb_t* jb, void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
     SAVE_CONTEXT(jb, cont);
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
@@ -125,6 +151,9 @@ cont:
 }
 
 __attribute__((noinline))
+#ifdef FAST_SWITCH
+__attribute__((preserve_none))
+#endif
 int64_t save_switch_and_run_body(jb_t* jb, void* sp, BodyFuncType func, handler_t* stub) {
     SAVE_CONTEXT(jb, cont);
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
@@ -134,6 +163,9 @@ cont:
 }
 
 __attribute__((noinline))
+#ifdef FAST_SWITCH
+__attribute__((preserve_none))
+#endif
 int64_t save_and_run_body(jb_t* jb, BodyFuncType func, handler_t* stub) {
     SAVE_CONTEXT(jb, cont);
     func(stub);
@@ -142,6 +174,9 @@ cont:
 }
 
 __attribute__((noinline))
+#ifdef FAST_SWITCH
+__attribute__((preserve_none))
+#endif
 int64_t save_and_restore(jb_t* jb1, jb_t* jb2) {
     SAVE_CONTEXT(jb1, cont);
     RESTORE_CONTEXT(jb2);
