@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <immintrin.h>
 #include <string.h>
+#include <assert.h>
 
 #define STACK_SIZE (1024 * 8)
 #define PREALLOCATED_STACKS 64
 #define ALIGN_DOWN(ptr, alignment) ((intptr_t)(ptr) & ~((alignment) - 1))
 
-static char* buffer;
+static char* buffer = 0;
 static uint64_t bitmap;
 
 void init_stack_pool() {
@@ -22,6 +23,7 @@ void destroy_stack_pool() {
 
 __attribute__((noinline))
 char* get_stack() {
+    assert(buffer);
     int index = __builtin_ffsll(bitmap);
     if (index == 0) {
         // Out of stack space
