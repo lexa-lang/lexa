@@ -96,21 +96,22 @@
         #   };
         # };
 
-        # clang_dev = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
-        #   pname = "llvm-project";
-        #   version = "dev";
+        clang_dev = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
+          pname = "llvm-project";
+          version = "dev";
 
-        #   src = builtins.path { path = "/home/congm/src/oopsla-2023-liftinference-artifact/llvm-project/build"; };
+          src = builtins.path { path = "/home/congm/src/llvm-project/build"; };
 
-        #   installPhase = ''
-        #     mkdir -p $out/bin
-        #     cp bin/clang $out/bin
-        #     cp bin/opt $out/bin
-        #     cp -r lib $out/lib
-        #   '';
+          installPhase = ''
+            mkdir -p $out/bin
+            cp bin/clang $out/bin
+            cp bin/opt $out/bin
+            cp bin/llc $out/bin
+            cp -r lib $out/lib
+          '';
 
-        #   passthru.isClang = true;
-        # });
+          passthru.isClang = true;
+        });
       in {
         packages.effekt = sbt.mkSbtDerivation.${system} {
           pname = "effekt";
@@ -162,7 +163,7 @@
         devShell = with pkgs; mkShell {
           nativeBuildInputs = [
             # clang_main
-            # clang_dev
+            clang_dev
           ];
           buildInputs = [
             mlton
