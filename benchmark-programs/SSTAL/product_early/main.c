@@ -18,7 +18,7 @@ void done(const intptr_t* const env, intptr_t r, exchanger_t* exc) {
   ret_val = ({
     r;
   });
-  mp_longjmp(exc->ctx_jb);
+  RESTORE_CONTEXT(exc->ctx_jb);
   __builtin_unreachable();
 }
 
@@ -41,7 +41,7 @@ static intptr_t body(handler_t * abort_stub) {
     product(abort_stub, abort_stub->env[0]);
   });
 
-  mp_longjmp(abort_stub->exchanger->ctx_jb);
+  RESTORE_CONTEXT(abort_stub->exchanger->ctx_jb);
   __builtin_unreachable();
 }
 

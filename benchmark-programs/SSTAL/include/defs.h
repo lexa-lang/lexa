@@ -1,14 +1,24 @@
 #include <stdlib.h>
-#include <longjmp.h>
 #include <stack_pool.h>
 
 typedef struct {
-  mp_jmpbuf_t *ctx_jb;
-  mp_jmpbuf_t *rsp_jb;
+  void*     reg_ip;
+  int64_t   reg_rbx;
+  void*     reg_sp;
+  void*     reg_rbp;
+  int64_t   reg_r12;
+  int64_t   reg_r13;
+  int64_t   reg_r14;
+  int64_t   reg_r15;
+} jb_t;
+
+typedef struct {
+  jb_t *ctx_jb;
+  jb_t *rsp_jb;
 } exchanger_t;
 
 typedef struct {
-    mp_jmpbuf_t *rsp_jb;
+    jb_t *rsp_jb;
     void* sp_backup;
     exchanger_t* exc;
 } resumption_t;
@@ -89,11 +99,24 @@ extern intptr_t ret_val;
         :: "D" (jb), "S" (&&cont) \
     )
 
+#define RESTORE_CONTEXT(jb) \
+    __asm__ ( \
+        "movq  8(%0), %%rbx    \n\t" \
+        "movq 16(%0), %%rsp    \n\t" \
+        "movq 24(%0), %%rbp    \n\t" \
+        "movq 32(%0), %%r12    \n\t" \
+        "movq 40(%0), %%r13    \n\t" \
+        "movq 48(%0), %%r14    \n\t" \
+        "movq 56(%0), %%r15    \n\t" \
+        "jmpq *(%0)            \n\t" \
+        :: "D" (jb) \
+    )
+
 // This function is used in place of setjmp, and therefore avoids the setjmp's returns_twice attribute from
 // preventing optimizations. Being a setjmp-like function, we need to ensure that the caller-saved
 // registers are saved by the prologue, so we use the noinline attribute to prevent inlining.
 __attribute__((noinline))
-int64_t save_switch_and_run_handler(mp_jmpbuf_t* jb, void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
+int64_t save_switch_and_run_handler(jb_t* jb, void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
     SAVE_CONTEXT(jb, cont);
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
     func(stub->env, arg, stub->exchanger);
@@ -102,7 +125,7 @@ cont:
 }
 
 __attribute__((noinline))
-int64_t save_switch_and_run_body(mp_jmpbuf_t* jb, void* sp, BodyFuncType func, handler_t* stub) {
+int64_t save_switch_and_run_body(jb_t* jb, void* sp, BodyFuncType func, handler_t* stub) {
     SAVE_CONTEXT(jb, cont);
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
     func(stub);
@@ -111,7 +134,7 @@ cont:
 }
 
 __attribute__((noinline))
-int64_t save_and_run_body(mp_jmpbuf_t* jb, BodyFuncType func, handler_t* stub) {
+int64_t save_and_run_body(jb_t* jb, BodyFuncType func, handler_t* stub) {
     SAVE_CONTEXT(jb, cont);
     func(stub);
 cont:
@@ -119,19 +142,9 @@ cont:
 }
 
 __attribute__((noinline))
-int64_t save_and_restore(mp_jmpbuf_t* jb1, mp_jmpbuf_t* jb2) {
+int64_t save_and_restore(jb_t* jb1, jb_t* jb2) {
     SAVE_CONTEXT(jb1, cont);
-    __asm__ (
-        "movq  8(%0), %%rbx    \n\t"
-        "movq 16(%0), %%rsp    \n\t"
-        "movq 24(%0), %%rbp    \n\t"
-        "movq 32(%0), %%r12    \n\t"
-        "movq 40(%0), %%r13    \n\t"
-        "movq 48(%0), %%r14    \n\t"
-        "movq 56(%0), %%r15    \n\t"
-        "jmpq *(%0)            \n\t"
-        :: "r" (jb2)
-    );
+    RESTORE_CONTEXT(jb2);
 cont:
     return ret_val;
 }
@@ -148,7 +161,7 @@ cont:
         if (mode == MULTISHOT || mode == SINGLESHOT) { \
             handler_def_t* defs = HEAP_ALLOC_ARRAY(handler_def_t, {mode, (void*)func}); \
             intptr_t* env = HEAP_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-            mp_jmpbuf_t* ctx_jb = HEAP_ALLOC_STRUCT(mp_jmpbuf_t); \
+            jb_t* ctx_jb = HEAP_ALLOC_STRUCT(jb_t); \
             exchanger_t* exc = HEAP_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL); \
             handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env, exc); \
             char* new_sp = get_stack(); \
@@ -157,7 +170,7 @@ cont:
         } else { \
             handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode, (void*)func}); \
             intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-            mp_jmpbuf_t* ctx_jb = STACK_ALLOC_STRUCT(mp_jmpbuf_t); \
+            jb_t* ctx_jb = STACK_ALLOC_STRUCT(jb_t); \
             exchanger_t* exc = STACK_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL); \
             handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env, exc); \
             out = save_and_run_body(ctx_jb, (BodyFuncType)body, stub); \
@@ -178,7 +191,7 @@ cont:
         if ((mode1 | mode2 & MULTISHOT) || (mode1 | mode2 & SINGLESHOT)) { \
             handler_def_t* defs = HEAP_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
             intptr_t* env = HEAP_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-            mp_jmpbuf_t* ctx_jb = HEAP_ALLOC_STRUCT(mp_jmpbuf_t); \
+            jb_t* ctx_jb = HEAP_ALLOC_STRUCT(jb_t); \
             exchanger_t* exc = HEAP_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL); \
             handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env, exc); \
             char* new_sp = get_stack(); \
@@ -187,7 +200,7 @@ cont:
         } else { \
             handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
             intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-            mp_jmpbuf_t* ctx_jb = STACK_ALLOC_STRUCT(mp_jmpbuf_t); \
+            jb_t* ctx_jb = STACK_ALLOC_STRUCT(jb_t); \
             exchanger_t* exc = STACK_ALLOC_STRUCT(exchanger_t, ctx_jb, NULL); \
             handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env, exc); \
             out = save_and_run_body(ctx_jb, (BodyFuncType)body, stub); \
@@ -202,7 +215,7 @@ cont:
     switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
-            stub->exchanger->rsp_jb = (mp_jmpbuf_t*)xmalloc(sizeof(mp_jmpbuf_t)); \
+            stub->exchanger->rsp_jb = (jb_t*)xmalloc(sizeof(jb_t)); \
             out = save_switch_and_run_handler(stub->exchanger->rsp_jb, stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
             break; \
         } \
@@ -224,7 +237,7 @@ cont:
     ({ \
     ret_val = arg; \
     intptr_t out; \
-    mp_jmpbuf_t new_ctx_jb; \
+    jb_t new_ctx_jb; \
     k->exc->ctx_jb = &new_ctx_jb; \
     char* new_sp = dup_stack((char*)k->sp_backup); \
     k->rsp_jb->reg_sp = (void*)new_sp; \
@@ -237,7 +250,7 @@ cont:
     ({ \
     ret_val = arg; \
     intptr_t out; \
-    mp_jmpbuf_t new_ctx_jb; \
+    jb_t new_ctx_jb; \
     k->exc->ctx_jb = &new_ctx_jb; \
     k->rsp_jb->reg_sp = (void*)k->sp_backup; \
     out = save_and_restore(k->exc->ctx_jb, k->rsp_jb); \

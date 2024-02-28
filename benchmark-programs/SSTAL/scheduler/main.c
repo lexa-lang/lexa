@@ -58,7 +58,7 @@ static i64 runnext(i64 job_queue){
 
 i64 yield(i64 env, i64 _, i64 exc){
   i64 k = (i64)MAKE_RESUMPTION(((exchanger_t*)exc));
-  mp_jmpbuf_t* ctx_jb = ((exchanger_t*)exc)->ctx_jb;
+  jb_t* ctx_jb = ((exchanger_t*)exc)->ctx_jb;
 
   ret_val = ({
     ({
@@ -75,12 +75,12 @@ i64 yield(i64 env, i64 _, i64 exc){
     });
   });
 
-  mp_longjmp(ctx_jb);
+  RESTORE_CONTEXT(ctx_jb);
 }
 
 i64 fork(i64 env, i64 job_closure, i64 exc){
   i64 k = (i64)MAKE_RESUMPTION(((exchanger_t*)exc));
-  mp_jmpbuf_t* ctx_jb = ((exchanger_t*)exc)->ctx_jb;
+  jb_t* ctx_jb = ((exchanger_t*)exc)->ctx_jb;
 
   ret_val = ({
     i64 suspend_closure = ((i64*)env)[1];
@@ -90,7 +90,7 @@ i64 fork(i64 env, i64 job_closure, i64 exc){
     ((i64(*)(i64, i64, i64))spawn)(job_closure, ((i64*)env)[1], ((i64*)env)[2]);
   });
 
-  mp_longjmp(ctx_jb);
+  RESTORE_CONTEXT(ctx_jb);
 }
 
 static i64 body(handler_t * sch_stub) {
@@ -101,7 +101,7 @@ static i64 body(handler_t * sch_stub) {
     ((i64 (*)(i64, handler_t*))job_func)(job_env, sch_stub);
   });
 
-  mp_longjmp(sch_stub->exchanger->ctx_jb);
+  RESTORE_CONTEXT(sch_stub->exchanger->ctx_jb);
   __builtin_unreachable();
 }
 
