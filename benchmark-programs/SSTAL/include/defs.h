@@ -86,7 +86,7 @@ extern intptr_t ret_val;
         "movq    %%r13, 40(%0)    \n\t" \
         "movq    %%r14, 48(%0)    \n\t" \
         "movq    %%r15, 56(%0)    \n\t" \
-        :: "r" (jb), "r" (&&cont) \
+        :: "D" (jb), "S" (&&cont) \
     )
 
 // This function is used in place of setjmp, and therefore avoids the setjmp's returns_twice attribute from
