@@ -14,6 +14,7 @@ intptr_t enumerate(intptr_t i) {
    });
 }
 
+FAST_SWITCH_DECORATOR
 void done(const intptr_t* const env, intptr_t r, exchanger_t* exc) {
   ret_val = ({
     r;
@@ -36,6 +37,7 @@ static intptr_t product(handler_t *abort_stub, intptr_t xs) {
   });
 }
 
+FAST_SWITCH_DECORATOR
 static intptr_t body(handler_t * abort_stub) {
   ret_val = ({
     product(abort_stub, abort_stub->env[0]);

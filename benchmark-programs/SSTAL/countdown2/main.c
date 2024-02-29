@@ -4,6 +4,7 @@
 
 intptr_t ret_val;
 
+FAST_SWITCH_DECORATOR
 intptr_t get(intptr_t *env, intptr_t _, exchanger_t* exc) {
     resumption_t* k = MAKE_RESUMPTION(exc);
     jb_t* ctx_jb = exc->ctx_jb;
@@ -14,6 +15,7 @@ intptr_t get(intptr_t *env, intptr_t _, exchanger_t* exc) {
     RESTORE_CONTEXT(ctx_jb);
 }
 
+FAST_SWITCH_DECORATOR
 intptr_t set(intptr_t *env, intptr_t n, exchanger_t* exc) {
     resumption_t* k = MAKE_RESUMPTION(exc);
     jb_t* ctx_jb = exc->ctx_jb;
@@ -38,6 +40,7 @@ static intptr_t countdown(handler_t* state_stub){
     }
 }
 
+FAST_SWITCH_DECORATOR
 static intptr_t body(handler_t* state_stub) {
     ret_val = countdown(state_stub);
     RESTORE_CONTEXT(state_stub->exchanger->ctx_jb);

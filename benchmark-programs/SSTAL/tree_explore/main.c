@@ -21,6 +21,7 @@ static intptr_t operator(intptr_t x, intptr_t y) {
   return mathAbs(x - (503 * y) + 37) % 1009;
 }
 
+FAST_SWITCH_DECORATOR
 void choose(intptr_t env, intptr_t _, exchanger_t* exc) {
   resumption_t* k = MAKE_RESUMPTION(exc);
   jb_t* ctx_jb = exc->ctx_jb;
@@ -51,6 +52,7 @@ static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choice_stub) {
     });
 }
 
+FAST_SWITCH_DECORATOR
 static int64_t body(handler_t* choice_stub) {
   ret_val = (intptr_t)({
     listNode(

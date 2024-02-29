@@ -45,6 +45,7 @@ static i64 suspend(i64 job_queue, i64 k){
   });
 }
 
+FAST_SWITCH_DECORATOR
 static i64 runnext(i64 job_queue){
   return ({
     (queueIsEmpty((queue_t*)job_queue)) ? ({
@@ -56,6 +57,7 @@ static i64 runnext(i64 job_queue){
   });
 }
 
+FAST_SWITCH_DECORATOR
 i64 yield(i64 env, i64 _, i64 exc){
   i64 k = (i64)MAKE_RESUMPTION(((exchanger_t*)exc));
   jb_t* ctx_jb = ((exchanger_t*)exc)->ctx_jb;
@@ -71,13 +73,14 @@ i64 yield(i64 env, i64 _, i64 exc){
       i64 runnext_closure = ((i64*)env)[2];
       i64 runnext_func = ((i64*)runnext_closure)[0];
       i64 job_queue2 = ((i64*)runnext_closure)[1];
-      ((i64(*)(i64))runnext_func)(job_queue2);
+      ((FAST_SWITCH_DECORATOR i64(*)(i64))runnext_func)(job_queue2);
     });
   });
 
   RESTORE_CONTEXT(ctx_jb);
 }
 
+FAST_SWITCH_DECORATOR
 i64 fork(i64 env, i64 job_closure, i64 exc){
   i64 k = (i64)MAKE_RESUMPTION(((exchanger_t*)exc));
   jb_t* ctx_jb = ((exchanger_t*)exc)->ctx_jb;
@@ -93,6 +96,7 @@ i64 fork(i64 env, i64 job_closure, i64 exc){
   RESTORE_CONTEXT(ctx_jb);
 }
 
+FAST_SWITCH_DECORATOR
 static i64 body(handler_t * sch_stub) {
   ret_val = ({
     i64 job_closure = sch_stub->env[0];
@@ -111,7 +115,7 @@ static i64 spawn(i64 job_closure, i64 suspend_closure, i64 runnext_closure){
 
     i64 runnext_func = ((i64*)runnext_closure)[0];
     i64 job_queue = ((i64*)runnext_closure)[1];
-    ((i64(*)(i64))runnext_func)(job_queue);
+    ((FAST_SWITCH_DECORATOR i64(*)(i64))runnext_func)(job_queue);
   });
 }
 

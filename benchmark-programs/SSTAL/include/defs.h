@@ -25,6 +25,9 @@ typedef struct {
         "jmpq *(%0)            \n\t" \
         :: "D" (jb) \
     )
+
+#define FAST_SWITCH_DECORATOR __attribute__((preserve_none))
+
 #else
 typedef struct {
   void*     reg_ip;
@@ -63,6 +66,9 @@ typedef struct {
         "jmpq *(%0)            \n\t" \
         :: "D" (jb) \
     )
+
+#define FAST_SWITCH_DECORATOR
+
 #endif
 
 typedef struct {
@@ -101,6 +107,9 @@ typedef struct {
     _ptr;                               \
 })
 
+// Handler and Body are casted to a type that is not PRESERVE_NONE, although they actually are.
+// This avoids the saving caller-saved registers at the callsite that is already done by the context-swtiching function,
+// which is(must be) the parent function of the callsite.
 typedef void(*HandlerFuncType)(const intptr_t* const, int64_t, exchanger_t*);
 typedef void(*BodyFuncType)(handler_t*);
 typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
@@ -143,9 +152,7 @@ extern intptr_t ret_val;
     )
 
 __attribute__((noinline))
-#ifdef FAST_SWITCH
-__attribute__((preserve_none))
-#endif
+FAST_SWITCH_DECORATOR
 int64_t save_switch_and_run_handler(jb_t* jb, void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
     SAVE_CONTEXT(jb, cont);
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
@@ -155,9 +162,7 @@ cont:
 }
 
 __attribute__((noinline))
-#ifdef FAST_SWITCH
-__attribute__((preserve_none))
-#endif
+FAST_SWITCH_DECORATOR
 int64_t save_switch_and_run_body(jb_t* jb, void* sp, BodyFuncType func, handler_t* stub) {
     SAVE_CONTEXT(jb, cont);
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
@@ -167,9 +172,7 @@ cont:
 }
 
 __attribute__((noinline))
-#ifdef FAST_SWITCH
-__attribute__((preserve_none))
-#endif
+FAST_SWITCH_DECORATOR
 int64_t save_and_run_body(jb_t* jb, BodyFuncType func, handler_t* stub) {
     SAVE_CONTEXT(jb, cont);
     func(stub);
@@ -178,9 +181,7 @@ cont:
 }
 
 __attribute__((noinline))
-#ifdef FAST_SWITCH
-__attribute__((preserve_none))
-#endif
+FAST_SWITCH_DECORATOR
 int64_t save_and_restore(jb_t* jb1, jb_t* jb2) {
     SAVE_CONTEXT(jb1, cont);
     RESTORE_CONTEXT(jb2);
