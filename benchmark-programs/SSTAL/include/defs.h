@@ -136,8 +136,8 @@ extern intptr_t ret_val;
 #define HEAP_ALLOC_ARRAY(type, ...) \
     ({ \
     type arr[] = {__VA_ARGS__}; \
-    type* harr = xmalloc(sizeof(type)*NARGS(__VA_ARGS__)); \
-    memcpy(harr, arr, sizeof(type)*NARGS(__VA_ARGS__));\
+    type* harr = xmalloc(sizeof(intptr_t)*NARGS(__VA_ARGS__)); \
+    memcpy(harr, arr, sizeof(intptr_t)*NARGS(__VA_ARGS__));\
     harr;\
     })
 
