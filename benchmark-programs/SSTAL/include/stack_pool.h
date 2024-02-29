@@ -30,14 +30,14 @@ char* get_stack() {
         return (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
     }
     index -= 1;
-    bitmap &= ~(1 << index);
+    bitmap &= ~(1ULL << index);
     return buffer + (index * STACK_SIZE) + STACK_SIZE;
 }
 
 __attribute__((noinline))
 void free_stack(char* stack) {
     if (stack >= buffer && stack < buffer + (STACK_SIZE * PREALLOCATED_STACKS)) {
-        int index = ((intptr_t)stack - (intptr_t)buffer) / STACK_SIZE;
+        int index = ((intptr_t)stack - 1 - (intptr_t)buffer) / STACK_SIZE;
         bitmap |= (1 << index);
     } else {
         // NB: why -1? Think what should happen when an empty stack is freeed.
