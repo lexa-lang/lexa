@@ -6,7 +6,6 @@
 typedef struct {
   void*     reg_ip;
   void*     reg_sp;
-  void*     reg_rbp;
 } jb_t;
 
 #define SAVE_CONTEXT(jb, cont) \
@@ -14,14 +13,12 @@ typedef struct {
         "movq    %1,  0(%0)      \n\t" \
         "leaq    (%%rsp), %1      \n\t" \
         "movq    %1, 8(%0)    \n\t" \
-        "movq    %%rbp, 16(%0)    \n\t" \
         :: "D" (jb), "S" (&&cont) \
     )
 
 #define RESTORE_CONTEXT(jb) \
     __asm__ ( \
         "movq 8(%0), %%rsp    \n\t" \
-        "movq 16(%0), %%rbp    \n\t" \
         "jmpq *(%0)            \n\t" \
         :: "D" (jb) \
     )
@@ -255,7 +252,8 @@ cont:
     switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
-            stub->exchanger->rsp_jb = (jb_t*)xmalloc(sizeof(jb_t)); \
+            jb_t new_rsp_jb; \
+            stub->exchanger->rsp_jb = &new_rsp_jb; \
             out = save_switch_and_run_handler(stub->exchanger->rsp_jb, stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
             break; \
         } \
@@ -294,7 +292,6 @@ cont:
     k->exc->ctx_jb = &new_ctx_jb; \
     k->rsp_jb->reg_sp = (void*)k->sp_backup; \
     out = save_and_restore(k->exc->ctx_jb, k->rsp_jb); \
-    free(k->rsp_jb); \
     out; \
     })
 
