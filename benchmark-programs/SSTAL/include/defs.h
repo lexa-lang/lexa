@@ -132,10 +132,14 @@ extern intptr_t ret_val;
     harr;\
     })
 
+// We are supppose to clobber rsp, but doing so makes the compiler to use rbp to address register spills (eg when saving caller-saved registers)
+// This forces us to copy not only the stack but also rsp when copying the stack, creating extra complexity.
+// SO, WE DON'T ANNOTATE THE CLOBBERING, AND BE CAREFUL NOT TO USE ANY STACK-STORED VARIABLE BETWEEN
+// THIS POINT TO A JMP OR CALL
 #define SWITCH_SP(sp) \
     __asm__ ( \
         "movq %0, %%rsp\n\t" \
-        :: "r"(sp) : "rsp" \
+        :: "r"(sp) \
     )
 
 __attribute__((noinline))
