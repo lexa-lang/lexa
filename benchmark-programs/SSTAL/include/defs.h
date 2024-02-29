@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stack_pool.h>
 
-// #define FAST_SWITCH
+#define FAST_SWITCH
 #ifdef FAST_SWITCH
 typedef struct {
   void*     reg_ip;
