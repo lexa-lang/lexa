@@ -127,3 +127,13 @@ int64_t queueDeq(queue_t* q) {
   free(old_front);
   return value;
 }
+
+int64_t queueLen(queue_t* q) {
+  int64_t len = 0;
+  node_t* current = q->front;
+  while (current != NULL) {
+    len++;
+    current = current->next;
+  }
+  return len;
+}
