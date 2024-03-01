@@ -58,6 +58,7 @@ static intptr_t loop(intptr_t xs, intptr_t i, intptr_t a) {
     return a;
   }) : ({
     // TODO: how can we remove the musttail attribute?
+    // Invest if we can get ride of taking alloca address in runProduct. Such behavior prevents tail call optimization.
     __attribute__((musttail))
     return loop(xs, i - 1, a + runProduct(xs));
   });

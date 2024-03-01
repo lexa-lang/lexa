@@ -26,8 +26,6 @@ i64 loop(i64 i, i64 job_closure, handler_t* sch_stub){
       return 0;
     }) : ({
       RAISE(sch_stub, 1, job_closure);
-      // TODO: what's prohibiting tail-call optimization here?
-      __attribute__((musttail))
       return loop(i - 1, job_closure, sch_stub);
     });
   });

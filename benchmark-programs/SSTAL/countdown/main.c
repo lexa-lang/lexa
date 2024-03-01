@@ -22,9 +22,7 @@ static intptr_t countdown(handler_t* state_stub){
         return i;
     } else {
         RAISE(state_stub, 1, i - 1);
-        // NOTE: due to the presence of `setjmp` in the current function, the compiler refuses to do tail call optimization
-        //     so we need to use the `musttail` attribute to force the tail call optimization
-        __attribute__((musttail)) return countdown(state_stub); 
+        return countdown(state_stub); 
     }
 }
 
