@@ -150,8 +150,10 @@ extern intptr_t ret_val;
 
 __attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler(jb_t* jb, void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
-    SAVE_CONTEXT(jb, cont);
+int64_t save_switch_and_run_handler(void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
+    jb_t new_rsp_jb;
+    stub->exchanger->rsp_jb = &new_rsp_jb;
+    SAVE_CONTEXT(&new_rsp_jb, cont);
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
     func(stub->env, arg, stub->exchanger);
 cont:
@@ -252,9 +254,7 @@ cont:
     switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
-            jb_t new_rsp_jb; \
-            stub->exchanger->rsp_jb = &new_rsp_jb; \
-            out = save_switch_and_run_handler(stub->exchanger->rsp_jb, stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
+            out = save_switch_and_run_handler(stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
             break; \
         } \
         case TAIL: \
