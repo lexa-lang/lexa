@@ -8,6 +8,20 @@ typedef struct {
   void*     reg_sp;
 } jb_t;
 
+#define SEAL_STACK(cont, sp) \
+    __asm__ ( \
+        "pushq %0\n\t" \
+        "movq %%rsp, 0(%1)\n\t" \
+        :: "r" (cont), "r" (sp) \
+    )
+
+#define UNSEAL_STACK(sp, ret_val) \
+    __asm__ ( \
+        "movq %0, %%rsp\n\t" \
+        "retq\n\t" \
+        :: "r" (sp), "a" (ret_val) \
+    )
+
 #define SAVE_CONTEXT(jb, cont) \
     __asm__ ( \
         "movq    %1,  0(%0)      \n\t" \
@@ -70,12 +84,11 @@ typedef struct {
 
 typedef struct {
   jb_t *ctx_jb;
-  jb_t *rsp_jb;
+  void *rsp_sp;
 } exchanger_t;
 
 typedef struct {
-    jb_t *rsp_jb;
-    void* sp_backup;
+    void* rsp_sp;
     exchanger_t* exc;
 } resumption_t;
 
@@ -150,23 +163,18 @@ extern intptr_t ret_val;
 
 __attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler(handler_mode_t mode, void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
-    // If the resumption is single-shot, then the stack won't get copied. It's okay to allocated
-    // the jb on the stack.
-    jb_t *new_rsp_jb, _jb;
-    if (mode == MULTISHOT) {
-        new_rsp_jb = xmalloc(sizeof(jb_t));
-    } else if (mode == SINGLESHOT) {
-        new_rsp_jb = &_jb;
-    } else {
-        exit(EXIT_FAILURE);
-    }
-    stub->exchanger->rsp_jb = new_rsp_jb;
-    SAVE_CONTEXT(new_rsp_jb, cont);
+int64_t save_switch_and_run_handler(void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
+    SEAL_STACK(&&cont, (&stub->exchanger->rsp_sp));
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
     func(stub->env, arg, stub->exchanger);
 cont:
-    return ret_val;
+    // TODO: this maynot be necessary
+    intptr_t ret;
+    __asm__ ( \
+        "movq %%rax, %0\n\t" \
+        : "=r"(ret) \
+    );
+    return ret;
 }
 
 __attribute__((noinline))
@@ -190,9 +198,9 @@ cont:
 
 __attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t save_and_restore(jb_t* jb1, jb_t* jb2) {
+int64_t save_and_restore(intptr_t arg, jb_t* jb1, void* sp) {
     SAVE_CONTEXT(jb1, cont);
-    RESTORE_CONTEXT(jb2);
+    UNSEAL_STACK(sp, arg);
 cont:
     return ret_val;
 }
@@ -263,7 +271,7 @@ cont:
     switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
-            out = save_switch_and_run_handler(stub->defs[index].mode, stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
+            out = save_switch_and_run_handler(stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
             break; \
         } \
         case TAIL: \
@@ -278,29 +286,25 @@ cont:
     })
 
 #define MAKE_RESUMPTION(exc) \
-    HEAP_ALLOC_STRUCT(resumption_t, exc->rsp_jb, exc->rsp_jb->reg_sp, exc)
+    HEAP_ALLOC_STRUCT(resumption_t, exc->rsp_sp, exc)
 
 #define THROW(k, arg) \
     ({ \
-    ret_val = arg; \
     intptr_t out; \
     jb_t new_ctx_jb; \
     k->exc->ctx_jb = &new_ctx_jb; \
-    char* new_sp = dup_stack((char*)k->sp_backup); \
-    k->rsp_jb->reg_sp = (void*)new_sp; \
-    out = save_and_restore(k->exc->ctx_jb, k->rsp_jb); \
+    char* new_sp = dup_stack((char*)k->rsp_sp); \
+    out = save_and_restore(arg, k->exc->ctx_jb, new_sp); \
     free_stack(new_sp); \
     out; \
     })
 
 #define FINAL_THROW(k, arg) \
     ({ \
-    ret_val = arg; \
     intptr_t out; \
     jb_t new_ctx_jb; \
     k->exc->ctx_jb = &new_ctx_jb; \
-    k->rsp_jb->reg_sp = (void*)k->sp_backup; \
-    out = save_and_restore(k->exc->ctx_jb, k->rsp_jb); \
+    out = save_and_restore(arg, k->exc->ctx_jb, k->rsp_sp); \
     out; \
     })
 
