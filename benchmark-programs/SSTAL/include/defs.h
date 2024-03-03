@@ -150,10 +150,19 @@ extern intptr_t ret_val;
 
 __attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler(void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
-    jb_t new_rsp_jb;
-    stub->exchanger->rsp_jb = &new_rsp_jb;
-    SAVE_CONTEXT(&new_rsp_jb, cont);
+int64_t save_switch_and_run_handler(handler_mode_t mode, void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
+    // If the resumption is single-shot, then the stack won't get copied. It's okay to allocated
+    // the jb on the stack.
+    jb_t *new_rsp_jb, _jb;
+    if (mode == MULTISHOT) {
+        new_rsp_jb = xmalloc(sizeof(jb_t));
+    } else if (mode == SINGLESHOT) {
+        new_rsp_jb = &_jb;
+    } else {
+        exit(EXIT_FAILURE);
+    }
+    stub->exchanger->rsp_jb = new_rsp_jb;
+    SAVE_CONTEXT(new_rsp_jb, cont);
     SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
     func(stub->env, arg, stub->exchanger);
 cont:
@@ -254,7 +263,7 @@ cont:
     switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
-            out = save_switch_and_run_handler(stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
+            out = save_switch_and_run_handler(stub->defs[index].mode, stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
             break; \
         } \
         case TAIL: \
