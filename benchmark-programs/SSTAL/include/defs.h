@@ -13,14 +13,14 @@ typedef struct {
         "movq    %1,  0(%0)      \n\t" \
         "leaq    (%%rsp), %1      \n\t" \
         "movq    %1, 8(%0)    \n\t" \
-        :: "D" (jb), "S" (&&cont) \
+        :: "r" (jb), "r" (&&cont) \
     )
 
 #define RESTORE_CONTEXT(jb) \
     __asm__ ( \
         "movq 8(%0), %%rsp    \n\t" \
         "jmpq *(%0)            \n\t" \
-        :: "D" (jb) \
+        :: "r" (jb) \
     )
 
 #define FAST_SWITCH_DECORATOR __attribute__((preserve_none))
@@ -48,7 +48,7 @@ typedef struct {
         "movq    %%r13, 40(%0)    \n\t" \
         "movq    %%r14, 48(%0)    \n\t" \
         "movq    %%r15, 56(%0)    \n\t" \
-        :: "D" (jb), "S" (&&cont) \
+        :: "r" (jb), "r" (&&cont) \
     )
 
 #define RESTORE_CONTEXT(jb) \
@@ -61,7 +61,7 @@ typedef struct {
         "movq 48(%0), %%r14    \n\t" \
         "movq 56(%0), %%r15    \n\t" \
         "jmpq *(%0)            \n\t" \
-        :: "D" (jb) \
+        :: "r" (jb) \
     )
 
 #define FAST_SWITCH_DECORATOR
