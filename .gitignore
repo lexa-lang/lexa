@@ -6,3 +6,9 @@ perf.data.old
 .vscode/
 flamegraph.svg
 *.svg
+actual
+expected
+vgcore.*
+*.ll
+out
+main
