@@ -21,7 +21,6 @@ void destroy_stack_pool() {
     bitmap = 0;
 }
 
-__attribute__((noinline))
 char* get_stack() {
     assert(buffer);
     int index = __builtin_ffsll(bitmap);
@@ -34,7 +33,6 @@ char* get_stack() {
     return buffer + (index * STACK_SIZE) + STACK_SIZE;
 }
 
-__attribute__((noinline))
 void free_stack(char* stack) {
     if (stack >= buffer && stack < buffer + (STACK_SIZE * PREALLOCATED_STACKS)) {
         int index = ((intptr_t)stack - 1 - (intptr_t)buffer) / STACK_SIZE;
@@ -48,7 +46,6 @@ void free_stack(char* stack) {
 }
 
 // Does not work for an empty stack. But such situation should not happen.
-__attribute__((noinline))
 char* dup_stack(char* sp) {
     char* new_stack = get_stack();
     size_t num_bytes = STACK_SIZE - (intptr_t)sp % STACK_SIZE;
