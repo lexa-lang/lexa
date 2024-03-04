@@ -22,16 +22,13 @@ static intptr_t operator(intptr_t x, intptr_t y) {
 }
 
 FAST_SWITCH_DECORATOR
-void choose(intptr_t env, intptr_t _, exchanger_t* exc) {
+intptr_t choose(intptr_t env, intptr_t _, exchanger_t* exc) {
   resumption_t* k = MAKE_RESUMPTION(exc);
-  jb_t* ctx_jb = exc->ctx_jb;
 
-  ret_val = ({
+  return ({
     (intptr_t)listAppend((node_t*)THROW(k, true), 
                           (node_t*)FINAL_THROW(k, false));
   });
-
-  RESTORE_CONTEXT(ctx_jb);
 }
 
 static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choice_stub) {
@@ -52,18 +49,12 @@ static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choice_stub) {
     });
 }
 
-FAST_SWITCH_DECORATOR
 static int64_t body(handler_t* choice_stub) {
-  ret_val = (intptr_t)({
+  return (intptr_t)({
     listNode(
-      #pragma clang diagnostic ignored "-Wint-conversion"
       explore(choice_stub->env[0], choice_stub->env[1], choice_stub), 
-      #pragma clang diagnostic warning "-Wint-conversion"
       listEnd());
   });
-
-  RESTORE_CONTEXT(choice_stub->exchanger->ctx_jb);
-  __builtin_unreachable();
 }
 
 static intptr_t paths(intptr_t state, intptr_t tree) {
