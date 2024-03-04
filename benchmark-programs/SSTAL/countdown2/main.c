@@ -32,6 +32,7 @@ static intptr_t countdown(handler_t* state_stub){
     }
 }
 
+FAST_SWITCH_DECORATOR
 static intptr_t body(handler_t* state_stub) {
     return countdown(state_stub);
 }

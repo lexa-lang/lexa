@@ -90,6 +90,7 @@ i64 fork(i64 env, i64 job_closure, i64 exc){
   });
 }
 
+FAST_SWITCH_DECORATOR
 static i64 body(handler_t * sch_stub) {
   return ({
     i64 job_closure = sch_stub->env[0];

@@ -49,6 +49,7 @@ static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choice_stub) {
     });
 }
 
+FAST_SWITCH_DECORATOR
 static int64_t body(handler_t* choice_stub) {
   return (intptr_t)({
     listNode(

@@ -178,9 +178,11 @@ int64_t save_switch_and_run_body(handler_t* stub, void** ctx_sp, void* new_sp, B
     __asm__ (
         "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to ctx_sp. Later when switching back, just need to run a ret
         "movq %%rdx, %%rsp\n\t" // Switch to the new stack new_sp
-        "movq %%rsi, %%rbx\n\t" // Save the pointer to the parent stack pointer in a callee-saved register
+        "pushq %%rsi\n\t" // Save the pointer to the parent stack pointer in the stack
+        "pushq %%rsi\n\t" // Ensure the stack is aligned
         "callq *%%rcx\n\t"
-        "movq 0(%%rbx), %%rsp\n\t" // Restore the parent stack pointer
+        "popq %%rsi\n\t" // Restore the pointer to the parent stack pointer
+        "movq 0(%%rsi), %%rsp\n\t" // Restore the parent stack pointer
         "retq\n\t"
         :
     );

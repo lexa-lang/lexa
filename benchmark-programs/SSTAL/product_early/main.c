@@ -35,6 +35,7 @@ static intptr_t product(handler_t *abort_stub, intptr_t xs) {
   });
 }
 
+FAST_SWITCH_DECORATOR
 static intptr_t body(handler_t * abort_stub) {
   return ({
     product(abort_stub, abort_stub->env[0]);
