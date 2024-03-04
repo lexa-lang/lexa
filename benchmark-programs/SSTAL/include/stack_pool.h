@@ -22,7 +22,9 @@ void destroy_stack_pool() {
 }
 
 char* get_stack() {
-    assert(buffer);
+    if (!buffer) {
+        init_stack_pool();
+    }
     int index = __builtin_ffsll(bitmap);
     if (index == 0) {
         // Out of stack space
