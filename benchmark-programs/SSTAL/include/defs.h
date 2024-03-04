@@ -161,20 +161,15 @@ extern intptr_t ret_val;
         :: "r"(sp) \
     )
 
-__attribute__((noinline))
+__attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler(void* sp, HandlerFuncType func, handler_t* stub, int64_t arg) {
-    SEAL_STACK(&&cont, (&stub->exchanger->rsp_sp));
-    SWITCH_SP((uintptr_t)sp & ~((uintptr_t)0xF)); // Align sp down to the nearest 16-byte boundary
-    func(stub->env, arg, stub->exchanger);
-cont:
-    // TODO: this maynot be necessary
-    intptr_t ret;
-    __asm__ ( \
-        "movq %%rax, %0\n\t" \
-        : "=r"(ret) \
+int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, exchanger_t* exc, void* ctx_sp, void** rsp_sp, HandlerFuncType func) {
+    __asm__ (
+        "movq %%rsp, 0(%%r8)\n\t"
+        "movq %%rcx, %%rsp\n\t"
+        "jmpq *%%r9\n\t"
+        :
     );
-    return ret;
 }
 
 __attribute__((noinline))
@@ -271,7 +266,8 @@ cont:
     switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
-            out = save_switch_and_run_handler(stub->exchanger->ctx_jb->reg_sp, ((HandlerFuncType)stub->defs[index].func), stub, arg); \
+            out = save_switch_and_run_handler(stub->env, arg, stub->exchanger,\
+                stub->exchanger->ctx_jb->reg_sp, &(stub->exchanger->rsp_sp), ((HandlerFuncType)stub->defs[index].func)); \
             break; \
         } \
         case TAIL: \
