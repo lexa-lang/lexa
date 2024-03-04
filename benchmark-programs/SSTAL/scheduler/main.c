@@ -45,6 +45,7 @@ static i64 suspend(i64 job_queue, i64 k){
   });
 }
 
+// TODO: investigate how to place this decorator in the right place
 FAST_SWITCH_DECORATOR
 static i64 runnext(i64 job_queue){
   return ({
@@ -59,7 +60,7 @@ static i64 runnext(i64 job_queue){
 
 FAST_SWITCH_DECORATOR
 i64 yield(i64 env, i64 _, i64 exc){
-  i64 k = (i64)MAKE_RESUMPTION(((exchanger_t*)exc));
+  i64 k = (i64)MAKE_RESUMPTION(((void**)exc));
 
   return ({
     ({
@@ -72,14 +73,14 @@ i64 yield(i64 env, i64 _, i64 exc){
       i64 runnext_closure = ((i64*)env)[2];
       i64 runnext_func = ((i64*)runnext_closure)[0];
       i64 job_queue2 = ((i64*)runnext_closure)[1];
-      ((FAST_SWITCH_DECORATOR i64(*)(i64))runnext_func)(job_queue2);
+      ((i64(*)(i64))runnext_func)(job_queue2);
     });
   });
 }
 
 FAST_SWITCH_DECORATOR
 i64 fork(i64 env, i64 job_closure, i64 exc){
-  i64 k = (i64)MAKE_RESUMPTION(((exchanger_t*)exc));
+  i64 k = (i64)MAKE_RESUMPTION(((void**)exc));
 
   return ({
     i64 suspend_closure = ((i64*)env)[1];

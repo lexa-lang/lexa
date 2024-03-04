@@ -15,7 +15,7 @@ intptr_t enumerate(intptr_t i) {
 }
 
 FAST_SWITCH_DECORATOR
-intptr_t done(const intptr_t* const env, intptr_t r, exchanger_t* exc) {
+intptr_t done(const intptr_t* const env, intptr_t r) {
   return ({
     r;
   });

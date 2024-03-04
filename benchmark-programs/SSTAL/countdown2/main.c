@@ -5,7 +5,7 @@
 intptr_t ret_val;
 
 FAST_SWITCH_DECORATOR
-intptr_t get(intptr_t *env, intptr_t _, exchanger_t* exc) {
+intptr_t get(intptr_t *env, intptr_t _, void** exc) {
     resumption_t* k = MAKE_RESUMPTION(exc);
 
     intptr_t *s = (intptr_t*)env[0];
@@ -13,7 +13,7 @@ intptr_t get(intptr_t *env, intptr_t _, exchanger_t* exc) {
 }
 
 FAST_SWITCH_DECORATOR
-intptr_t set(intptr_t *env, intptr_t n, exchanger_t* exc) {
+intptr_t set(intptr_t *env, intptr_t n, void** exc) {
     resumption_t* k = MAKE_RESUMPTION(exc);
 
     intptr_t *s = (intptr_t*)env[0];

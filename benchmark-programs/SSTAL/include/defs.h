@@ -83,11 +83,6 @@ typedef struct {
 #endif
 
 typedef struct {
-  void *ctx_sp;
-  void *rsp_sp;
-} exchanger_t;
-
-typedef struct {
     void* rsp_sp;
     void** ctx_sp;
 } resumption_t;
@@ -106,7 +101,11 @@ typedef struct {
 typedef struct {
   handler_def_t* defs;
   intptr_t* env;
-  exchanger_t* exchanger;
+  void* _sp_exchanger[1];
+  // HACK: sp_exchanger stores the address of _sp_exchanger. We use this indirection
+  // to convince the compiler that this struct is immutable, so optimization such as
+  // argpromotion can proceed.
+  void** sp_exchanger;
 } handler_t;
 
 #define xmalloc(size) ({                \
@@ -120,10 +119,12 @@ typedef struct {
 // Handler and Body are casted to a type that is not PRESERVE_NONE, although they actually are.
 // This avoids the saving caller-saved registers at the callsite that is already done by the context-swtiching function,
 // which is(must be) the parent function of the callsite.
-typedef void(*HandlerFuncType)(const intptr_t* const, int64_t, exchanger_t*);
+// TODO: the above rational calls for further investigation
+typedef void(*HandlerFuncType)(const intptr_t* const, int64_t, void**);
 typedef void(*BodyFuncType)(handler_t*);
 typedef int64_t(*TailHandlerFuncType)(const intptr_t* const, int64_t);
 typedef int64_t(*TailBodyFuncType)(handler_t*);
+typedef int64_t(*AbortHandlerFuncType)(const intptr_t* const);
 
 extern intptr_t ret_val;
 
@@ -163,26 +164,32 @@ extern intptr_t ret_val;
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, exchanger_t* exc, void* ctx_sp, void** rsp_sp, HandlerFuncType func) {
+int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, void** exc, HandlerFuncType func) {
     __asm__ (
-        "movq %%rsp, 0(%%r8)\n\t" // Save the current stack pointer to rsp_sp. Later when switching back, just need to run a ret
-        "movq %%rcx, %%rsp\n\t" // Switch to the context stack ctx_sp
-        "jmpq *%%r9\n\t" // Call the handler, the first three arguments are already in the right registers
+        "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
+        "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
+        "movq %%rax, %%rsp\n\t" // Switch to the context stack
+        "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
         :
     );
 }
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_body(handler_t* stub, void** ctx_sp, void* new_sp, BodyFuncType body) {
+int64_t save_switch_and_run_body(handler_t* stub, void** exc, void* new_sp, BodyFuncType body) {
     __asm__ (
-        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to ctx_sp. Later when switching back, just need to run a ret
+        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
         "movq %%rdx, %%rsp\n\t" // Switch to the new stack new_sp
-        "pushq %%rsi\n\t" // Save the pointer to the parent stack pointer in the stack
+        "pushq %%rsi\n\t" // Save the exchanger in the stack
         "pushq %%rsi\n\t" // Ensure the stack is aligned
         "callq *%%rcx\n\t"
-        "popq %%rsi\n\t" // Restore the pointer to the parent stack pointer
-        "movq 0(%%rsi), %%rsp\n\t" // Restore the parent stack pointer
+        "movq %%rax, %%r12\n\t" // Save the return value into a callee-saved register
+        "popq %%rbx\n\t" // Restore the exchanger into a callee-saved register
+        "popq %%rbx\n\t" // Ensure the stack is aligned
+        "movq %%rsp, %%rdi\n\t" // Move the current stack pointer to the first argument
+        "callq free_stack\n\t" // Free the stack
+        "movq 0(%%rbx), %%rsp\n\t" // Restore the parent stack pointer
+        "movq %%r12, %%rax\n\t" // Move the return value to the return register
         "retq\n\t"
         :
     );
@@ -190,9 +197,9 @@ int64_t save_switch_and_run_body(handler_t* stub, void** ctx_sp, void* new_sp, B
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_and_run_body(handler_t* stub, void** ctx_sp, BodyFuncType body) {
+int64_t save_and_run_body(handler_t* stub, void** exc, BodyFuncType body) {
     __asm__ (
-        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to ctx_sp. Later when switching back, just need to run a ret
+        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
         "jmpq *%%rdx\n\t" // Call the body, the first argument is already in the right register
         :
     );
@@ -200,9 +207,9 @@ int64_t save_and_run_body(handler_t* stub, void** ctx_sp, BodyFuncType body) {
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_and_restore(intptr_t arg, void** ctx_sp, void* rsp_sp) {
+int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     __asm__ (
-        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to rsp_sp. Later when switching back, just need to run a ret
+        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
         "movq %%rdx, %%rsp\n\t" // Switch to the new stack rsp_sp
         "movq %%rdi, %%rax\n\t" // Move the argument(return value) to the return register
         "retq\n\t"
@@ -216,23 +223,22 @@ int64_t save_and_restore(intptr_t arg, void** ctx_sp, void* rsp_sp) {
     if (mode == TAIL) { \
         handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode, (void*)func}); \
         intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-        handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env, NULL); \
+        handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env); \
         out = ((TailBodyFuncType)body)(stub); \
     } else { \
         if (mode == MULTISHOT || mode == SINGLESHOT) { \
             handler_def_t* defs = HEAP_ALLOC_ARRAY(handler_def_t, {mode, (void*)func}); \
             intptr_t* env = HEAP_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-            exchanger_t* exc = HEAP_ALLOC_STRUCT(exchanger_t, NULL, NULL); \
-            handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env, exc); \
+            handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env); \
+            stub->sp_exchanger = stub->_sp_exchanger; \
             char* new_sp = get_stack(); \
-            out = save_switch_and_run_body(stub, &(exc->ctx_sp), new_sp, (BodyFuncType)body); \
-            free_stack(new_sp); \
+            out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, (BodyFuncType)body); \
         } else { \
             handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode, (void*)func}); \
             intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-            exchanger_t* exc = STACK_ALLOC_STRUCT(exchanger_t, NULL, NULL); \
-            handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env, exc); \
-            out = save_and_run_body(stub, &(exc->ctx_sp), (BodyFuncType)body); \
+            handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env); \
+            stub->sp_exchanger = stub->_sp_exchanger; \
+            out = save_and_run_body(stub, stub->sp_exchanger, (BodyFuncType)body); \
         } \
     }\
     out; \
@@ -244,23 +250,22 @@ int64_t save_and_restore(intptr_t arg, void** ctx_sp, void* rsp_sp) {
     if ((mode1 | mode2) == TAIL) { \
         handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
         intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-        handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env, NULL); \
+        handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env); \
         out = body(stub); \
     } else { \
         if ((mode1 | mode2 & MULTISHOT) || (mode1 | mode2 & SINGLESHOT)) { \
             handler_def_t* defs = HEAP_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
             intptr_t* env = HEAP_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-            exchanger_t* exc = HEAP_ALLOC_STRUCT(exchanger_t, NULL, NULL); \
-            handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env, exc); \
+            handler_t *stub = HEAP_ALLOC_STRUCT(handler_t, defs, env); \
+            stub->sp_exchanger = stub->_sp_exchanger; \
             char* new_sp = get_stack(); \
-            out = save_switch_and_run_body(stub, &(exc->ctx_sp), new_sp, (BodyFuncType)body); \
-            free_stack(new_sp); \
+            out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, (BodyFuncType)body); \
         } else { \
             handler_def_t* defs = STACK_ALLOC_ARRAY(handler_def_t, {mode1, (void*)func1}, {mode2, (void*)func2}); \
             intptr_t* env = STACK_ALLOC_ARRAY(intptr_t, __VA_ARGS__); \
-            exchanger_t* exc = STACK_ALLOC_STRUCT(exchanger_t, NULL, NULL); \
-            handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env, exc); \
-            out = save_and_run_body(stub, &(exc->ctx_sp), (BodyFuncType)body); \
+            handler_t *stub = STACK_ALLOC_STRUCT(handler_t, defs, env); \
+            stub->sp_exchanger = stub->_sp_exchanger; \
+            out = save_and_run_body(stub, stub->sp_exchanger, (BodyFuncType)body); \
         } \
     }\
     out; \
@@ -272,8 +277,8 @@ int64_t save_and_restore(intptr_t arg, void** ctx_sp, void* rsp_sp) {
     switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
-            out = save_switch_and_run_handler(stub->env, arg, stub->exchanger,\
-                stub->exchanger->ctx_sp, &(stub->exchanger->rsp_sp), ((HandlerFuncType)stub->defs[index].func)); \
+            out = save_switch_and_run_handler(stub->env, arg, stub->sp_exchanger,\
+                ((HandlerFuncType)stub->defs[index].func)); \
             break; \
         } \
         case TAIL: \
@@ -281,9 +286,9 @@ int64_t save_and_restore(intptr_t arg, void** ctx_sp, void* rsp_sp) {
             break; \
         case ABORT: \
             __asm__ ( \
-                "movq %3, %%rsp\n\t" \
-                "jmpq *%4\n\t" \
-                :: "D"(stub->env), "S"(arg), "d"(stub->exchanger), "r"(stub->exchanger->ctx_sp), "r"((HandlerFuncType)stub->defs[index].func) \
+                "movq %2, %%rsp\n\t" \
+                "jmpq *%3\n\t" \
+                :: "D"(stub->env), "S"(arg), "r"(*stub->sp_exchanger), "r"((AbortHandlerFuncType)stub->defs[index].func) \
             ); \
             __builtin_unreachable(); \
     }; \
@@ -291,14 +296,13 @@ int64_t save_and_restore(intptr_t arg, void** ctx_sp, void* rsp_sp) {
     })
 
 #define MAKE_RESUMPTION(exc) \
-    HEAP_ALLOC_STRUCT(resumption_t, exc->rsp_sp, &exc->ctx_sp)
+    HEAP_ALLOC_STRUCT(resumption_t, *exc, exc)
 
 #define THROW(k, arg) \
     ({ \
     intptr_t out; \
     char* new_sp = dup_stack((char*)k->rsp_sp); \
     out = save_and_restore(arg, k->ctx_sp, new_sp); \
-    free_stack(new_sp); \
     out; \
     })
 

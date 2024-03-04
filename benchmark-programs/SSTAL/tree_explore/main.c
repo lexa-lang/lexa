@@ -22,7 +22,7 @@ static intptr_t operator(intptr_t x, intptr_t y) {
 }
 
 FAST_SWITCH_DECORATOR
-intptr_t choose(intptr_t env, intptr_t _, exchanger_t* exc) {
+intptr_t choose(intptr_t env, intptr_t _, void** exc) {
   resumption_t* k = MAKE_RESUMPTION(exc);
 
   return ({
