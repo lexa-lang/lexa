@@ -21,7 +21,7 @@ intptr_t done(const intptr_t* const env, intptr_t r) {
   });
 }
 
-static intptr_t product(handler_t *abort_stub, intptr_t xs) {
+static intptr_t product(m_1op_t *abort_stub, intptr_t xs) {
   return (listIsEmpty((node_t*)xs)) ? ({
     0;
   }) : ({
@@ -36,7 +36,7 @@ static intptr_t product(handler_t *abort_stub, intptr_t xs) {
 }
 
 FAST_SWITCH_DECORATOR
-static intptr_t body(handler_t * abort_stub) {
+static intptr_t body(m_1op_t * abort_stub) {
   return ({
     product(abort_stub, abort_stub->env[0]);
   });
@@ -44,7 +44,7 @@ static intptr_t body(handler_t * abort_stub) {
 
 static intptr_t runProduct(intptr_t xs) {
   return ({
-    HANDLE_ONE(body, ABORT, done, xs);
+    HANDLE(body, ({ABORT, done}), (xs));
   });
 }
 

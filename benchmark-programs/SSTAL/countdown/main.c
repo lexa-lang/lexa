@@ -16,7 +16,7 @@ intptr_t set(intptr_t *env, intptr_t n){
 }
 
 // NOTE: declare functions with `static` sometimes helps the compiler to optimize the code
-static intptr_t countdown(handler_t* state_stub){
+static intptr_t countdown(m_2op1env_t* state_stub){
     intptr_t i = RAISE(state_stub, 0, 0);
     if(i == 0){
         return i;
@@ -26,7 +26,7 @@ static intptr_t countdown(handler_t* state_stub){
     }
 }
 
-static intptr_t body(handler_t* state_stub) {
+static intptr_t body(m_2op1env_t* state_stub) {
     return countdown(state_stub);
 }
 
@@ -38,7 +38,7 @@ static intptr_t run(intptr_t n){
     intptr_t s = (intptr_t)xmalloc(1 * sizeof(intptr_t));
     ((intptr_t*)s)[0] = n;
 
-    return HANDLE_TWO(body, TAIL, (void*)get, TAIL, (void*)set, s);
+    return HANDLE(body, ({TAIL, (void*)get}, {TAIL, (void*)set}), (s));
 }
 
 int main(int argc, char *argv[]){

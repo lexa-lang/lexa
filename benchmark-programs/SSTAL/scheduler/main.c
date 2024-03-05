@@ -12,7 +12,7 @@ static i64 spawn(i64, i64, i64);
 
 i64 ret_val;
 
-i64 job(i64 state, handler_t* sch_stub){
+i64 job(i64 state, m_2op_t* sch_stub){
   return ({
     ((i64*)state)[0] += 1;
     RAISE(sch_stub, 0, 0);
@@ -20,7 +20,7 @@ i64 job(i64 state, handler_t* sch_stub){
   });
 }
 
-i64 loop(i64 i, i64 job_closure, handler_t* sch_stub){
+i64 loop(i64 i, i64 job_closure, m_2op_t* sch_stub){
   ({
     (i == 0) ? ({
       return 0;
@@ -31,7 +31,7 @@ i64 loop(i64 i, i64 job_closure, handler_t* sch_stub){
   });
 }
 
-i64 entry(i64 env, handler_t* sch_stub){
+i64 entry(i64 env, m_2op_t* sch_stub){
   return ({
     i64 n = ((i64*)env)[0];
     i64 job_closure = ((i64*)env)[1];
@@ -92,18 +92,18 @@ i64 fork(i64 env, i64 job_closure, i64 exc){
 }
 
 FAST_SWITCH_DECORATOR
-static i64 body(handler_t * sch_stub) {
+static i64 body(m_2op_t * sch_stub) {
   return ({
     i64 job_closure = sch_stub->env[0];
     i64 job_func = ((i64*)job_closure)[0];
     i64 job_env = ((i64*)job_closure)[1];
-    ((i64 (*)(i64, handler_t*))job_func)(job_env, sch_stub);
+    ((i64 (*)(i64, m_2op_t*))job_func)(job_env, sch_stub);
   });
 }
 
 static i64 spawn(i64 job_closure, i64 suspend_closure, i64 runnext_closure){
   return ({
-    HANDLE_TWO(body, SINGLESHOT, yield, SINGLESHOT, fork, job_closure, suspend_closure, runnext_closure);
+    HANDLE(body, ({SINGLESHOT, yield}, {SINGLESHOT, fork}), (job_closure, suspend_closure, runnext_closure));
 
     i64 runnext_func = ((i64*)runnext_closure)[0];
     i64 job_queue = ((i64*)runnext_closure)[1];

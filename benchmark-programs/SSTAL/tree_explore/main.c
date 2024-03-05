@@ -31,7 +31,7 @@ intptr_t choose(intptr_t env, intptr_t _, void** exc) {
   });
 }
 
-static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choice_stub) {
+static intptr_t explore(intptr_t state, intptr_t tree, m_1op_t* choice_stub) {
   return (treeIsEmpty((tree_t*)tree)) ?
     ({ 
       ((intptr_t*)state)[0];
@@ -50,7 +50,7 @@ static intptr_t explore(intptr_t state, intptr_t tree, handler_t* choice_stub) {
 }
 
 FAST_SWITCH_DECORATOR
-static int64_t body(handler_t* choice_stub) {
+static int64_t body(m_1op_t* choice_stub) {
   return (intptr_t)({
     listNode(
       explore(choice_stub->env[0], choice_stub->env[1], choice_stub), 
@@ -59,7 +59,7 @@ static int64_t body(handler_t* choice_stub) {
 }
 
 static intptr_t paths(intptr_t state, intptr_t tree) {
-  return HANDLE_ONE(body, MULTISHOT, choose, state, tree);
+  return HANDLE(body, ({MULTISHOT, choose}), (state, tree));
 }
 
 static intptr_t loop(intptr_t state, intptr_t tree, intptr_t i) {
