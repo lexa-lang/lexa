@@ -128,8 +128,8 @@ typedef int64_t(*AbortHandlerFuncType)(const intptr_t* const);
 
 extern intptr_t ret_val;
 
-#define ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _, ...) _
-#define NARGS(...) ARG_N(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+#define ARG_N(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
+#define NARGS(...) ARG_N(_, ## __VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 
 #define STACK_ALLOC_STRUCT(type, ...) \
     &(type){__VA_ARGS__};
