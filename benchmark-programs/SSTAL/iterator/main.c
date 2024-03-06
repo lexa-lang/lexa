@@ -1,37 +1,38 @@
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <defs.h>
 
-int emit(intptr_t env[1], int n){
-    int* a = (int*)env[0];
+FAST_SWITCH_DECORATOR
+intptr_t emit(intptr_t *env, intptr_t n) {
+    intptr_t *a = (intptr_t*)env[0];
     *a += n;
     return 0;
 }
 
-void range(intptr_t handler_closure[3], int n){
-  for (int i = 0; i < n; i++){
-    ((int(*)(intptr_t*, int))handler_closure[0])((intptr_t*)handler_closure[1], i);
-  }
+intptr_t range(meta_t *emit_stub, intptr_t l, intptr_t u){
+  return ({
+    l > u ? 0 : ({
+      RAISE(emit_stub, 0, l);
+      range(emit_stub, l + 1, u);
+    });
+  });
 }
 
-int run(int n){
-    // Heap-allocate a reference cell
-    int* a = (int*)malloc(1 * sizeof(int));
-    *a = n;
+FAST_SWITCH_DECORATOR
+static intptr_t body(meta_t* emit_stub) {
+    return ({
+      range(emit_stub, 0, emit_stub->env[0]);
+    });
+}
 
-    // Stack-allocate the closure for the handler
-    // 1. allocate the environment
-    intptr_t env[1] = {(intptr_t)a};
-    // 2. allocate the closure
-    intptr_t closure[2] = {(intptr_t)&emit, (intptr_t)env};
-
-    // Run the handle body
-    range(closure, n);
-    return *a;
+intptr_t run(intptr_t n){
+    intptr_t a = (intptr_t)xmalloc(1 * sizeof(intptr_t));
+    ((intptr_t*)a)[0] = n;
+    
+    return HANDLE(body, ({TAIL, (void*)emit}), (a));
 }
 
 int main(int argc, char *argv[]){
-    int out = run(atoi(argv[1]));
-    printf("%d\n", out);
+    printInt(run(readInt()));
     return 0;
 }
