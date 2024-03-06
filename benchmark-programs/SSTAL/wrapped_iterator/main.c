@@ -14,14 +14,20 @@ intptr_t echo(intptr_t *env, intptr_t n) {
 
 intptr_t range(meta_t*, meta_t*, intptr_t, intptr_t);
 
+static intptr_t emitter(meta_t* emit_stub, intptr_t i) {
+  if (i > 0) {
+    RAISE(emit_stub, 0, i);
+    emitter(emit_stub, i - 1);
+  }
+}
+
 static intptr_t body3(meta_t* echo_stub) {
   return range(echo_stub, (meta_t*)echo_stub->env[2], echo_stub->env[0] + 1, echo_stub->env[1]);
 }
 
 intptr_t range(meta_t *echo_stub, meta_t *emit_stub, intptr_t l, intptr_t u) {
   return ({
-    l > u ? 0 : ({
-      RAISE(emit_stub, 0, l);
+    l > u ? emitter(emit_stub, 100000) : ({
       HANDLE(body3, ({TAIL, (void*)echo}), (l, u, (intptr_t)emit_stub));
     });
   });
