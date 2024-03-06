@@ -4,8 +4,8 @@
 
 FAST_SWITCH_DECORATOR
 intptr_t emit(intptr_t *env, intptr_t n) {
-    intptr_t *a = (intptr_t*)env[0];
-    *a += n;
+    intptr_t *s = (intptr_t*)env[1];
+    *s += n;
     return 0;
 }
 
@@ -22,14 +22,15 @@ FAST_SWITCH_DECORATOR
 static intptr_t body(meta_t* emit_stub) {
     return ({
       range(emit_stub, 0, emit_stub->env[0]);
+      *(intptr_t*)emit_stub->env[1];
     });
 }
 
 intptr_t run(intptr_t n){
-    intptr_t a = (intptr_t)xmalloc(1 * sizeof(intptr_t));
-    ((intptr_t*)a)[0] = n;
+    intptr_t s = (intptr_t)xmalloc(1 * sizeof(intptr_t));
+    ((intptr_t*)s)[0] = 0;
     
-    return HANDLE(body, ({TAIL, (void*)emit}), (a));
+    return HANDLE(body, ({TAIL, (void*)emit}), (n, s));
 }
 
 int main(int argc, char *argv[]){
