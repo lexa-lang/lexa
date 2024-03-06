@@ -240,7 +240,9 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
 })
 
-// TODO: if handler is singleshot, its meta can be stack-allocated on the new stack
+// TODO: improvement. For general handlers, if k doesn't escape, which is the common case,
+// the meta can be stack-allocated on the parent stack. If k escape, it can be stack-allocated
+// on the new stack. The later is slightly less efficient because it requires an extra copy.
 #define _HANDLE(mode, body, m_defs, m_free_vars) \
     ({ \
     intptr_t out; \
