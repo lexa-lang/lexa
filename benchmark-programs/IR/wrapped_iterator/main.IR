@@ -1,0 +1,57 @@
+effect Echo {
+    dcl echo
+}
+
+effect Emit {
+    dcl emit
+}
+
+obj echo(env) {
+    def echo(n) {
+        n
+    }
+}
+
+obj emit(env) {
+    def emit(n) {
+        let s = env[0] in { s[0] := s[0] + n; 0 }
+    }
+}
+
+def body3(env, echo_stub) {
+    range(echo_stub, env[2], env[0] + 1, env[1]);
+}
+
+def range(echo_stub, emit_stub, l, u) {
+    if (l > u) {
+        0
+    } else {
+        raise emit_stub.emit l;
+        handle <l, u, emit_stub>
+            body
+        with echo: Echo;
+    }
+}
+
+def body2(env, echo_stub) {
+    range(echo_stub, env[2], 0, env[0]);
+    let s = env[0] in { s[0] }
+}
+
+def body(env, emit_stub) {
+    handle <env[0], env[1], emit_stub>
+        body2()
+    with echo: Echo;
+}
+
+def run(n) {
+    let s = newref <0> in {
+        handle <n, s>
+            body
+        with emit: Emit;
+    }
+}
+
+def main() = {
+    ~printInt(run(~readInt()))
+}
