@@ -210,6 +210,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 
 #define FIRST(x, ...) x
 #define SECOND(x, y, ...) y
+#define THIRD(x, y, z, ...) z
 #define GET_FUNC(func, mode) func
 #define GET_MODE(func, mode) mode
 #define EXPAND(...) __VA_ARGS__
@@ -274,27 +275,44 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
     })
 
-#define RAISE(stub, index, arg) \
+#define RAISE(stub, index, m_args) \
     ({ \
     intptr_t out; \
+    intptr_t nargs = NARGS m_args; \
+    intptr_t args[] = {EXPAND m_args}; \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
     switch (stub->defs[index].mode) { \
         case SINGLESHOT: \
         case MULTISHOT: {\
-            out = save_switch_and_run_handler(stub->env, arg, stub->sp_exchanger,\
+            if (nargs != 1) { exit(EXIT_FAILURE); } \
+            out = save_switch_and_run_handler(stub->env, args[0], stub->sp_exchanger,\
                 (stub->defs[index].func)); \
             break; \
         } \
         case TAIL: \
-            out = ((intptr_t(*)(intptr_t*, intptr_t))stub->defs[index].func)(stub->env, arg); \
+            if (nargs == 0) { \
+                out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
+            } else if (nargs == 1) { \
+                out = ((intptr_t(*)(intptr_t*, intptr_t))stub->defs[index].func)(stub->env, args[0]); \
+            } else if (nargs == 2) { \
+                out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1]); \
+            } else if (nargs == 3) { \
+                out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1], args[2]); \
+            } else { \
+                exit(EXIT_FAILURE); \
+            } \
             break; \
         case ABORT: \
+            if (nargs != 1) { exit(EXIT_FAILURE); } \
             __asm__ ( \
                 "movq %2, %%rsp\n\t" \
                 "jmpq *%3\n\t" \
-                :: "D"(stub->env), "S"(arg), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
+                :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
             ); \
             __builtin_unreachable(); \
     }; \
+    _Pragma("clang diagnostic pop") \
     out; \
     })
 
