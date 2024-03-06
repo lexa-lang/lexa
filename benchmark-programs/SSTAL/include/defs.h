@@ -1,6 +1,27 @@
 #include <stdlib.h>
 #include <stack_pool.h>
-#include <hdl_meta_defs.h>
+
+typedef enum {
+    SINGLESHOT = 1 << 0,
+    MULTISHOT = 1 << 1,
+    TAIL = 1 << 2,
+    ABORT = 1 << 3
+} handler_mode_t;
+
+typedef struct {
+  handler_mode_t mode;
+  void *func;
+} handler_def_t;
+
+typedef struct {
+  // HACK: sp_exchanger stores the address of _sp_exchanger. We use this indirection
+  // to convince the compiler that this struct is immutable, so optimization such as
+  // argpromotion can proceed.
+  handler_def_t* defs;
+  intptr_t* env;
+  void** sp_exchanger;
+  void* _sp_exchanger[1];
+} meta_t;
 
 #define FAST_SWITCH
 #ifdef FAST_SWITCH
@@ -199,12 +220,11 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 
 #define N_DEFS(...) ARG_N(_, ## __VA_ARGS__, 5, OOPS, 4, OOPS, 3, OOPS, 2, OOPS, 1, OOPS, 0)
 
-#define HANDLE(body, _defs, free_vars) \
+#define HANDLE(body, m_defs, m_free_vars) \
 ({ \
     intptr_t out; \
-    handler_def_t defs[] = {EXPAND _defs}; \
-    size_t n_defs = N_DEFS _defs; \
-    size_t n_free_vars = NARGS(EXPAND free_vars); \
+    handler_def_t defs[] = {EXPAND m_defs}; \
+    size_t n_defs = N_DEFS m_defs; \
     handler_mode_t mode; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
@@ -216,28 +236,37 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         mode = ABORT; \
     } \
     _Pragma("clang diagnostic pop") \
-    out = _HANDLE(CONCAT5_EXPAND(m_, N_DEFS _defs, op, NARGS free_vars, env_t), CONCAT5_EXPAND(m_, N_DEFS _defs, op, _t,), mode, body, _defs, free_vars); \
+    out = _HANDLE(mode, body, m_defs, m_free_vars); \
     out; \
 })
 
 // TODO: if handler is singleshot, its meta can be stack-allocated on the new stack
-#define _HANDLE(meta_type, base_meta_type, mode, body, defs, free_vars) \
+#define _HANDLE(mode, body, m_defs, m_free_vars) \
     ({ \
     intptr_t out; \
-    base_meta_type *stub; \
     if (mode == TAIL) { \
-        stub = (base_meta_type*)STACK_ALLOC_STRUCT(meta_type, {EXPAND defs}, {}, NULL, {EXPAND free_vars}); \
-        out = body(stub); \
+        meta_t stub; \
+        stub.defs = (handler_def_t[]){EXPAND m_defs}; \
+        stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
+        out = body(&stub); \
     } else { \
         if (mode == MULTISHOT) { \
-            stub = (base_meta_type*)HEAP_ALLOC_STRUCT(meta_type, {EXPAND defs}, {}, NULL, {EXPAND free_vars}); \
+            meta_t* stub = (meta_t*)xmalloc(sizeof(meta_t)); \
+            handler_def_t _defs[] = {EXPAND m_defs}; \
+            stub->defs = (handler_def_t*)xmalloc(sizeof(handler_def_t) * (N_DEFS m_defs)); \
+            memcpy(stub->defs, _defs, sizeof(handler_def_t) * (N_DEFS m_defs)); \
+            intptr_t _env[] = {EXPAND m_free_vars}; \
+            stub->env = (intptr_t*)xmalloc(sizeof(intptr_t) * (NARGS m_free_vars)); \
+            memcpy(stub->env, _env, sizeof(intptr_t) * (NARGS m_free_vars)); \
             stub->sp_exchanger = stub->_sp_exchanger; \
             char* new_sp = get_stack(); \
             out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, body); \
         } else { \
-            stub = (base_meta_type*)STACK_ALLOC_STRUCT(meta_type, {EXPAND defs}, {}, NULL, {EXPAND free_vars}); \
-            stub->sp_exchanger = stub->_sp_exchanger; \
-            out = save_and_run_body(stub, stub->sp_exchanger, body); \
+            meta_t stub; \
+            stub.defs = (handler_def_t[]){EXPAND m_defs}; \
+            stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
+            stub.sp_exchanger = stub._sp_exchanger; \
+            out = save_and_run_body(&stub, stub.sp_exchanger, body); \
         } \
     } \
     out; \

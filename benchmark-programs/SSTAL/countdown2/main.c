@@ -22,7 +22,7 @@ intptr_t set(intptr_t *env, intptr_t n, void** exc) {
 }
 
 // NOTE: declare functions with `static` sometimes helps the compiler to optimize the code
-static intptr_t countdown(m_2op_t* state_stub){
+static intptr_t countdown(meta_t* state_stub){
     intptr_t i = RAISE(state_stub, 0, 0);
     if(i == 0){
         return i;
@@ -33,7 +33,7 @@ static intptr_t countdown(m_2op_t* state_stub){
 }
 
 FAST_SWITCH_DECORATOR
-static intptr_t body(m_2op_t* state_stub) {
+static intptr_t body(meta_t* state_stub) {
     return countdown(state_stub);
 }
 
