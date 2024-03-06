@@ -101,6 +101,7 @@
           version = "dev";
 
           src = builtins.path { path = "/home/congm/src/llvm-project/build"; };
+          dontStrip = true;
 
           installPhase = ''
             mkdir -p $out/bin
