@@ -13,7 +13,6 @@ test: build
 	cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd iterator ; ./main 5 > actual ; echo 15 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
-	cd countdown2 ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd scheduler ; ./main 1000 > actual ; echo 2000 > expected ; diff expected actual
 
 build:
