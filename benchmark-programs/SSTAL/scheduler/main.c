@@ -14,6 +14,7 @@ i64 ret_val;
 
 i64 job(i64 state, meta_t* sch_stub){
   return ({
+    RAISE(sch_stub, 0, (0));
     ((i64*)state)[0] += 1;
     RAISE(sch_stub, 0, 0);
     ((i64*)state)[0] += 1;
