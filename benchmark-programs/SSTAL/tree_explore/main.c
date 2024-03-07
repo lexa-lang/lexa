@@ -23,7 +23,7 @@ static intptr_t operator(intptr_t x, intptr_t y) {
 
 FAST_SWITCH_DECORATOR
 intptr_t choose(intptr_t env, intptr_t _, void** exc) {
-  resumption_t* k = MAKE_RESUMPTION(exc);
+  resumption_t* k = MAKE_MULTISHOT_RESUMPTION(exc);
 
   return ({
     (intptr_t)listAppend((node_t*)THROW(k, true), 

@@ -2,10 +2,11 @@
 #include <stack_pool.h>
 
 typedef enum {
-    SINGLESHOT = 1 << 0,
-    MULTISHOT = 1 << 1,
-    TAIL = 1 << 2,
-    ABORT = 1 << 3
+    TAIL = 1 << 0,
+    ABORT = 1 << 1,
+    SINGLESHOT = 1 << 2,
+    MULTISHOT = 1 << 3,
+    ESCAPE_K = 1 << 4,
 } handler_mode_t;
 
 typedef struct {
@@ -105,8 +106,8 @@ typedef struct {
 #endif
 
 typedef struct {
-    void* rsp_sp;
     void** ctx_sp;
+    void* rsp_sp;
 } resumption_t;
 
 #define xmalloc(size) ({                \
@@ -221,18 +222,28 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 
 #define N_DEFS(...) ARG_N(_, ## __VA_ARGS__, 5, OOPS, 4, OOPS, 3, OOPS, 2, OOPS, 1, OOPS, 0)
 
+// Thie macro aggregate the modes of the handlers into one mode to guide the allocation of the meta,
+// which happens in _HANDLE. Since the modes are compile-time constants, the compiler will optimize
+// away the if-else chain.
 #define HANDLE(body, m_defs, m_free_vars) \
 ({ \
     intptr_t out; \
     handler_def_t defs[] = {EXPAND m_defs}; \
     size_t n_defs = N_DEFS m_defs; \
-    handler_mode_t mode; \
+    handler_mode_t mode = 0; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
-    if (defs[0].mode == TAIL && (n_defs <= 1 || defs[1].mode == TAIL)) { \
+    if (defs[0].mode == TAIL || (n_defs > 1 && defs[1].mode == TAIL)) { \
         mode = TAIL; \
-    } else if ((defs[0].mode & (SINGLESHOT | MULTISHOT)) && (n_defs <= 1 || (defs[1].mode & (SINGLESHOT | MULTISHOT)))) { \
-        mode = MULTISHOT; \
+    } else if ((defs[0].mode & (SINGLESHOT | MULTISHOT)) || (n_defs > 1 && (defs[1].mode & (SINGLESHOT | MULTISHOT)))) { \
+        if ((defs[0].mode & (MULTISHOT)) || (n_defs > 1 && (defs[1].mode & MULTISHOT))) { \
+            mode |= MULTISHOT; \
+        } else { \
+            mode |= SINGLESHOT; \
+        } \
+        if ((defs[0].mode & (ESCAPE_K)) || (n_defs > 1 && (defs[1].mode & ESCAPE_K))) { \
+            mode |= ESCAPE_K; \
+        } \
     } else { \
         mode = ABORT; \
     } \
@@ -241,9 +252,11 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
 })
 
-// TODO: improvement. For general handlers, if k doesn't escape, which is the common case,
-// the meta can be stack-allocated on the parent stack. If k escape, it can be stack-allocated
-// on the new stack. The later is slightly less efficient because it requires an extra copy.
+// TODO: improvement. 
+// If k doesn't escape, the meta can be stack-allocated on the parent stack. 
+// If k escape, 
+//          if k is single-shot, the meta can be stack-allocated on the new stack
+//          if k is multi-shot, the meta should be heap-allocated
 #define _HANDLE(mode, body, m_defs, m_free_vars) \
     ({ \
     intptr_t out; \
@@ -252,25 +265,49 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         stub.defs = (handler_def_t[]){EXPAND m_defs}; \
         stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
         out = body(&stub); \
+    } else if (mode == ABORT) { \
+        meta_t stub; \
+        stub.defs = (handler_def_t[]){EXPAND m_defs}; \
+        stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
+        stub.sp_exchanger = stub._sp_exchanger; \
+        out = save_and_run_body(&stub, stub.sp_exchanger, body); \
     } else { \
-        if (mode == MULTISHOT) { \
-            meta_t* stub = (meta_t*)xmalloc(sizeof(meta_t)); \
-            handler_def_t _defs[] = {EXPAND m_defs}; \
-            stub->defs = (handler_def_t*)xmalloc(sizeof(handler_def_t) * (N_DEFS m_defs)); \
-            memcpy(stub->defs, _defs, sizeof(handler_def_t) * (N_DEFS m_defs)); \
-            intptr_t _env[] = {EXPAND m_free_vars}; \
-            stub->env = (intptr_t*)xmalloc(sizeof(intptr_t) * (NARGS m_free_vars)); \
-            memcpy(stub->env, _env, sizeof(intptr_t) * (NARGS m_free_vars)); \
-            stub->sp_exchanger = stub->_sp_exchanger; \
-            char* new_sp = get_stack(); \
-            out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, body); \
-        } else { \
+        if (!(mode & ESCAPE_K)) { \
             meta_t stub; \
             stub.defs = (handler_def_t[]){EXPAND m_defs}; \
             stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
             stub.sp_exchanger = stub._sp_exchanger; \
-            out = save_and_run_body(&stub, stub.sp_exchanger, body); \
-        } \
+            char* new_sp = get_stack(); \
+            out = save_switch_and_run_body(&stub, stub.sp_exchanger, new_sp, body); \
+        } else { \
+            if (mode & SINGLESHOT) { \
+                handler_def_t _defs[] = {EXPAND m_defs}; \
+                intptr_t _env[] = {EXPAND m_free_vars}; \
+                char* new_sp = get_stack(); \
+                new_sp -= sizeof(meta_t); \
+                meta_t* stub = (meta_t*)new_sp; \
+                stub->sp_exchanger = stub->_sp_exchanger; \
+                new_sp -= sizeof(_defs); \
+                memcpy(new_sp, _defs, sizeof(_defs)); \
+                stub->defs = (handler_def_t*)new_sp; \
+                new_sp -= sizeof(_env); \
+                memcpy(new_sp, _env, sizeof(_env)); \
+                stub->env = (intptr_t*)new_sp; \
+                new_sp = (char*)((intptr_t)new_sp & ~0xF); \
+                out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, body); \
+            } else { \
+                meta_t* stub = (meta_t*)xmalloc(sizeof(meta_t)); \
+                handler_def_t _defs[] = {EXPAND m_defs}; \
+                stub->defs = (handler_def_t*)xmalloc(sizeof(handler_def_t) * (N_DEFS m_defs)); \
+                memcpy(stub->defs, _defs, sizeof(handler_def_t) * (N_DEFS m_defs)); \
+                intptr_t _env[] = {EXPAND m_free_vars}; \
+                stub->env = (intptr_t*)xmalloc(sizeof(intptr_t) * (NARGS m_free_vars)); \
+                memcpy(stub->env, _env, sizeof(intptr_t) * (NARGS m_free_vars)); \
+                stub->sp_exchanger = stub->_sp_exchanger; \
+                char* new_sp = get_stack(); \
+                out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, body); \
+            } \
+        }\
     } \
     out; \
     })
@@ -282,15 +319,11 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     intptr_t args[] = {EXPAND m_args}; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
-    switch (stub->defs[index].mode) { \
-        case SINGLESHOT: \
-        case MULTISHOT: {\
-            if (nargs != 1) { exit(EXIT_FAILURE); } \
-            out = save_switch_and_run_handler(stub->env, args[0], stub->sp_exchanger,\
-                (stub->defs[index].func)); \
-            break; \
-        } \
-        case TAIL: \
+    if ((stub->defs[index].mode & SINGLESHOT) || (stub->defs[index].mode & MULTISHOT)) { \
+        if (nargs != 1) { exit(EXIT_FAILURE); } \
+        out = save_switch_and_run_handler(stub->env, args[0], stub->sp_exchanger,\
+            (stub->defs[index].func)); \
+    } else if (stub->defs[index].mode & TAIL) { \
             if (nargs == 0) { \
                 out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
             } else if (nargs == 1) { \
@@ -302,22 +335,29 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
             } else { \
                 exit(EXIT_FAILURE); \
             } \
-            break; \
-        case ABORT: \
-            if (nargs != 1) { exit(EXIT_FAILURE); } \
-            __asm__ ( \
-                "movq %2, %%rsp\n\t" \
-                "jmpq *%3\n\t" \
-                :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
-            ); \
-            __builtin_unreachable(); \
+    } else if (stub->defs[index].mode & ABORT) { \
+        if (nargs != 1) { exit(EXIT_FAILURE); } \
+        __asm__ ( \
+            "movq %2, %%rsp\n\t" \
+            "jmpq *%3\n\t" \
+            :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
+        ); \
+        __builtin_unreachable(); \
+    } else { \
+        exit(EXIT_FAILURE); \
     }; \
     _Pragma("clang diagnostic pop") \
     out; \
     })
 
-#define MAKE_RESUMPTION(exc) \
-    HEAP_ALLOC_STRUCT(resumption_t, *exc, exc)
+#define MAKE_MULTISHOT_RESUMPTION(exc) \
+    HEAP_ALLOC_STRUCT(resumption_t, exc, *exc)
+
+// If the resumption is single-shot, the exchanger is not changed
+// between raise and resume. So we use the exchanger as the resumption struct.
+// HACK: we are assuming the layout of resumption_t and the meta_t are similar
+#define MAKE_SINGLESHOT_RESUMPTION(exc) \
+    (resumption_t*)((intptr_t)exc - sizeof(void*))
 
 #define THROW(k, arg) \
     ({ \
