@@ -28,7 +28,7 @@ static intptr_t product(meta_t *abort_stub, intptr_t xs) {
     intptr_t y = (intptr_t)listHead((node_t*)xs);
     intptr_t ys = (intptr_t)listTail((node_t*)xs);
     (y == 0) ? ({
-      RAISE(abort_stub, 0, 0);
+      RAISE(abort_stub, 0, (0));
     }): ({
       y * product(abort_stub, ys);
     });

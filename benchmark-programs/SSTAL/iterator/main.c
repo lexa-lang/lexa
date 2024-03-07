@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <defs.h>
 
-FAST_SWITCH_DECORATOR
 intptr_t emit(intptr_t *env, intptr_t n) {
     intptr_t *s = (intptr_t*)env[1];
     *s += n;
@@ -12,13 +11,12 @@ intptr_t emit(intptr_t *env, intptr_t n) {
 intptr_t range(meta_t *emit_stub, intptr_t l, intptr_t u){
   return ({
     l > u ? 0 : ({
-      RAISE(emit_stub, 0, l);
+      RAISE(emit_stub, 0, (l));
       range(emit_stub, l + 1, u);
     });
   });
 }
 
-FAST_SWITCH_DECORATOR
 static intptr_t body(meta_t* emit_stub) {
     return ({
       range(emit_stub, 0, emit_stub->env[0]);
