@@ -23,11 +23,11 @@ intptr_t set(intptr_t *env, intptr_t n, void** exc) {
 
 // NOTE: declare functions with `static` sometimes helps the compiler to optimize the code
 static intptr_t countdown(meta_t* state_stub){
-    intptr_t i = RAISE(state_stub, 0, 0);
+    intptr_t i = RAISE(state_stub, 0, (0));
     if(i == 0){
         return i;
     } else {
-        RAISE(state_stub, 1, i - 1);
+        RAISE(state_stub, 1, (i - 1));
         return countdown(state_stub); 
     }
 }

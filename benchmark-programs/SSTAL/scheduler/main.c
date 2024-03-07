@@ -16,7 +16,7 @@ i64 job(i64 state, meta_t* sch_stub){
   return ({
     RAISE(sch_stub, 0, (0));
     ((i64*)state)[0] += 1;
-    RAISE(sch_stub, 0, 0);
+    RAISE(sch_stub, 0, (0));
     ((i64*)state)[0] += 1;
   });
 }
@@ -26,7 +26,7 @@ i64 loop(i64 i, i64 job_closure, meta_t* sch_stub){
     (i == 0) ? ({
       return 0;
     }) : ({
-      RAISE(sch_stub, 1, job_closure);
+      RAISE(sch_stub, 1, (job_closure));
       return loop(i - 1, job_closure, sch_stub);
     });
   });

@@ -38,7 +38,7 @@ static intptr_t explore(intptr_t state, intptr_t tree, meta_t* choice_stub) {
     }) 
     : ({
       intptr_t next = ({
-        (RAISE(choice_stub, 0, 0)) ? ({
+        (RAISE(choice_stub, 0, (0))) ? ({
           (intptr_t)treeLeft((tree_t*)tree);
         }) : ({
           (intptr_t)treeRight((tree_t*)tree);
