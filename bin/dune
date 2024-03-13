@@ -1,0 +1,5 @@
+(executable
+ (public_name sstal)
+ (name main)
+ (libraries syntax IRParser codegen)
+ (modes byte exe))

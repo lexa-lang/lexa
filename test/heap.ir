@@ -1,0 +1,10 @@
+def make_array() {
+    let s = newref <1,2,3,4,5> in
+    let _ = s[2] := 42 in
+    s
+}
+
+def main() {
+    let array = make_array() in
+    array[2]
+}

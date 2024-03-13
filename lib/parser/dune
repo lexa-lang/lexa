@@ -1,0 +1,8 @@
+(library
+ (name IRParser)
+ (libraries syntax))
+
+(menhir
+ (modules parser))
+
+(ocamllex lexer)
