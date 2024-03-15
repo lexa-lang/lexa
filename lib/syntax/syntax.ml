@@ -14,11 +14,20 @@ type cmp =
   | CLt
   | CGt
 
+type hdl_anno =
+  | HDef
+  | HExc
+  | HHdl
+
 type value = 
   | VVar of var
   | VInt of int
   | VBool of bool
   | VAbs of var * var list * term
+  | VEffSig of var * var list
+  | VObj of var * var list * hdl list
+
+and hdl = hdl_anno * var * var list * term
 
 and heap_value = value list
 
@@ -47,10 +56,5 @@ and heap =
   heap_item list
 
 and location = string
-
-type hdl_annotation =
-  | AGeneral
-  | ATail
-  | AAbort
 
 type toplevel = value list

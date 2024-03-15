@@ -6,8 +6,8 @@ let white = [' ' '\t']+
 let digit = ['0'-'9']
 let int = '-'? digit+
 let letter = ['a'-'z' 'A'-'Z']
-let id = ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']+
-
+let id = ['a'-'z' '0'-'9' '_' '-']+
+let sig = ['A'-'Z'] id
 (* Constant value start with $ *)
 let immediate = '$' '-'? digit+
 
@@ -60,7 +60,13 @@ rule read =
   | "if" { IF }
   | "then" { THEN }
   | "else" { ELSE }
+  | "dcl" { DCL }
+  | "effect" { EFFECT }
+  | "exc" { EXC }
+  | "hdl" { HDL }
+  | "obj" { OBJ }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
+  | sig { SIG (Lexing.lexeme lexbuf) }
   | id { VAR (Lexing.lexeme lexbuf) }
   | eof { EOF }
   | _ as c { failwith (Printf.sprintf "unexpected character: %C" c) }

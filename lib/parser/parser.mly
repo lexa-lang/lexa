@@ -9,6 +9,7 @@
 %token <int> INT
 %token <string> LABEL
 %token <string> VAR
+%token <string> SIG
 
 %token DOT
 %token LPAREN
@@ -45,6 +46,11 @@
 %token IF
 %token THEN
 %token ELSE
+%token DCL
+%token EFFECT
+%token EXC
+%token HDL
+%token OBJ
 
 %start <Syntax.value list> prog
 %%
@@ -64,12 +70,25 @@ cmp:
   | GT { CGt }
   | LT { CLt }
 
+effect_sig:
+  | DCL v = VAR { v }
+
+hdl_anno:
+  | DEF { HDef }
+  | EXC { HExc }
+  | HDL { HHdl }
+
+hdl_def:
+  | a = hdl_anno name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB t = term RCB { (a, name, params, t) }
+
 value:
   | VAR { VVar $1 }
   | INT { VInt $1 }
   | DEF name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB t = term RCB { VAbs (name, params, t) }
   | TRUE { VBool true }
   | FALSE { VBool false }
+  | EFFECT name = SIG LCB l = list(effect_sig) RCB { VEffSig (name, l) }
+  | OBJ name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB l = list(hdl_def) RCB { VObj (name, params, l) }
 
 heap_value:
   | LTS l = separated_list(COMMA, value) GTS { l }

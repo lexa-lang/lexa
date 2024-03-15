@@ -30,6 +30,8 @@ let rec genValue = function
           (if name = "main" then "(int)" else "") ^ genTerm body;
           ");";
         "}"]
+  | VEffSig _ -> ""
+  | VObj (_, _, _) -> "TODO"
 
 and genValueList l =
   "(" ^ String.concat "," (List.map (fun x -> genValue x) l) ^ ")"
