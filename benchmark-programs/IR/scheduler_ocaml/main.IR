@@ -4,6 +4,7 @@ effect Scheduler {
 }
 
 def job(env, sch_stub) {
+    raise sch_stub.yield 0;
     {env[0]}[0] := {env[0]}[0] + 1;
     raise sch_stub.yield 0;
     {env[0]}[0] := {env[0]}[0] + 1;
