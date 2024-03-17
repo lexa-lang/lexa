@@ -12,3 +12,4 @@ vgcore.*
 *.ll
 out
 main
+results.csv
