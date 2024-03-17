@@ -5,7 +5,7 @@ bench: test build
 		'iterator/main 40000000' \
 		'tree_explore/main 16' \
 		'countdown2/main 200000000' \
-		'scheduler/main 1000000'
+		'scheduler_ocaml/main 1000000'
 
 test: build
 	echo "Running programs..."
@@ -13,7 +13,7 @@ test: build
 	cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd iterator ; ./main 5 > actual ; echo 15 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
-	cd scheduler ; ./main 1000 > actual ; echo 2000 > expected ; diff expected actual
+	cd scheduler_ocaml ; ./main 1000 > actual ; echo 2000 > expected ; diff expected actual
 
 build:
 	echo "Building programs..."
@@ -22,7 +22,7 @@ build:
 	cd iterator ; clang -O3 -I ../include main.c -o main
 	cd tree_explore ; clang -O3 -I ../include main.c -o main
 	cd countdown2 ; clang -O3 -I ../include main.c -o main
-	cd scheduler ; clang -O3 -I ../include main.c -o main
+	cd scheduler_ocaml ; clang -O3 -I ../include main.c -o main
 
 clean:
 	-rm */main
