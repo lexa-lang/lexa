@@ -1,0 +1,13 @@
+diff --git a/llvm/lib/Target/X86/X86CallingConv.td b/llvm/lib/Target/X86/X86CallingConv.td
+index 12178bcaf042..f432d8fbb90b 100644
+--- a/llvm/lib/Target/X86/X86CallingConv.td
++++ b/llvm/lib/Target/X86/X86CallingConv.td
+@@ -1202,7 +1202,7 @@ def CSR_64_AllRegs_AVX512 : CalleeSavedRegs<(sub (add CSR_64_MostRegs, RAX,
+                                                       (sequence "ZMM%u", 0, 31),
+                                                       (sequence "K%u", 0, 7)),
+                                                  (sequence "XMM%u", 0, 15))>;
+-def CSR_64_NoneRegs    : CalleeSavedRegs<(add RBP)>;
++def CSR_64_NoneRegs    : CalleeSavedRegs<(add)>;
+ 
+ // Standard C + YMM6-15
+ def CSR_Win64_Intel_OCL_BI_AVX : CalleeSavedRegs<(add RBX, RBP, RDI, RSI, R12,
