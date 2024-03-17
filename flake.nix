@@ -50,40 +50,46 @@
 
         #   passthru.isClang = true;  
         # });
-        # clang_17 = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
-        #   pname = "llvm-project";
-        #   version = "llvmorg-17.0.6";
+        clang_18_preserve_none = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
+          pname = "llvm-project";
+          version = "c166a43";
 
-        #   src = pkgs.fetchFromGitHub {
-        #     owner = "llvm";
-        #     repo = pname;
-        #     rev = "llvmorg-17.0.6";
-        #     sha256 = "sha256-AqtIi+G7wL18opmTfZkvOVexkk6YJP+Q5i/zIMKEcr8="; 
-        #   };
+          src = pkgs.fetchFromGitHub {
+            owner = "llvm";
+            repo = pname;
+            rev = "c166a43c6e6157b1309ea757324cc0a71c078e66";
+            sha256 = "sha256-iveg9P2V7WQIQ/eL63vnYBFsR7Ob8a2Vahv8MXm4nyQ="; 
+          };
 
-        #   buildInputs = [ pkgs.python38 ];
-        #   nativeBuildInputs = [ pkgs.cmake pkgs.ninja ];
-        #   dontUseCmakeConfigure=true;
-        #   dontStrip=true;
+          patchFile = ./preserve_none_no_save_rbp.patch;
 
-        #   buildPhase = ''
-        #     cmake -S llvm -B build -G Ninja \
-        #       -DLLVM_ENABLE_PROJECTS="clang" \
-        #       -DCMAKE_BUILD_TYPE=Release \
-        #       -DLLVM_INCLUDE_TESTS=OFF \
-        #       -DLLVM_TARGETS_TO_BUILD=X86
-        #     ninja -C build
-        #   '';
+          buildInputs = [ pkgs.python38 ];
+          nativeBuildInputs = [ pkgs.cmake pkgs.ninja ];
+          dontUseCmakeConfigure=true;
+          dontStrip=true;
 
-        #   installPhase = ''
-        #     mkdir -p $out/bin
-        #     cp build/bin/clang $out/bin
-        #     cp build/bin/opt $out/bin
-        #     cp -r build/lib $out/lib
-        #   '';
+          patchPhase = ''
+            patch -p1 -i ${patchFile}
+          '';
 
-        #   passthru.isClang = true;  
-        # });
+          buildPhase = ''
+            cmake -S llvm -B build -G Ninja \
+              -DLLVM_ENABLE_PROJECTS="clang" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DLLVM_INCLUDE_TESTS=OFF \
+              -DLLVM_TARGETS_TO_BUILD=X86
+            ninja -C build
+          '';
+
+          installPhase = ''
+            mkdir -p $out/bin
+            cp build/bin/clang $out/bin
+            cp build/bin/opt $out/bin
+            cp -r build/lib $out/lib
+          '';
+
+          passthru.isClang = true;  
+        });
         # kiama = pkgs.stdenv.mkDerivation rec {
         #   name = "kiama";
         #   version = "OOPSLA23";
@@ -114,52 +120,52 @@
           passthru.isClang = true;
         });
       in {
-        packages.effekt = sbt.mkSbtDerivation.${system} {
-          pname = "effekt";
-          version = "OOPSLA23";
+        # packages.effekt = sbt.mkSbtDerivation.${system} {
+        #   pname = "effekt";
+        #   version = "OOPSLA23";
 
-          depsSha256 = "sha256-FDUgk98GBchU8ZCYlEUJdL44+SkckfdTCR3TO2EKb/k=";
+        #   depsSha256 = "sha256-FDUgk98GBchU8ZCYlEUJdL44+SkckfdTCR3TO2EKb/k=";
 
-          src = (pkgs.fetchFromGitHub {
-            owner = "effekt-lang";
-            repo = "effekt";
-            rev = "72f0064f105d79a44e4593c63cfc9bebd84babf9";
-            sha256 = "sha256-mO1bAOiGCMJxUDEvedfLSlQnwQ+B8WGk1nLAEjvBZW4="; 
-            fetchSubmodules = true;
-            leaveDotGit = true;
-            deepClone = true;
-          }).overrideAttrs (_: { #https://github.com/NixOS/nixpkgs/issues/195117#issuecomment-1410398050
-            GIT_CONFIG_COUNT = 1;
-            GIT_CONFIG_KEY_0 = "url.https://github.com/.insteadOf";
-            GIT_CONFIG_VALUE_0 = "git@github.com:";
-          });
-          overrideDepsAttrs = final: prev: {
-            preBuild = ''
-              export LANG=C.UTF-8
-            '';
-          };
+        #   src = (pkgs.fetchFromGitHub {
+        #     owner = "effekt-lang";
+        #     repo = "effekt";
+        #     rev = "72f0064f105d79a44e4593c63cfc9bebd84babf9";
+        #     sha256 = "sha256-mO1bAOiGCMJxUDEvedfLSlQnwQ+B8WGk1nLAEjvBZW4="; 
+        #     fetchSubmodules = true;
+        #     leaveDotGit = true;
+        #     deepClone = true;
+        #   }).overrideAttrs (_: { #https://github.com/NixOS/nixpkgs/issues/195117#issuecomment-1410398050
+        #     GIT_CONFIG_COUNT = 1;
+        #     GIT_CONFIG_KEY_0 = "url.https://github.com/.insteadOf";
+        #     GIT_CONFIG_VALUE_0 = "git@github.com:";
+        #   });
+        #   overrideDepsAttrs = final: prev: {
+        #     preBuild = ''
+        #       export LANG=C.UTF-8
+        #     '';
+        #   };
 
-          propagatedBuildInputs = with pkgs; [ 
-            jre
-          ];
-          buildInputs = with pkgs; [
-            nodejs
-          ];
+        #   propagatedBuildInputs = with pkgs; [ 
+        #     jre
+        #   ];
+        #   buildInputs = with pkgs; [
+        #     nodejs
+        #   ];
 
-          tmp_file = pkgs.writeText "effekt.sh" ''
-            #!/usr/bin/env bash
-            export SCRIPT_DIR=$(dirname $0)
-            java -jar "$SCRIPT_DIR/effekt" $@
-          '';
-          installPhase = ''
-            export LANG=C.UTF-8
-            export HOME=$out/home # make npm happy
-            mkdir -p $out
-            npm config set prefix $out
-            sbt install
-            cp $tmp_file $out/bin/effekt.sh
-          '';
-        };
+        #   tmp_file = pkgs.writeText "effekt.sh" ''
+        #     #!/usr/bin/env bash
+        #     export SCRIPT_DIR=$(dirname $0)
+        #     java -jar "$SCRIPT_DIR/effekt" $@
+        #   '';
+        #   installPhase = ''
+        #     export LANG=C.UTF-8
+        #     export HOME=$out/home # make npm happy
+        #     mkdir -p $out
+        #     npm config set prefix $out
+        #     sbt install
+        #     cp $tmp_file $out/bin/effekt.sh
+        #   '';
+        # };
         packages.effekt_0_2_2 = sbt.mkSbtDerivation.${system} {
           pname = "effekt";
           version = "v0.2.2";
@@ -210,7 +216,8 @@
         devShell = with pkgs; mkShell {
           nativeBuildInputs = [
             # clang_main
-            clang_dev
+            # clang_dev
+            clang_18_preserve_none
           ];
           buildInputs = [
             mlton
