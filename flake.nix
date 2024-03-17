@@ -170,7 +170,7 @@
             owner = "effekt-lang";
             repo = "effekt";
             rev = "6f8973ae77e4962b67b3cb626142fab7430a6cd8";
-            sha256 = "sha256-UdKgq1R7IAtmUxAo/pM2kHQVGM/9pkT1weutEZHNfRM="; 
+            sha256 = "sha256-6k8cnsJqJM4E4l/bA68Uopm3EZCwGM17XpADtwlJBSQ="; 
             fetchSubmodules = true;
             leaveDotGit = true;
             deepClone = true;
