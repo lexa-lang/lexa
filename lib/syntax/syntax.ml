@@ -39,7 +39,7 @@ and term =
   | TNew of heap_value
   | TGet of value * int
   | TSet of value * int * value
-  | TRaise of value * value
+  | TRaise of var * var * value list
   | TAbort of value * value
   | TThrow of value * value
   | THdl of var list * var * var * var (* handle *)

@@ -19,13 +19,13 @@ let lookup_hdl_type (hdl_var : var) (env : eff_type_env) : string =
       | HExc -> "ABORT"
       | HHdl -> "TODO:")
       
-let lookup_hdl_index (hdl_var : var) (env : eff_sig_env) : string =
+let lookup_hdl_index (hdl_var : var) (env : eff_sig_env) : int =
   match (List.find_opt (fun (_, dcls) -> List.mem hdl_var dcls) env) with
   | None -> raise (UndefinedHandler hdl_var)
   | Some (_, dcls) ->
     (match (List.find_index (fun x -> hdl_var = x) dcls) with
       | None -> raise (UndefinedHandler "unreachable")
-      | Some i -> string_of_int i)
+      | Some i -> i)
 
 let lookup_eff_sig_dcls (sig_name : var) (sig_env : eff_sig_env) : string list =
   match (List.find_opt (fun (s, _) -> s = sig_name) sig_env) with
@@ -111,6 +111,9 @@ and genTerm (env : env) = function
           (sprintf "{%s, %s}" hdl_type hdl_name)) hdl_list)) ^ ")" in
     let env_str = "(" ^ String.concat ", " env_list ^ ")" in
     sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
+| TRaise (stub, hdl, params) ->
+    let hdl_idx = lookup_hdl_index hdl (get_eff_sig_env env) in
+    sprintf "RAISE(%s, %d, %s)" stub hdl_idx (genValueList env params)
 | _ -> "TODO"
 
 (* let genFunc func = function

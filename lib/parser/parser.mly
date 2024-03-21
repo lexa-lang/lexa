@@ -101,7 +101,7 @@ term:
   | NEWREF heap_value { TNew $2 }
   | v = value LSB i = INT RSB { TGet (v, i) }
   | v1 = value LSB i = INT RSB COLONEQ v2 = value { TSet (v1, i, v2) }
-  | RAISE v1 = value v2 = value { TRaise (v1, v2) }
+  | RAISE stub = VAR DOT hdl = VAR params = separated_list(COMMA, value) { TRaise (stub, hdl, params) }
   // | ABORT v1 = value v2 = value { TAbort (v1, v2) }
   | THROW v1 = value v2 = value { TThrow (v1, v2) }
   | HANDLE LTS env = separated_list(COMMA, VAR) GTS body = VAR WITH obj = VAR COLON sig_name = SIG { THdl (env, body, obj, sig_name) }
