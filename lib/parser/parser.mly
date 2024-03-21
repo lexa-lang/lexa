@@ -7,7 +7,6 @@
 %token EOF
 
 %token <int> INT
-%token <string> LABEL
 %token <string> VAR
 %token <string> SIG
 
@@ -21,11 +20,10 @@
 %token LET
 %token IN
 %token COLONEQ
+%token COLON
 %token RAISE
-%token ABORT
 %token THROW
 %token HANDLE
-%token ARROW
 %token LSB
 %token RSB
 %token WITH
@@ -104,9 +102,9 @@ term:
   | v = value LSB i = INT RSB { TGet (v, i) }
   | v1 = value LSB i = INT RSB COLONEQ v2 = value { TSet (v1, i, v2) }
   | RAISE v1 = value v2 = value { TRaise (v1, v2) }
-  | ABORT v1 = value v2 = value { TAbort (v1, v2) }
+  // | ABORT v1 = value v2 = value { TAbort (v1, v2) }
   | THROW v1 = value v2 = value { TThrow (v1, v2) }
-  // | HANDLE LTS l = list(value) GTS LPAREN LAMBDA env = VAR DOT LAMBDA hdl = VAR DOT t = term RPAREN WITH h = handler { THdl (l, (Var env), (Var hdl), t, h) }
+  | HANDLE LTS env = separated_list(COMMA, VAR) GTS body = VAR WITH obj = VAR COLON sig_name = SIG { THdl (env, body, obj, sig_name) }
 
 // handler:
 //   | LAMBDA env = VAR DOT LAMBDA x = VAR DOT LAMBDA k = VAR DOT t = term { HNormal (env, x, k, t) }

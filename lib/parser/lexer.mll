@@ -33,13 +33,13 @@ rule read =
   | "." { DOT }
   | "," { COMMA }
   | ":=" { COLONEQ }
+  | ":" { COLON }
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "let" { LET }
   | "in" { IN }
   | "=" { EQ }
   | "raise" { RAISE }
-  | "abort" { ABORT }
   | "throw" { THROW }
   | "handle" { HANDLE }
   | "with" { WITH }

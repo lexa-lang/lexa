@@ -1,4 +1,4 @@
 Running the binary:
 ```
-dune exec -- sstal test/aa.sstal -o test/aa.c
+dune exec -- sstal test/aa.ir -o test/aa.c
 ```

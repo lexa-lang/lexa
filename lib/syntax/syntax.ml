@@ -1,7 +1,5 @@
 type var = string
 
-type label = string
-
 type arith =
   | AAdd
   | AMult
@@ -27,7 +25,7 @@ type value =
   | VEffSig of var * var list
   | VObj of var * var list * hdl list
 
-and hdl = hdl_anno * var * var list * term
+and hdl = hdl_anno * var * var list * term (* handler *)
 
 and heap_value = value list
 
@@ -44,11 +42,7 @@ and term =
   | TRaise of value * value
   | TAbort of value * value
   | TThrow of value * value
-  | THdl of value list * var * var * term * handler
-
-and handler =
-  | HNormal of var * var * var * term
-  | HAbortive of var * var * term
+  | THdl of var list * var * var * var (* handle *)
 
 and heap_item = location * value
 
