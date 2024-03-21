@@ -97,7 +97,7 @@ and genTerm (env : env) = function
     let init = sprintf "intptr_t temp = (intptr_t)malloc(%d * sizeof(intptr_t));" size
       ^ "\n"
       ^ String.concat "\n" (List.mapi (fun i v -> sprintf "((intptr_t*)temp)[%d] = %s;" i (genValue env v)) value_list)
-      ^ "\ntemp;" in
+      ^ "\ntemp;\n" in
     sprintf "({%s})" init
 | TGet (v, i) ->
     sprintf "((intptr_t*)%s)[%d]" (genValue env v) i 
