@@ -47,8 +47,10 @@
 %token DCL
 %token EFFECT
 %token EXC
-%token HDL
+%token HDL1
+%token HDLS
 %token OBJ
+%token RESUME
 
 %start <Syntax.value list> prog
 %%
@@ -74,7 +76,8 @@ effect_sig:
 hdl_anno:
   | DEF { HDef }
   | EXC { HExc }
-  | HDL { HHdl }
+  | HDL1 { HHdl1 }
+  | HDLS { HHdls }
 
 hdl_def:
   | a = hdl_anno name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB t = term RCB { (a, name, params, t) }
@@ -103,7 +106,7 @@ term:
   | v1 = value LSB i = INT RSB COLONEQ v2 = value { TSet (v1, i, v2) }
   | RAISE stub = VAR DOT hdl = VAR params = separated_list(COMMA, value) { TRaise (stub, hdl, params) }
   // | ABORT v1 = value v2 = value { TAbort (v1, v2) }
-  | THROW v1 = value v2 = value { TThrow (v1, v2) }
+  | RESUME k = VAR v = value { TResume (k, v) }
   | HANDLE LTS env = separated_list(COMMA, VAR) GTS body = VAR WITH obj = VAR COLON sig_name = SIG { THdl (env, body, obj, sig_name) }
 
 // handler:

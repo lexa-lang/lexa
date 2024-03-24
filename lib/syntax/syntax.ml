@@ -15,7 +15,8 @@ type cmp =
 type hdl_anno =
   | HDef
   | HExc
-  | HHdl
+  | HHdl1 (* Singleshot *)
+  | HHdls (* Multishot*)
 
 type value = 
   | VVar of var
@@ -40,8 +41,7 @@ and term =
   | TGet of value * int
   | TSet of value * int * value
   | TRaise of var * var * value list
-  | TAbort of value * value
-  | TThrow of value * value
+  | TResume of var * value
   | THdl of var list * var * var * var (* handle *)
 
 and heap_item = location * value

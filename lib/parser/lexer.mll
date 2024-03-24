@@ -40,7 +40,6 @@ rule read =
   | "in" { IN }
   | "=" { EQ }
   | "raise" { RAISE }
-  | "throw" { THROW }
   | "handle" { HANDLE }
   | "with" { WITH }
   | "newref" { NEWREF }
@@ -63,9 +62,11 @@ rule read =
   | "dcl" { DCL }
   | "effect" { EFFECT }
   | "exc" { EXC }
-  | "hdl" { HDL }
   | "obj" { OBJ }
   | "." { DOT }
+  | "hdl_1" { HDL1 }
+  | "hdl_s" { HDLS }
+  | "resume" { RESUME }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | sig { SIG (Lexing.lexeme lexbuf) }
   | id { VAR (Lexing.lexeme lexbuf) }

@@ -17,7 +17,8 @@ let lookup_hdl_type (hdl_var : var) (env : eff_type_env) : string =
       (match hdl_type with
       | HDef -> "TAIL"
       | HExc -> "ABORT"
-      | HHdl -> "TODO:")
+      | HHdl1 -> "SINGLESHOT"
+      | HHdls -> "MULTISHOT")
       
 let lookup_hdl_index (hdl_var : var) (env : eff_sig_env) : int =
   match (List.find_opt (fun (_, dcls) -> List.mem hdl_var dcls) env) with
