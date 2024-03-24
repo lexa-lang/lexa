@@ -378,5 +378,5 @@ int64_t mathAbs(int64_t a) {
   return labs(a);
 }
 
-#define readInt() atoi(argv[1])
+#define readInt() (argc == 2) ? atoi(argv[1]) : (printf("Usage: %s <int>\n", argv[0]), exit(EXIT_FAILURE), 0)
 #define printInt(x) printf("%ld\n", x)
