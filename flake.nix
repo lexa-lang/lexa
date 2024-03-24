@@ -50,46 +50,7 @@
 
         #   passthru.isClang = true;  
         # });
-        clang_18_preserve_none = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
-          pname = "llvm-project";
-          version = "c166a43";
 
-          src = pkgs.fetchFromGitHub {
-            owner = "llvm";
-            repo = pname;
-            rev = "c166a43c6e6157b1309ea757324cc0a71c078e66";
-            sha256 = "sha256-iveg9P2V7WQIQ/eL63vnYBFsR7Ob8a2Vahv8MXm4nyQ="; 
-          };
-
-          patchFile = ./preserve_none_no_save_rbp.patch;
-
-          buildInputs = [ pkgs.python38 ];
-          nativeBuildInputs = [ pkgs.cmake pkgs.ninja ];
-          dontUseCmakeConfigure=true;
-          dontStrip=true;
-
-          patchPhase = ''
-            patch -p1 -i ${patchFile}
-          '';
-
-          buildPhase = ''
-            cmake -S llvm -B build -G Ninja \
-              -DLLVM_ENABLE_PROJECTS="clang" \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DLLVM_INCLUDE_TESTS=OFF \
-              -DLLVM_TARGETS_TO_BUILD=X86
-            ninja -C build
-          '';
-
-          installPhase = ''
-            mkdir -p $out/bin
-            cp build/bin/clang $out/bin
-            cp build/bin/opt $out/bin
-            cp -r build/lib $out/lib
-          '';
-
-          passthru.isClang = true;  
-        });
         # kiama = pkgs.stdenv.mkDerivation rec {
         #   name = "kiama";
         #   version = "OOPSLA23";
@@ -166,6 +127,47 @@
         #     cp $tmp_file $out/bin/effekt.sh
         #   '';
         # };
+
+        packages.clang_18_preserve_none = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
+          pname = "llvm-project";
+          version = "c166a43";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "llvm";
+            repo = pname;
+            rev = "c166a43c6e6157b1309ea757324cc0a71c078e66";
+            sha256 = "sha256-iveg9P2V7WQIQ/eL63vnYBFsR7Ob8a2Vahv8MXm4nyQ="; 
+          };
+
+          patchFile = ./preserve_none_no_save_rbp.patch;
+
+          buildInputs = [ pkgs.python38 ];
+          nativeBuildInputs = [ pkgs.cmake pkgs.ninja ];
+          dontUseCmakeConfigure=true;
+          dontStrip=true;
+
+          patchPhase = ''
+            patch -p1 -i ${patchFile}
+          '';
+
+          buildPhase = ''
+            cmake -S llvm -B build -G Ninja \
+              -DLLVM_ENABLE_PROJECTS="clang" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DLLVM_INCLUDE_TESTS=OFF \
+              -DLLVM_TARGETS_TO_BUILD=X86
+            ninja -C build
+          '';
+
+          installPhase = ''
+            mkdir -p $out/bin
+            cp build/bin/clang $out/bin
+            cp build/bin/opt $out/bin
+            cp -r build/lib $out/lib
+          '';
+
+          passthru.isClang = true;  
+        });
         packages.effekt_0_2_2 = sbt.mkSbtDerivation.${system} {
           pname = "effekt";
           version = "v0.2.2";
@@ -217,7 +219,7 @@
           nativeBuildInputs = [
             # clang_main
             # clang_dev
-            clang_18_preserve_none
+            self.packages.${system}.clang_18_preserve_none
           ];
           buildInputs = [
             mlton
