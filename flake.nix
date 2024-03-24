@@ -235,9 +235,6 @@
             ghostscript
             graphviz
           ];
-          shellHook = ''
-            zsh
-          '';
         };
       });
 }
