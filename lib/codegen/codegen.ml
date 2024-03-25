@@ -6,6 +6,7 @@ type eff_type_env = (var * hdl_anno) list
 type env = eff_sig_env * eff_type_env
 exception UndefinedHandler of string
 exception UndefinedSignature of string
+exception ParameterMismatch of string
 
 let get_eff_sig_env ((a, _) : env) = a
 let get_eff_type_env ((_, b) : env) = b
@@ -67,14 +68,23 @@ let rec genValue (env : env) = function
         ((List.map (fun obj_param -> "intptr_t* " ^ obj_param) obj_params) 
           @ (List.map (fun hdl_param -> "intptr_t " ^ hdl_param) hdl_params))
     in
-    let gen_hdl (_, name, hdl_params, body) = 
-      sprintf "intptr_t %s(%s) {\nreturn(%s);\n}" name (genParams hdl_params) (genTerm env body)
+    let rec final_param l = (match l with
+      | [] -> raise (ParameterMismatch "")
+      | x :: [] -> x
+      | _ :: tail -> final_param tail)
+    in
+    let gen_hdl (hdl_type, name, hdl_params, body) = 
+      sprintf "intptr_t %s(%s) {\n%s\nreturn(%s);\n}" name ((genParams hdl_params) ^ ", void** exc")
+      (match hdl_type with
+      | HHdl1 | HHdls -> sprintf "resumption_t* %s = MAKE_MULTISHOT_RESUMPTION(exc);" (final_param hdl_params)
+      | _ -> "") (genTerm env body)
     in
     String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
 
 and genValueList env l =
   "(" ^ String.concat "," (List.map (fun x -> genValue env x) l) ^ ")"
 
+(* final tells if resume is final *)
 and genTerm (env : env) = function
 | TValue v -> genValue env v
 | TArith (v1, op, v2) ->
@@ -115,7 +125,12 @@ and genTerm (env : env) = function
 | TRaise (stub, hdl, params) ->
     let hdl_idx = lookup_hdl_index hdl (get_eff_sig_env env) in
     sprintf "RAISE(%s, %d, %s)" stub hdl_idx (genValueList env params)
-| _ -> "TODO"
+| TResume (k, v) ->
+    (* if final then
+      sprintf "FINAL_THROW(%s, %s)" k (genValue env v)
+    else *)
+      sprintf "THROW(%s, %s)" k (genValue env v)
+
 
 (* let genFunc func = function
 | VAbs (name, params, body)
