@@ -68,6 +68,7 @@ rule read =
   | "hdl_1" { HDL1 }
   | "hdl_s" { HDLS }
   | "resume" { RESUME }
+  | "resume_f" { RESUMEFINAL }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | sig { SIG (Lexing.lexeme lexbuf) }
   | id { VAR (Lexing.lexeme lexbuf) }

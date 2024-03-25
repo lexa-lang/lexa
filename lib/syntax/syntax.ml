@@ -42,6 +42,7 @@ and term =
   | TSet of value * int * value
   | TRaise of var * var * value list
   | TResume of var * value
+  | TResumeFinal of var * value
   | THdl of var list * var * var * var (* handle *)
 
 and heap_item = location * value

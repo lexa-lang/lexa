@@ -22,7 +22,6 @@
 %token COLONEQ
 %token COLON
 %token RAISE
-%token THROW
 %token HANDLE
 %token LSB
 %token RSB
@@ -51,6 +50,7 @@
 %token HDLS
 %token OBJ
 %token RESUME
+%token RESUMEFINAL
 
 %start <Syntax.value list> prog
 %%
@@ -107,6 +107,7 @@ term:
   | RAISE stub = VAR DOT hdl = VAR params = separated_list(COMMA, value) { TRaise (stub, hdl, params) }
   // | ABORT v1 = value v2 = value { TAbort (v1, v2) }
   | RESUME k = VAR v = value { TResume (k, v) }
+  | RESUMEFINAL k = VAR v = value { TResumeFinal (k, v) }
   | HANDLE LTS env = separated_list(COMMA, VAR) GTS body = VAR WITH obj = VAR COLON sig_name = SIG { THdl (env, body, obj, sig_name) }
 
 // handler:
