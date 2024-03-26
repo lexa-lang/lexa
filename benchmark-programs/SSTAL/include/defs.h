@@ -20,8 +20,8 @@ typedef struct {
   // argpromotion can proceed.
   handler_def_t* defs;
   intptr_t* env;
-  void** sp_exchanger;
   void* _sp_exchanger[1];
+  void** sp_exchanger;
 } meta_t;
 
 #define FAST_SWITCH
@@ -106,8 +106,8 @@ typedef struct {
 #endif
 
 typedef struct {
-    void** ctx_sp;
     void* rsp_sp;
+    void** ctx_sp;
 } resumption_t;
 
 #define xmalloc(size) ({                \
@@ -144,19 +144,24 @@ extern intptr_t ret_val;
     harr;\
     })
 
-// We are supppose to clobber rsp, but doing so makes the compiler to use rbp to address register spills (eg when saving caller-saved registers)
-// This forces us to copy not only the stack but also rsp when copying the stack, creating extra complexity.
-// SO, WE DON'T ANNOTATE THE CLOBBERING, AND BE CAREFUL NOT TO USE ANY STACK-STORED VARIABLE BETWEEN
-// THIS POINT TO A JMP OR CALL
-#define SWITCH_SP(sp) \
-    __asm__ ( \
-        "movq %0, %%rsp\n\t" \
-        :: "r"(sp) \
-    )
+__attribute__((noinline, naked))
+FAST_SWITCH_DECORATOR
+int64_t double_save_switch_and_run_handler(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
+    __asm__ (
+        "movq 8(%%rdx), %%r8\n\t" // Get the exchanger from the resumption
+        "movq 0(%%r8), %%rax\n\t" // Get the context stack from the exchanger
+        "movq %%rsp, 0(%%r8)\n\t" // Save the current stack pointer to the exchanger. Later when switching back, just need to run a ret
+        "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to the resumption
+        "movq %%rax, %%rsp\n\t" // Switch to the context stack
+        "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
+        :
+    );
+}
+
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, void** exc, void* func) {
+int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
     __asm__ (
         "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
@@ -319,11 +324,9 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     intptr_t args[] = {EXPAND m_args}; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
-    if ((stub->defs[index].mode & SINGLESHOT) || (stub->defs[index].mode & MULTISHOT)) { \
-        if (nargs != 1) { exit(EXIT_FAILURE); } \
-        out = save_switch_and_run_handler(stub->env, args[0], stub->sp_exchanger,\
-            (stub->defs[index].func)); \
-    } else if (stub->defs[index].mode & TAIL) { \
+    handler_mode_t mode = stub->defs[index].mode & (TAIL | ABORT | SINGLESHOT | MULTISHOT); \
+    switch (mode) { \
+        case TAIL: { \
             if (nargs == 0) { \
                 out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
             } else if (nargs == 1) { \
@@ -335,29 +338,39 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
             } else { \
                 exit(EXIT_FAILURE); \
             } \
-    } else if (stub->defs[index].mode & ABORT) { \
-        if (nargs != 1) { exit(EXIT_FAILURE); } \
-        __asm__ ( \
-            "movq %2, %%rsp\n\t" \
-            "jmpq *%3\n\t" \
-            :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
-        ); \
-        __builtin_unreachable(); \
-    } else { \
-        exit(EXIT_FAILURE); \
-    }; \
+            break; \
+        } \
+        case ABORT: { \
+            if (nargs != 1) { exit(EXIT_FAILURE); } \
+            __asm__ ( \
+                "movq %2, %%rsp\n\t" \
+                "jmpq *%3\n\t" \
+                :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
+            ); \
+            __builtin_unreachable(); \
+        } \
+        case SINGLESHOT: { \
+            if (nargs != 1) { exit(EXIT_FAILURE); } \
+            resumption_t* k = (resumption_t*)(stub->sp_exchanger); \
+            out = save_switch_and_run_handler(stub->env, args[0], k,\
+                (stub->defs[index].func)); \
+            break; \
+        } \
+        case MULTISHOT: { \
+            if (nargs != 1) { exit(EXIT_FAILURE); } \
+            resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t)); \
+            k->ctx_sp = stub->sp_exchanger; \
+            out = double_save_switch_and_run_handler(stub->env, args[0], k,\
+                (stub->defs[index].func)); \
+            break; \
+        } \
+        default: { \
+            exit(EXIT_FAILURE); \
+        } \
+    } \
     _Pragma("clang diagnostic pop") \
     out; \
     })
-
-#define MAKE_MULTISHOT_RESUMPTION(exc) \
-    HEAP_ALLOC_STRUCT(resumption_t, exc, *exc)
-
-// If the resumption is single-shot, the exchanger is not changed
-// between raise and resume. So we use the exchanger as the resumption struct.
-// HACK: we are assuming the layout of resumption_t and the meta_t are similar
-#define MAKE_SINGLESHOT_RESUMPTION(exc) \
-    (resumption_t*)((intptr_t)exc - sizeof(void*))
 
 #define THROW(k, arg) \
     ({ \

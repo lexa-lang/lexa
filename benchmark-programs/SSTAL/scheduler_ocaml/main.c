@@ -58,8 +58,7 @@ static i64 runnext(i64 job_queue){
 }
 
 FAST_SWITCH_DECORATOR
-i64 yield(i64 env, i64 _, i64 exc){
-  i64 k = (i64)MAKE_SINGLESHOT_RESUMPTION(((void**)exc));
+i64 yield(i64 env, i64 _, i64 k){
 
   return ({
     ({
@@ -78,8 +77,7 @@ i64 yield(i64 env, i64 _, i64 exc){
 }
 
 FAST_SWITCH_DECORATOR
-i64 fork(i64 env, i64 job_closure, i64 exc){
-  i64 k = (i64)MAKE_SINGLESHOT_RESUMPTION(((void**)exc));
+i64 fork(i64 env, i64 job_closure, i64 k){
 
   return ({
     i64 suspend_closure = ((i64*)env)[1];

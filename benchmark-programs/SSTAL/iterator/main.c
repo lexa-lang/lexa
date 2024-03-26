@@ -8,6 +8,9 @@ intptr_t emit(intptr_t *env, intptr_t n) {
     return 0;
 }
 
+// TODO: enabling inline results in very aggressive optimizations.
+// how to do this more principly?
+__attribute__((always_inline))
 intptr_t range(meta_t *emit_stub, intptr_t l, intptr_t u){
   return ({
     l > u ? 0 : ({
