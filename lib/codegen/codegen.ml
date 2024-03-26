@@ -197,12 +197,16 @@ let rec eff_type_pass toplevel : eff_type_env =
   | (VObj (_, _, hdl_list)) :: tail ->
       (List.map (fun x -> 
         let (hdl_anno, name, _, _) = x in
-        (name, (hdl_anno, if_escape x))) hdl_list)
+          (match hdl_anno with (* analyze escapeness when it's a general handler *)
+          | HHdl1 | HHdls -> (name, (hdl_anno, if_escape x))
+          | _ -> (name, (hdl_anno, false)))
+        ) hdl_list)
       @ (eff_type_pass tail)
   | _ :: tail -> eff_type_pass tail
 
 let genToplevel toplevel =
-  let header = "#include <stdint.h>\n#include <stdlib.h>\n#include <stdio.h>\n" in
+  let header = "#include <stdint.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>\n#include <defs.h>\n#include <datastructure.h>\n"
+  in
   let eff_sig_env = sig_pass toplevel in
   let eff_type_env = eff_type_pass toplevel in
   String.concat "\n" (header :: (List.map (fun x -> genValue (eff_sig_env, eff_type_env) x) toplevel))
