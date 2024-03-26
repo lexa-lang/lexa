@@ -72,16 +72,9 @@ let rec genValue (env : env) = function
         ((List.map (fun obj_param -> "intptr_t* " ^ obj_param) obj_params) 
           @ (List.map (fun hdl_param -> "intptr_t " ^ hdl_param) hdl_params))
     in
-    let rec final_param l = (match l with
-      | [] -> raise (ParameterMismatch "")
-      | x :: [] -> x
-      | _ :: tail -> final_param tail)
-    in
-    let gen_hdl (hdl_type, name, hdl_params, body) = 
-      sprintf "intptr_t %s(%s) {\n%s\nreturn(%s);\n}" name ((genParams hdl_params) ^ ", void** exc")
-      (match hdl_type with
-      | HHdl1 | HHdls -> sprintf "resumption_t* %s = MAKE_MULTISHOT_RESUMPTION(exc);" (final_param hdl_params)
-      | _ -> "") (genTerm env body)
+    let gen_hdl (_, name, hdl_params, body) = 
+      sprintf "intptr_t %s(%s) {\nreturn(%s);\n}" name ((genParams hdl_params) ^ ", void** exc")
+      (genTerm env body)
     in
     String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
   | VPrim prim ->
