@@ -4,7 +4,7 @@ bench: test build
 		'product_early/main 100000' \
 		'iterator/main 40000000' \
 		'tree_explore/main 16' \
-		'countdown2/main 200000000' \
+		'countdown2/main 20000000' \
 		'scheduler_ocaml/main 1000000'
 
 test: build
