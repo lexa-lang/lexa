@@ -9,6 +9,7 @@
 %token <int> INT
 %token <string> VAR
 %token <string> SIG
+%token <string> PRIM 
 
 %token DOT
 %token LPAREN
@@ -90,6 +91,7 @@ value:
   | FALSE { VBool false }
   | EFFECT name = SIG LCB l = list(effect_sig) RCB { VEffSig (name, l) }
   | OBJ name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB l = list(hdl_def) RCB { VObj (name, params, l) }
+  | PRIM { VPrim $1 }
 
 heap_value:
   | LTS l = separated_list(COMMA, value) GTS { l }

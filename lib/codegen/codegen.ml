@@ -1,5 +1,6 @@
 open Syntax
 open Printf
+open Primitive
 
 type handler_type = hdl_anno * bool
 type eff_sig_env = (var * string list) list
@@ -83,6 +84,8 @@ let rec genValue (env : env) = function
       | _ -> "") (genTerm env body)
     in
     String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
+  | VPrim prim ->
+      String.sub prim 1 ((String.length prim) - 1)
 
 and genValueList env l =
   "(" ^ String.concat "," (List.map (fun x -> genValue env x) l) ^ ")"
@@ -103,7 +106,24 @@ and genTerm (env : env) = function
         genTerm env t2 ^ ";";
       "})"]
 | TApp (v1, params) ->
-    (genValue env v1) ^ genValueList env params
+    (match v1 with
+    | VPrim prim -> 
+      let name = genValue env v1 in (* name is prim with leading ~ stripped *)
+      (* The name here should have ~ stripped *)
+      let cast_params (name : string) (params : value list) : string list =
+        match List.assoc_opt name prim_env with
+        | None -> raise (UndefinedPrimitive name)
+        | Some param_types -> 
+            let rec cast params pt =
+              (match params, pt with
+              | [], [] -> []
+              | params_h :: params_t, pt_h :: pt_t ->
+                ((gen_prim_type pt_h) ^ (genValue env params_h)) :: (cast params_t pt_t)
+              | _, _ -> raise (InvalidPrimitiveCall name)) in
+            cast params param_types in
+      let casted_params = cast_params name params in
+      sprintf "%s(%s)" prim (String.concat ", " casted_params) 
+    | _ -> (genValue env v1) ^ genValueList env params)
 | TIf (v, t1, t2) ->
     sprintf "(%s) ? (%s) : (%s)" (genValue env v) (genTerm env t1) (genTerm env t2)
 | TNew value_list ->
@@ -158,7 +178,8 @@ let if_escape (h : hdl) : bool =
     | VInt _ -> false
     | VBool _ -> false
     | VEffSig (name, _) -> raise (NestedFunction name)
-    | VObj (name, _, _) -> raise (NestedFunction name))
+    | VObj (name, _, _) -> raise (NestedFunction name)
+    | VPrim _ -> false)
   and occurs_in_t (t : term) : bool = (match t with
     | TValue v -> occurs_in_v v
     | TArith (v1, _, v2) -> occurs_in_v v1 || occurs_in_v v2

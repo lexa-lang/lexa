@@ -25,6 +25,7 @@ type value =
   | VAbs of var * var list * term
   | VEffSig of var * var list
   | VObj of var * var list * hdl list
+  | VPrim of string
 
 and hdl = hdl_anno * var * var list * term (* handler *)
 
