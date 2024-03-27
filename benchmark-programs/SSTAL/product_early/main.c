@@ -30,7 +30,7 @@ static i64 product(i64 abort_stub, i64 xs) {
   });
 }
 
-FAST_SWITCH_DECORATOR
+
 static i64 body(i64 abort_stub) {
   return ({
     product(abort_stub, ((meta_t*)abort_stub)->env[0]);

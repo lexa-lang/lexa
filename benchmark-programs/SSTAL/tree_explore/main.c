@@ -40,7 +40,7 @@ static i64 explore(i64 state, i64 tree, i64 choice_stub) {
     });
 }
 
-FAST_SWITCH_DECORATOR
+
 static int64_t body(i64 choice_stub) {
   return (i64)({
     listNode(

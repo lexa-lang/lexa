@@ -25,7 +25,7 @@ static i64 countdown(i64 state_stub){
     }
 }
 
-FAST_SWITCH_DECORATOR
+
 static i64 body(i64 state_stub) {
     return countdown(state_stub);
 }
