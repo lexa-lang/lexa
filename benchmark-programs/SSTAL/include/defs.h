@@ -1,5 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <stack_pool.h>
+
+#define i64 intptr_t
 
 typedef enum {
     TAIL = 1 << 0,
@@ -269,13 +272,13 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         meta_t stub; \
         stub.defs = (handler_def_t[]){EXPAND m_defs}; \
         stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
-        out = body(&stub); \
+        out = body((intptr_t)&stub); \
     } else if (mode == ABORT) { \
         meta_t stub; \
         stub.defs = (handler_def_t[]){EXPAND m_defs}; \
         stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
         stub.sp_exchanger = stub._sp_exchanger; \
-        out = save_and_run_body(&stub, stub.sp_exchanger, body); \
+        out = save_and_run_body((void*)&stub, stub.sp_exchanger, body); \
     } else { \
         if (!(mode & ESCAPE_K)) { \
             meta_t stub; \
@@ -283,7 +286,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
             stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
             stub.sp_exchanger = stub._sp_exchanger; \
             char* new_sp = get_stack(); \
-            out = save_switch_and_run_body(&stub, stub.sp_exchanger, new_sp, body); \
+            out = save_switch_and_run_body((void*)&stub, stub.sp_exchanger, new_sp, body); \
         } else { \
             if (mode & SINGLESHOT) { \
                 handler_def_t _defs[] = {EXPAND m_defs}; \
@@ -317,8 +320,9 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
     })
 
-#define RAISE(stub, index, m_args) \
+#define RAISE(_stub, index, m_args) \
     ({ \
+    meta_t* stub = (meta_t*)_stub; \
     intptr_t out; \
     intptr_t nargs = NARGS m_args; \
     intptr_t args[] = {EXPAND m_args}; \
@@ -375,15 +379,15 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 #define THROW(k, arg) \
     ({ \
     intptr_t out; \
-    char* new_sp = dup_stack((char*)k->rsp_sp); \
-    out = save_and_restore(arg, k->ctx_sp, new_sp); \
+    char* new_sp = dup_stack((char*)((resumption_t*)k)->rsp_sp); \
+    out = save_and_restore(arg, ((resumption_t*)k)->ctx_sp, new_sp); \
     out; \
     })
 
 #define FINAL_THROW(k, arg) \
     ({ \
     intptr_t out; \
-    out = save_and_restore(arg, k->ctx_sp, k->rsp_sp); \
+    out = save_and_restore(arg, ((resumption_t*)k)->ctx_sp, ((resumption_t*)k)->rsp_sp); \
     out; \
     })
 

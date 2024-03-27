@@ -2,16 +2,16 @@
 #include <stdio.h>
 #include <defs.h>
 
-intptr_t emit(intptr_t *env, intptr_t n) {
-    intptr_t *s = (intptr_t*)env[1];
-    *s += n;
+i64 emit(i64 env, i64 n) {
+    i64 s = ((i64*)env)[1];
+    *(i64*)s += n;
     return 0;
 }
 
 // TODO: enabling inline results in very aggressive optimizations.
 // how to do this more principly?
 __attribute__((always_inline))
-intptr_t range(meta_t *emit_stub, intptr_t l, intptr_t u){
+i64 range(i64 emit_stub, i64 l, i64 u){
   return ({
     l > u ? 0 : ({
       RAISE(emit_stub, 0, (l));
@@ -20,16 +20,16 @@ intptr_t range(meta_t *emit_stub, intptr_t l, intptr_t u){
   });
 }
 
-static intptr_t body(meta_t* emit_stub) {
+static i64 body(i64 emit_stub) {
     return ({
-      range(emit_stub, 0, emit_stub->env[0]);
-      *(intptr_t*)emit_stub->env[1];
+      range(emit_stub, 0, ((meta_t*)emit_stub)->env[0]);
+      *(i64*)((meta_t*)emit_stub)->env[1];
     });
 }
 
-intptr_t run(intptr_t n){
-    intptr_t s = (intptr_t)xmalloc(1 * sizeof(intptr_t));
-    ((intptr_t*)s)[0] = 0;
+i64 run(i64 n){
+    i64 s = (i64)xmalloc(1 * sizeof(i64));
+    ((i64*)s)[0] = 0;
     
     return HANDLE(body, ({TAIL, (void*)emit}), (n, s));
 }

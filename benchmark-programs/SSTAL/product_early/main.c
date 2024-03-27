@@ -1,32 +1,27 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <defs.h>
 #include <datastructure.h>
 
-intptr_t ret_val;
-
-intptr_t enumerate(intptr_t i) {
+i64 enumerate(i64 i) {
   return (i < 0) ? ({
-    (intptr_t)listEnd();
+    (i64)listEnd();
    }) : ({
-    (intptr_t)listNode(i, (node_t*)enumerate(i - 1));
+    (i64)listNode(i, (node_t*)enumerate(i - 1));
    });
 }
 
 FAST_SWITCH_DECORATOR
-intptr_t done(const intptr_t* const env, intptr_t r) {
+i64 done(i64 env, i64 r) {
   return ({
     r;
   });
 }
 
-static intptr_t product(meta_t *abort_stub, intptr_t xs) {
+static i64 product(i64 abort_stub, i64 xs) {
   return (listIsEmpty((node_t*)xs)) ? ({
     0;
   }) : ({
-    intptr_t y = (intptr_t)listHead((node_t*)xs);
-    intptr_t ys = (intptr_t)listTail((node_t*)xs);
+    i64 y = (i64)listHead((node_t*)xs);
+    i64 ys = (i64)listTail((node_t*)xs);
     (y == 0) ? ({
       RAISE(abort_stub, 0, (0));
     }): ({
@@ -36,19 +31,19 @@ static intptr_t product(meta_t *abort_stub, intptr_t xs) {
 }
 
 FAST_SWITCH_DECORATOR
-static intptr_t body(meta_t * abort_stub) {
+static i64 body(i64 abort_stub) {
   return ({
-    product(abort_stub, abort_stub->env[0]);
+    product(abort_stub, ((meta_t*)abort_stub)->env[0]);
   });
 }
 
-static intptr_t runProduct(intptr_t xs) {
+static i64 runProduct(i64 xs) {
   return ({
     HANDLE(body, ({ABORT, done}), (xs));
   });
 }
 
-static intptr_t loop(intptr_t xs, intptr_t i, intptr_t a) {
+static i64 loop(i64 xs, i64 i, i64 a) {
   (i == 0) ? ({
     return a;
   }) : ({
@@ -59,9 +54,9 @@ static intptr_t loop(intptr_t xs, intptr_t i, intptr_t a) {
   });
 }
 
-static intptr_t run(intptr_t n) {
+static i64 run(i64 n) {
   return ({
-    intptr_t xs = enumerate(1000);
+    i64 xs = enumerate(1000);
     loop(xs, n, 0);
   });
 }

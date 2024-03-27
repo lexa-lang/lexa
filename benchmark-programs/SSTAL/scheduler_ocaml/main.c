@@ -1,16 +1,9 @@
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <defs.h>
 #include <datastructure.h>
 
-#define i64 intptr_t
-
 static i64 spawn(i64, i64, i64);
 
-static i64 job(i64 state, meta_t* sch_stub){
+static i64 job(i64 state, i64 sch_stub){
   return ({
     RAISE(sch_stub, 0, (0));
     ((i64*)state)[0] += 1;
@@ -19,7 +12,7 @@ static i64 job(i64 state, meta_t* sch_stub){
   });
 }
 
-static i64 loop(i64 i, i64 job_closure, meta_t* sch_stub){
+static i64 loop(i64 i, i64 job_closure, i64 sch_stub){
   ({
     (i == 0) ? ({
       return 0;
@@ -30,7 +23,7 @@ static i64 loop(i64 i, i64 job_closure, meta_t* sch_stub){
   });
 }
 
-static i64 entry(i64 env, meta_t* sch_stub){
+static i64 entry(i64 env, i64 sch_stub){
   return ({
     i64 n = ((i64*)env)[0];
     i64 job_closure = ((i64*)env)[1];
@@ -52,7 +45,7 @@ static i64 runnext(i64 job_queue){
       0;
     }) : ({
       i64 k = (i64)queueDeq((queue_t*)job_queue);
-      FINAL_THROW(((resumption_t*)k), 0);
+      FINAL_THROW(k, 0);
     });
   });
 }
@@ -89,12 +82,12 @@ i64 fork(i64 env, i64 job_closure, i64 k){
 }
 
 FAST_SWITCH_DECORATOR
-static i64 body(meta_t * sch_stub) {
+static i64 body(i64 sch_stub) {
   return ({
-    i64 job_closure = sch_stub->env[0];
+    i64 job_closure = ((meta_t*)sch_stub)->env[0];
     i64 job_func = ((i64*)job_closure)[0];
     i64 job_env = ((i64*)job_closure)[1];
-    ((i64 (*)(i64, meta_t*))job_func)(job_env, sch_stub);
+    ((i64 (*)(i64, i64))job_func)(job_env, sch_stub);
   });
 }
 
