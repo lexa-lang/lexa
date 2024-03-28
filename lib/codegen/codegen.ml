@@ -55,9 +55,12 @@ let rec genValue (env : env) = function
 | VInt i -> string_of_int i
 | VBool b -> if b then "1" else "0"
 | VAbs (name, params, body) -> 
-    let genParams params =
-      String.concat ", " (List.map (fun p -> "intptr_t " ^ p) params)
-    in
+  let genParams params =
+    String.concat ", " (List.map (fun p -> "intptr_t " ^ p) params)
+  in
+  (* if name = "body" then
+    ""
+  else *)
     String.concat "\n" 
         [(if name = "main" then "int " else "intptr_t ")
           ^ name ^ "(" ^ (genParams params) ^ ")" ^ " {";
@@ -65,20 +68,20 @@ let rec genValue (env : env) = function
           (if name = "main" then "(int)" else "") ^ genTerm env body;
           ");";
         "}"]
-  | VEffSig _ -> ""
-  | VObj (_, obj_params, hdls) -> 
-    let genParams hdl_params =
-      String.concat ", " 
-        ((List.map (fun obj_param -> "intptr_t* " ^ obj_param) obj_params) 
-          @ (List.map (fun hdl_param -> "intptr_t " ^ hdl_param) hdl_params))
-    in
-    let gen_hdl (_, name, hdl_params, body) = 
-      sprintf "intptr_t %s(%s) {\nreturn(%s);\n}" name ((genParams hdl_params) ^ ", void** exc")
-      (genTerm env body)
-    in
-    String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
-  | VPrim prim ->
-      String.sub prim 1 ((String.length prim) - 1)
+| VEffSig _ -> ""
+| VObj (_, obj_params, hdls) -> 
+  let genParams hdl_params =
+    String.concat ", " 
+      ((List.map (fun obj_param -> "intptr_t* " ^ obj_param) obj_params) 
+        @ (List.map (fun hdl_param -> "intptr_t " ^ hdl_param) hdl_params))
+  in
+  let gen_hdl (_, name, hdl_params, body) = 
+    sprintf "intptr_t %s(%s) {\nreturn(%s);\n}" name ((genParams hdl_params) ^ ", void** exc")
+    (genTerm env body)
+  in
+  String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
+| VPrim prim ->
+    String.sub prim 1 ((String.length prim) - 1)
 
 and genValueList env l =
   "(" ^ String.concat "," (List.map (fun x -> genValue env x) l) ^ ")"
@@ -100,7 +103,7 @@ and genTerm (env : env) = function
       "})"]
 | TApp (v1, params) ->
     (match v1 with
-    | VPrim prim -> 
+    | VPrim _ -> 
       let name = genValue env v1 in (* name is prim with leading ~ stripped *)
       (* The name here should have ~ stripped *)
       let cast_params (name : string) (params : value list) : string list =
@@ -115,7 +118,7 @@ and genTerm (env : env) = function
               | _, _ -> raise (InvalidPrimitiveCall name)) in
             cast params param_types in
       let casted_params = cast_params name params in
-      sprintf "%s(%s)" prim (String.concat ", " casted_params) 
+      sprintf "%s(%s)" name (String.concat ", " casted_params) 
     | _ -> (genValue env v1) ^ genValueList env params)
 | TIf (v, t1, t2) ->
     sprintf "(%s) ? (%s) : (%s)" (genValue env v) (genTerm env t1) (genTerm env t2)
