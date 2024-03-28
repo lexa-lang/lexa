@@ -69,7 +69,7 @@ cmp:
   | CMPEQ { CEq }
   | NEQ { CNeq }
   | GT { CGt }
-  | LT { CLt }
+  | LTS { CLt }
 
 effect_sig:
   | DCL v = VAR { v }
