@@ -140,7 +140,7 @@ and genTerm (env : env) = function
     sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
 | TRaise (stub, hdl, params) ->
     let hdl_idx = lookup_hdl_index hdl (get_eff_sig_env env) in
-    sprintf "RAISE(%s, %d, %s)" stub hdl_idx (genValueList env params)
+    sprintf "RAISE(((meta_t*)%s), %d, %s)" stub hdl_idx (genValueList env params)
 | TResume (k, v) -> sprintf "THROW(%s, %s)" k (genValue env v)
 | TResumeFinal (k, v) -> sprintf "FINAL_THROW(%s, %s)" k (genValue env v)
 
