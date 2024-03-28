@@ -58,16 +58,10 @@ let rec genValue (env : env) = function
   let genParams params =
     String.concat ", " (List.map (fun p -> "intptr_t " ^ p) params)
   in
-  (* if name = "body" then
-    ""
-  else *)
-    String.concat "\n" 
-        [(if name = "main" then "int " else "intptr_t ")
-          ^ name ^ "(" ^ (genParams params) ^ ")" ^ " {";
-          "return (";
-          (if name = "main" then "(int)" else "") ^ genTerm env body;
-          ");";
-        "}"]
+  if name = "main" then
+    sprintf "int main(int argc, char *argv[]) {\nreturn((int)%s);\n}\n" (genTerm env body)
+  else
+    sprintf "intptr_t %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (genTerm env body)
 | VEffSig _ -> ""
 | VObj (_, obj_params, hdls) -> 
   let genParams hdl_params =
