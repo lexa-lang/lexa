@@ -28,6 +28,8 @@ let prim_env = [
   ("queueEnq", [PTQueueP; PTI64]);
   ("queueDeq", [PTQueueP]);
   ("queueLen", [PTQueueP]);
+  ("readInt", []);
+  ("printInt", [PTI64])
 ]
 
 let gen_prim_type = function
