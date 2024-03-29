@@ -1,0 +1,68 @@
+
+effect Abort {
+  dcl done
+}
+
+def product(xs, abort_stub) {
+    let cond = ~listIsEmpty(xs) in
+    if cond then
+        0
+    else
+        let y = ~listHead(xs) in
+        let ys = ~listTail(xs) in
+            let cond = y == 0 in
+            if cond then
+                raise abort_stub.done 0
+            else
+                let p = product(ys) in
+                y * p
+}
+
+def enumerate(i) {
+    let cond = i < 0 in
+    if cond then
+        ~listEnd()
+    else
+        let arg1 = i - 1 in
+        let arg2 = enumerate(arg1) in
+        ~listNode(i, arg2)
+}
+
+obj abort(env) {
+    exc done(r) {
+        r
+    }
+}
+
+def body(env, abort_stub) {
+    let arg1 = env[0] in
+    product(arg1, abort_stub)
+}
+
+def runProduct(xs) {
+    handle <xs>
+        body
+    with abort: Abort
+}
+
+def loop(xs, i, a) {
+    let cond = i == 0 in
+    if cond then
+        a
+    else
+        let arg1 = i - 1 in
+        let arg2 = runProduct(xs) in
+        let arg3 = a + arg2 in
+        loop(xs, arg1, arg3)
+}
+
+def run(n) {
+    let xs = enumerate(1000) in
+        loop(xs, n, 0)
+}
+
+def main() {
+    let arg1 = ~readInt() in
+    let arg2 = run(arg1) in
+    ~printInt(arg2)
+}
