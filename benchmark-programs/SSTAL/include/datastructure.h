@@ -70,6 +70,15 @@ int64_t listMax(node_t* xs) {
   return m;
 }
 
+int64_t listLen(node_t* xs) {
+  int64_t len = 0;
+  while (xs != NULL) {
+    len++;
+    xs = xs->next;
+  }
+  return len;
+}
+
 tree_t* treeNode(int64_t value, tree_t* left, tree_t* right) {
   tree_t* new_node = (tree_t*)xmalloc(sizeof(tree_t));
   new_node->value = value;
