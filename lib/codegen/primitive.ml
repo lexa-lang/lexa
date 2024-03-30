@@ -17,7 +17,7 @@ let prim_env = [
   ("listTail", [PTNodeP]);
   ("listAppend", [PTNodeP; PTNodeP]);
   ("listMax", [PTNodeP]);
-  ("treeNide", [PTI64; PTTreeP; PTTreeP]);
+  ("treeNode", [PTI64; PTTreeP; PTTreeP]);
   ("treeLeaf", []);
   ("treeIsEmpty", [PTTreeP]);
   ("treeLeft", [PTTreeP]);
