@@ -9,11 +9,11 @@
 
 intptr_t product(intptr_t xs, intptr_t abort_stub) {
 return(({
-intptr_t cond = listIsEmpty((node_t*)xs);
+intptr_t cond = ((intptr_t)(listIsEmpty((node_t*)xs)));
 (cond) ? (0) : (({
-intptr_t y = listHead((node_t*)xs);
+intptr_t y = ((intptr_t)(listHead((node_t*)xs)));
 ({
-intptr_t ys = listTail((node_t*)xs);
+intptr_t ys = ((intptr_t)(listTail((node_t*)xs)));
 ({
 intptr_t cond = y == 0;
 (cond) ? (RAISE(((meta_t*)abort_stub), 0, (0))) : (({
@@ -29,11 +29,11 @@ y * p;
 intptr_t enumerate(intptr_t i) {
 return(({
 intptr_t cond = i < 0;
-(cond) ? (listEnd()) : (({
+(cond) ? (((intptr_t)(listEnd()))) : (({
 intptr_t arg1 = i - 1;
 ({
 intptr_t arg2 = enumerate(arg1);
-listNode((int64_t)i, (node_t*)arg2);
+((intptr_t)(listNode((int64_t)i, (node_t*)arg2)));
 });
 }));
 }));
@@ -78,10 +78,10 @@ loop(xs,n,0);
 
 int main(int argc, char *argv[]) {
 return((int)({
-intptr_t arg1 = readInt();
+intptr_t arg1 = ((intptr_t)(readInt()));
 ({
 intptr_t arg2 = run(arg1);
-printInt((int64_t)arg2);
+((intptr_t)(printInt((int64_t)arg2)));
 });
 }));
 }

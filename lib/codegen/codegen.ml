@@ -45,7 +45,7 @@ let lookup_eff_sig_dcls (sig_name : var) (sig_env : eff_sig_env) : string list =
 let rec subst_var (t : term) (name : var) (name_new : var) =
   let subst_value v =
     match v with
-    | VVar x ->  (if x = name then (let _ = (printf "%s\n" name) in (VVar name_new)) else v)
+    | VVar x ->  (if x = name then (VVar name_new) else v)
     | _ -> v
   in
   match t with
@@ -97,7 +97,6 @@ let rec genValue (env : env) = function
   else if (List.mem name (get_fun_type_env env)) then
     (match params with
     | [env_var; stub] -> 
-      let _ = printf "HERE: %s\n" env_var in
       sprintf "intptr_t %s(intptr_t %s) {\nreturn(%s);\n}\n" name stub 
         (genTerm env (subst_var body env_var (sprintf "((meta_t*)%s)->%s" stub env_var))) 
     | _ -> raise (ParameterMismatch name))
@@ -153,7 +152,7 @@ and genTerm (env : env) = function
               | _, _ -> raise (InvalidPrimitiveCall name)) in
             cast params param_types in
       let casted_params = cast_params name params in
-      sprintf "%s(%s)" name (String.concat ", " casted_params) 
+      sprintf "((intptr_t)(%s(%s)))" name (String.concat ", " casted_params) 
     | _ -> (genValue env v1) ^ genValueList env params)
 | TIf (v, t1, t2) ->
     sprintf "(%s) ? (%s) : (%s)" (genValue env v) (genTerm env t1) (genTerm env t2)
