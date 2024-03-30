@@ -1,4 +1,5 @@
-import immutable/dequeue
+import exnlist
+import exndequeue
 import immutable/option
 
 
@@ -8,16 +9,28 @@ interface Process {
   def fork { p: () => Unit }: Unit
 }
 
-def scheduler { prog: => Unit / Process } = region this {
+interface Tick {
+  def tick(): Unit
+}
+
+interface Exn {
+  def throw(): Nothing
+}
+
+def scheduler { prog: => Unit / Process }: Unit / Tick = region this {
   var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
 
-  def run(): Unit = queue.popBack match {
-    case None() => ()
-    case Some((k, q)) =>
-      queue = q
-      k();
-      run()
-  }
+  def run(): Unit = 
+    try {
+      queue.popBack match {
+        case (k, q) =>
+          queue = q
+          k();
+          run()
+      }
+    } with NoSuchElementException {
+      def throwNSE() = ()
+    }
   try { prog() } with Process {
     def yield() = {
       queue = queue.pushFront(fun() { resume(()) })
@@ -34,23 +47,32 @@ def scheduler { prog: => Unit / Process } = region this {
 }
 
 def main() = {
+  var a = 0;
   println("Example 1")
-  scheduler {
-    do fork {
-      println("hello 1")
+  try { 
+    scheduler {
+      do fork {
+        println("hello 1")
+        do yield()
+        println(1)
+        do yield()
+        println(2)
+        do tick()
+        do exit() // FIX this is crucial since fork is not implemented correctly
+        println(3)
+      }
+      println("hello 2")
       do yield()
-      println(1)
+      println(4)
       do yield()
-      println(2)
-      do exit() // FIX this is crucial since fork is not implemented correctly
-      println(3)
+      println(5)
+      do yield()
+      println(6)
     }
-    println("hello 2")
-    do yield()
-    println(4)
-    do yield()
-    println(5)
-    do yield()
-    println(6)
+  } with Tick {
+    def tick() = {
+      a = a + 1;
+      resume( () );
+    }
   }
 }
