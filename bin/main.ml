@@ -16,7 +16,7 @@ let speclist = [
 let () = 
   Arg.parse speclist (fun file -> inputFile := file) usageMsg;
   let toplevel = IRParser.Main.parseFile !inputFile in
-  let compiledStr = genToplevel toplevel in
+  let compiledStr = gen_toplevel toplevel in
   let oc = open_out (!outputFile) in
   Printf.fprintf oc "%s\n" compiledStr;
   ();
