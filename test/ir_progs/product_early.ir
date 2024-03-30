@@ -14,7 +14,7 @@ def product(xs, abort_stub) {
             if cond then
                 raise abort_stub.done 0
             else
-                let p = product(ys) in
+                let p = product(ys, abort_stub) in
                 y * p
 }
 

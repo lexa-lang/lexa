@@ -5,15 +5,18 @@ open Primitive
 type handler_type = hdl_anno * bool
 type eff_sig_env = (var * string list) list
 type eff_type_env = (var * handler_type) list
-type env = eff_sig_env * eff_type_env
+type fun_type_env = var list (* list of functions that are handler bodies *)
+type env = eff_sig_env * eff_type_env * fun_type_env
 
 exception UndefinedHandler of string
 exception UndefinedSignature of string
 exception ParameterMismatch of string
 exception NestedFunction of string
+exception UnexpectedResume of string
 
-let get_eff_sig_env ((a, _) : env) = a
-let get_eff_type_env ((_, b) : env) = b
+let get_eff_sig_env ((a, _, _) : env) = a
+let get_eff_type_env ((_, b, _) : env) = b
+let get_fun_type_env ((_, _, c) : env) = c
 
 let lookup_hdl_type (hdl_var : var) (env : eff_type_env) : string =
   match (List.find_opt (fun (s, _) -> s = hdl_var) env) with
@@ -38,6 +41,37 @@ let lookup_eff_sig_dcls (sig_name : var) (sig_env : eff_sig_env) : string list =
     | None -> raise (UndefinedSignature sig_name)
     | Some (_, dcl_list) -> dcl_list
 
+(* Substitute all occurences of name in t with name_new *)
+let rec subst_var (t : term) (name : var) (name_new : var) =
+  let subst_value v =
+    match v with
+    | VVar x ->  (if x = name then (let _ = (printf "%s\n" name) in (VVar name_new)) else v)
+    | _ -> v
+  in
+  match t with
+  | TValue v -> TValue (subst_value v)
+  | TArith (v1, op, v2) -> TArith (subst_value v1, op, subst_value v2)
+  | TCmp (v1, op, v2) -> TCmp (subst_value v1, op, subst_value v2)
+  | TLet (x, t1, t2) -> 
+      TLet (x, (subst_var t1 name name_new), (subst_var t2 name name_new))
+  | TIf (v, t1, t2) ->
+      TIf (subst_value v, subst_var t1 name name_new, subst_var t2 name name_new)
+  | TApp (v, vs) ->
+      TApp (subst_value v, List.map (fun vv -> subst_value vv) vs)
+  | TNew hv -> 
+      TNew (List.map (fun vv -> subst_value vv) hv)
+  | TGet (v, i) ->
+      TGet (subst_value v, i)
+  | TSet (v1, i, v2) ->
+      TSet (subst_value v1, i, subst_value v2)
+  | TRaise (hdl_stub, h, vs) ->
+      TRaise ((if hdl_stub = name then name_new else hdl_stub), h,
+        (List.map (fun vv -> subst_value vv) vs))
+  | TResume (_, _) | TResumeFinal (_, _) -> raise (UnexpectedResume (""))
+  | THdl (env, body, obj, sig_name) ->
+      THdl ((List.map (fun var -> if var = name then name_new else var) env),
+        body, obj, sig_name)
+
 let genArith = function
 | AAdd -> "+"
 | AMult -> "*"
@@ -60,7 +94,14 @@ let rec genValue (env : env) = function
   in
   if name = "main" then
     sprintf "int main(int argc, char *argv[]) {\nreturn((int)%s);\n}\n" (genTerm env body)
-  else
+  else if (List.mem name (get_fun_type_env env)) then
+    (match params with
+    | [env_var; stub] -> 
+      let _ = printf "HERE: %s\n" env_var in
+      sprintf "intptr_t %s(intptr_t %s) {\nreturn(%s);\n}\n" name stub 
+        (genTerm env (subst_var body env_var (sprintf "((meta_t*)%s)->%s" stub env_var))) 
+    | _ -> raise (ParameterMismatch name))
+  else 
     sprintf "intptr_t %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (genTerm env body)
 | VEffSig _ -> ""
 | VObj (_, obj_params, hdls) -> 
@@ -201,9 +242,24 @@ let rec eff_type_pass toplevel : eff_type_env =
       @ (eff_type_pass tail)
   | _ :: tail -> eff_type_pass tail
 
+let rec fun_type_pass toplevel : fun_type_env =
+  let rec get_handle_bodies t = (* Name of functions that are handlers *)
+    match t with
+    | TLet (_, t1, t2) -> (get_handle_bodies t1) @ (get_handle_bodies t2)
+    | TIf (_, t1, t2) -> (get_handle_bodies t1) @ (get_handle_bodies t2)
+    | THdl (_, body_name, _, _) -> [body_name]
+    | _ -> []
+  in
+  match toplevel with
+  | [] -> []
+  | (VAbs (_, _, t)) :: tail ->
+    get_handle_bodies t @ (fun_type_pass tail)
+  | _ :: tail -> fun_type_pass tail
+  
 let genToplevel toplevel =
   let header = "#include <stdint.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>\n#include <defs.h>\n#include <datastructure.h>\n"
   in
   let eff_sig_env = sig_pass toplevel in
   let eff_type_env = eff_type_pass toplevel in
-  String.concat "\n" (header :: (List.map (fun x -> genValue (eff_sig_env, eff_type_env) x) toplevel))
+  let fun_type_env = fun_type_pass toplevel in
+  String.concat "\n" (header :: (List.map (fun x -> genValue (eff_sig_env, eff_type_env, fun_type_env) x) toplevel))

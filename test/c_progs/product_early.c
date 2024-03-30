@@ -17,7 +17,7 @@ intptr_t ys = listTail((node_t*)xs);
 ({
 intptr_t cond = y == 0;
 (cond) ? (RAISE(((meta_t*)abort_stub), 0, (0))) : (({
-intptr_t p = product(ys);
+intptr_t p = product(ys,abort_stub);
 y * p;
 }));
 });
@@ -42,9 +42,9 @@ listNode((int64_t)i, (node_t*)arg2);
 intptr_t done(intptr_t* env, intptr_t r, void** exc) {
 return(r);
 }
-intptr_t body(intptr_t env, intptr_t abort_stub) {
+intptr_t body(intptr_t abort_stub) {
 return(({
-intptr_t arg1 = ((intptr_t*)env)[0];
+intptr_t arg1 = ((intptr_t*)((meta_t*)abort_stub)->env)[0];
 product(arg1,abort_stub);
 }));
 }
