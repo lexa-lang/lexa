@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define xmalloc(size) ({                \
     void *_ptr = malloc(size);          \
@@ -145,4 +146,29 @@ int64_t queueLen(queue_t* q) {
     current = current->next;
   }
   return len;
+}
+
+typedef char* string_t;
+
+string_t stringMake(char c, int64_t n) {
+  string_t s = (string_t)xmalloc(n + 1);
+  for (int64_t i = 0; i < n; i++) {
+    s[i] = c;
+  }
+  s[n] = '\0';
+  return s;
+}
+
+string_t stringSubStr(string_t s, int64_t startpos, int64_t endpos) {
+  int64_t n = endpos - startpos;
+  string_t sub = (string_t)xmalloc(n + 1);
+  for (int64_t i = 0; i < n; i++) {
+    sub[i] = s[startpos + i];
+  }
+  sub[n] = '\0';
+  return sub;
+}
+
+char stringCharAt(string_t s, int64_t pos) {
+  return s[pos];
 }
