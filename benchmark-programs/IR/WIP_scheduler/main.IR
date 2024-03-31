@@ -1,0 +1,131 @@
+effect Scheduler {
+    dcl yield
+    dcl fork
+}
+
+def job(env, sch_stub) {
+    raise sch_stub.yield 0;
+    {env[0]}[0] := {env[0]}[0] + 1;
+    raise sch_stub.yield 0;
+    {env[0]}[0] := {env[0]}[0] + 1;
+}
+
+def loop(i, job_closure, sch_stub) {
+    if (i == 0) {
+        0
+    } else {
+        raise sch_stub.fork job_closure;
+        loop(i - 1, job_closure, sch_stub)
+    }
+}
+
+def entry(env, sch_stub) {
+    let n = env[0] in {
+    let job_closure = env[1] in {
+        loop(n, job_closure, sch_stub)
+    }
+    }
+}
+
+def suspend(job_queue, k) {
+    queueEnq(job_queue, k)
+}
+
+def runnext(job_queue) {
+    if (queueIsEmpty(job_queue)) {
+        0
+    } else {
+        let k = queueDeq(job_queue) in {
+            throw k 0
+        }
+    }
+}
+
+obj scheduler(env) {
+    hdl yield(_, k) {
+        let suspend_closure = env[1] in {
+        let suspend_func = suspend_closure[0] in {
+        let job_queue = suspend_closure[1] in {
+            suspend_func(job_queue, k)
+        }
+        }
+        };
+        let runnext_closure = env[2] in {
+        let runnext_func = runnext_closure[0] in {
+        let job_queue = runnext_closure[1] in {
+            runnext_func(job_queue)
+        }
+        }
+        }
+    }
+
+    hdl fork(sch_stub, env, k) {
+        let newjob_closure = env[0] in {
+        let job_queue = env[1] in {
+            let k_thunk = <resume_k_func, k> in {
+                queueEnq(job_queue, k_thunk)
+            };
+            let newjob_thunk = <invoke_closure_func, sch_stub, newjob_closure> in {
+                queueEnq(job_queue, newjob_thunk)
+            }
+        }
+        }
+    }
+
+    hdl fork(sch_stub, env, k) {
+        let newjob_closure = env[0] in {
+        let job_queue = env[1] in {
+            queueEnq(job_queue, k);
+            queueEnq(job_queue, NEW_RESUMPTION(newjob_closure[0], sch_stub, newjob_closure[1]))
+        }
+        }
+    }
+}
+
+def body(env, sch_stub) {
+    let job_closure = env[0] in {
+    let job_func = job_closure[0] in {
+    let job_env = job_closure[1] in {
+        job_func(job_env)
+    }
+    }
+    }
+}
+
+def event_loop(job_queue) {
+    if (queueIsEmpty(job_queue)) {
+        0
+    } else {
+        let k = queueDeq(job_queue) in {
+            throw k 0;
+            event_loop(job_queue)
+        }
+    }
+}
+
+def startScheduler(init_closure) {
+    let job_queue = queueMake () in {
+        handle <init_closure, job_queue>
+            body
+        with scheduler: Scheduler;
+        event_loop(job_queue)
+    }
+}
+
+def run(n) {
+    let state = newref <0> in {
+    let job_closure = newref <job, state> in {
+    let entry_env = newref <n, job_closure> in {
+    let entry_closure = newref <entry, entry_env> in {
+        startScheduler(entry_closure);
+        state[0]
+    }
+    }
+    }
+    }
+}
+
+
+def main() = {
+    ~printInt(run(~readInt()))
+}
