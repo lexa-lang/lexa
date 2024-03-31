@@ -93,7 +93,7 @@ static i64 body(i64 sch_stub) {
 
 static i64 spawn(i64 job_closure, i64 suspend_closure, i64 runnext_closure){
   return ({
-    HANDLE(body, ({SINGLESHOT | ESCAPE_K, yield}, {SINGLESHOT | ESCAPE_K, fork}), (job_closure, suspend_closure, runnext_closure));
+    HANDLE(body, ({SINGLESHOT, yield}, {SINGLESHOT, fork}), (job_closure, suspend_closure, runnext_closure));
 
     i64 runnext_func = ((i64*)runnext_closure)[0];
     i64 job_queue = ((i64*)runnext_closure)[1];

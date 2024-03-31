@@ -9,7 +9,6 @@ typedef enum {
     ABORT = 1 << 1,
     SINGLESHOT = 1 << 2,
     MULTISHOT = 1 << 3,
-    ESCAPE_K = 1 << 4,
 } handler_mode_t;
 
 typedef struct {
@@ -249,9 +248,6 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         } else { \
             mode |= SINGLESHOT; \
         } \
-        if ((defs[0].mode & (ESCAPE_K)) || (n_defs > 1 && (defs[1].mode & ESCAPE_K))) { \
-            mode |= ESCAPE_K; \
-        } \
     } else { \
         mode = ABORT; \
     } \
@@ -260,11 +256,6 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
 })
 
-// TODO: improvement. 
-// If k doesn't escape, the meta can be stack-allocated on the parent stack. 
-// If k escape, 
-//          if k is single-shot, the meta can be stack-allocated on the new stack
-//          if k is multi-shot, the meta should be heap-allocated
 #define _HANDLE(mode, body, m_defs, m_free_vars) \
     ({ \
     intptr_t out; \
@@ -280,42 +271,20 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         stub.sp_exchanger = stub._sp_exchanger; \
         out = save_and_run_body((void*)&stub, stub.sp_exchanger, body); \
     } else { \
-        if (!(mode & ESCAPE_K)) { \
-            meta_t stub; \
-            stub.defs = (handler_def_t[]){EXPAND m_defs}; \
-            stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
-            stub.sp_exchanger = stub._sp_exchanger; \
-            char* new_sp = get_stack(); \
-            out = save_switch_and_run_body((void*)&stub, stub.sp_exchanger, new_sp, body); \
-        } else { \
-            if (mode & SINGLESHOT) { \
-                handler_def_t _defs[] = {EXPAND m_defs}; \
-                intptr_t _env[] = {EXPAND m_free_vars}; \
-                char* new_sp = get_stack(); \
-                new_sp -= sizeof(meta_t); \
-                meta_t* stub = (meta_t*)new_sp; \
-                stub->sp_exchanger = stub->_sp_exchanger; \
-                new_sp -= sizeof(_defs); \
-                memcpy(new_sp, _defs, sizeof(_defs)); \
-                stub->defs = (handler_def_t*)new_sp; \
-                new_sp -= sizeof(_env); \
-                memcpy(new_sp, _env, sizeof(_env)); \
-                stub->env = (intptr_t*)new_sp; \
-                new_sp = (char*)((intptr_t)new_sp & ~0xF); \
-                out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, body); \
-            } else { \
-                meta_t* stub = (meta_t*)xmalloc(sizeof(meta_t)); \
-                handler_def_t _defs[] = {EXPAND m_defs}; \
-                stub->defs = (handler_def_t*)xmalloc(sizeof(handler_def_t) * (N_DEFS m_defs)); \
-                memcpy(stub->defs, _defs, sizeof(handler_def_t) * (N_DEFS m_defs)); \
-                intptr_t _env[] = {EXPAND m_free_vars}; \
-                stub->env = (intptr_t*)xmalloc(sizeof(intptr_t) * (NARGS m_free_vars)); \
-                memcpy(stub->env, _env, sizeof(intptr_t) * (NARGS m_free_vars)); \
-                stub->sp_exchanger = stub->_sp_exchanger; \
-                char* new_sp = get_stack(); \
-                out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, body); \
-            } \
-        }\
+        handler_def_t _defs[] = {EXPAND m_defs}; \
+        intptr_t _env[] = {EXPAND m_free_vars}; \
+        char* new_sp = get_stack(); \
+        new_sp -= sizeof(meta_t); \
+        meta_t* stub = (meta_t*)new_sp; \
+        stub->sp_exchanger = stub->_sp_exchanger; \
+        new_sp -= sizeof(_defs); \
+        memcpy(new_sp, _defs, sizeof(_defs)); \
+        stub->defs = (handler_def_t*)new_sp; \
+        new_sp -= sizeof(_env); \
+        memcpy(new_sp, _env, sizeof(_env)); \
+        stub->env = (intptr_t*)new_sp; \
+        new_sp = (char*)((intptr_t)new_sp & ~0xF); \
+        out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, body); \
     } \
     out; \
     })
