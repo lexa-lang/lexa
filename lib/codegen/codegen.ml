@@ -153,7 +153,13 @@ and gen_term (env : env) = function
             cast params param_types in
       let casted_params = cast_params name params in
       sprintf "((i64)(%s(%s)))" name (String.concat ", " casted_params) 
-    | _ -> (gen_value env v1) ^ gen_value_list env params)
+    | _ -> 
+      let rec list_repeat n s =
+        if n = 0 then [] else
+        s :: list_repeat (n - 1) s in
+      let cast_func_str =
+        sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length params) "i64")) in
+      sprintf "((%s)%s)%s" cast_func_str (gen_value env v1) (gen_value_list env params))
 | TIf (v, t1, t2) ->
     sprintf "(%s) ? (%s) : (%s)" (gen_value env v) (gen_term env t1) (gen_term env t2)
 | TNew value_list ->
