@@ -163,8 +163,8 @@ and gen_term (env : env) = function
       ^ String.concat "\n" (List.mapi (fun i v -> sprintf "((i64*)temp)[%d] = %s;" i (gen_value env v)) value_list)
       ^ "\ntemp;\n" in
     sprintf "({%s})" init
-| TGet (v, i) ->
-    sprintf "((i64*)%s)[%d]" (gen_value env v) i 
+| TGet (v, v2) ->
+    sprintf "((i64*)%s)[%s]" (gen_value env v) (gen_value env v2)
 | TSet (v1, i, v2) ->
     sprintf "((i64*)%s)[%d] = %s" (gen_value env v1) i (gen_value env v2) 
 | THdl (env_list, body_var, _, effsig) ->

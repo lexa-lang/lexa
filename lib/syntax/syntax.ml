@@ -39,7 +39,7 @@ and term =
   | TIf of value * term * term
   | TApp of value * value list
   | TNew of heap_value
-  | TGet of value * int
+  | TGet of value * value
   | TSet of value * int * value
   | TRaise of var * var * value list
   | TResume of var * value
