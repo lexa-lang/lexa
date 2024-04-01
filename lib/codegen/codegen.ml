@@ -18,6 +18,8 @@ let get_eff_sig_env ((a, _, _) : env) = a
 let get_eff_type_env ((_, b, _) : env) = b
 let get_fun_type_env ((_, _, c) : env) = c
 
+let env : env ref = ref ([], [], [])
+
 let lookup_hdl_type (hdl_var : var) (env : eff_type_env) : string =
   match (List.find_opt (fun (s, _) -> s = hdl_var) env) with
   | None -> raise (UndefinedHandler hdl_var)
@@ -40,6 +42,10 @@ let lookup_eff_sig_dcls (sig_name : var) (sig_env : eff_sig_env) : string list =
   match (List.find_opt (fun (s, _) -> s = sig_name) sig_env) with
     | None -> raise (UndefinedSignature sig_name)
     | Some (_, dcl_list) -> dcl_list
+
+let rec list_repeat n s =
+  if n = 0 then [] else
+  s :: list_repeat (n - 1) s
 
 (* Substitute all occurences of name in t with name_new *)
 let rec subst_var (t : term) (name : var) (name_new : var) =
@@ -84,7 +90,37 @@ let genCmp = function
 | CLt -> "<"
 | CGt -> ">"
 
-let rec gen_value (env : env) = function
+type c_type =
+  | CTI64 (* i64 *)
+  | CTI64P (* i64* *)
+  | CTInt (* int *)
+  | CTVoidPP (* void** *)
+  | CTCharP (* char* *)
+
+type c_dec = c_type * var * c_type list
+type c_def = c_type * var * (c_type * var) list * term
+
+let gen_c_type = function
+| CTI64 -> "i64"
+| CTInt -> "int"
+| CTI64P -> "i64*"
+| CTVoidPP -> "void**"
+| CTCharP -> "char*"
+
+let rec gen_c_def (def : c_def) : string = 
+  let (t_return, name, params, body) = def in
+  sprintf "%s %s(%s) {\n %s \n}" 
+    (gen_c_type t_return) 
+    name 
+    (gen_params params)
+    (gen_term body)
+
+and gen_c_dec (_ : c_dec) : string = ""
+
+and gen_params params =
+  String.concat "," (List.map (fun (t, v) -> ((gen_c_type t) ^ v)) params)
+  
+and gen_value = function
 | VVar x -> x
 | VInt i -> string_of_int i
 | VBool b -> if b then "1" else "0"
@@ -93,15 +129,15 @@ let rec gen_value (env : env) = function
     String.concat ", " (List.map (fun p -> "i64 " ^ p) params)
   in
   if name = "main" then
-    sprintf "int main(int argc, char *argv[]) {\nreturn((int)%s);\n}\n" (gen_term env body)
-  else if (List.mem name (get_fun_type_env env)) then
+    sprintf "int main(int argc, char *argv[]) {\nreturn((int)%s);\n}\n" (gen_term body)
+  else if (List.mem name (get_fun_type_env !env)) then
     (match params with
     | [env_var; stub] -> 
       sprintf "i64 %s(i64 %s) {\nreturn(%s);\n}\n" name stub 
-        (gen_term env (subst_var body env_var (sprintf "((meta_t*)%s)->%s" stub env_var))) 
+        (gen_term (subst_var body env_var (sprintf "((meta_t*)%s)->%s" stub env_var))) 
     | _ -> raise (ParameterMismatch name))
   else 
-    sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_term env body)
+    sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_term body)
 | VEffSig _ -> ""
 | VObj (_, obj_params, hdls) -> 
   let genParams hdl_params =
@@ -111,81 +147,81 @@ let rec gen_value (env : env) = function
   in
   let gen_hdl (_, name, hdl_params, body) = 
     sprintf "i64 %s(%s) {\nreturn(%s);\n}" name ((genParams hdl_params) ^ ", void** exc")
-    (gen_term env body)
+    (gen_term body)
   in
   String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
 | VPrim prim ->
     String.sub prim 1 ((String.length prim) - 1)
 
-and gen_value_list env l =
-  "(" ^ String.concat "," (List.map (fun x -> gen_value env x) l) ^ ")"
+and gen_args l =
+  "(" ^ String.concat "," (List.map (fun x -> gen_value x) l) ^ ")"
 
 (* final tells if resume is final *)
-and gen_term (env : env) = function
-| TValue v -> gen_value env v
+and gen_term = function
+| TValue v -> gen_value v
 | TArith (v1, op, v2) ->
-    gen_value env v1 ^ " " 
-    ^ genArith op ^ " " ^ gen_value env v2
+    gen_value v1 ^ " " 
+    ^ genArith op ^ " " ^ gen_value v2
 | TCmp (v1, op, v2) ->
-    gen_value env v1 ^ " " 
-    ^ genCmp op ^ " " ^ gen_value env v2
+    gen_value v1 ^ " " 
+    ^ genCmp op ^ " " ^ gen_value v2
 | TLet (x, t1, t2) ->
     String.concat "\n"
       ["({";
-        "i64 " ^ x ^ " = " ^ (gen_term env t1) ^ ";";
-        gen_term env t2 ^ ";";
+        "i64 " ^ x ^ " = " ^ (gen_term t1) ^ ";";
+        gen_term t2 ^ ";";
       "})"]
-| TApp (v1, params) ->
+| TApp (v1, args) ->
     (match v1 with
     | VPrim _ -> 
-      let name = gen_value env v1 in (* name is prim with leading ~ stripped *)
+      let name = gen_value v1 in (* name is prim with leading ~ stripped *)
       (* The name here should have ~ stripped *)
-      let cast_params (name : string) (params : value list) : string list =
+      let cast_args (name : string) (args : value list) : string list =
         match List.assoc_opt name prim_env with
         | None -> raise (UndefinedPrimitive name)
         | Some param_types -> 
-            let rec cast params pt =
-              (match params, pt with
+            let rec cast args pt =
+              (match args, pt with
               | [], [] -> []
-              | params_h :: params_t, pt_h :: pt_t ->
-                ((gen_prim_type pt_h) ^ (gen_value env params_h)) :: (cast params_t pt_t)
+              | args_h :: args_t, pt_h :: pt_t ->
+                ((gen_prim_type pt_h) ^ (gen_value args_h)) :: (cast args_t pt_t)
               | _, _ -> raise (InvalidPrimitiveCall name)) in
-            cast params param_types in
-      let casted_params = cast_params name params in
-      sprintf "((i64)(%s(%s)))" name (String.concat ", " casted_params) 
+            cast args param_types in
+      let casted_args = cast_args name args in
+      sprintf "((i64)(%s(%s)))" name (String.concat ", " casted_args) 
     | _ -> 
       let rec list_repeat n s =
         if n = 0 then [] else
         s :: list_repeat (n - 1) s in
       let cast_func_str =
-        sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length params) "i64")) in
-      sprintf "((%s)%s)%s" cast_func_str (gen_value env v1) (gen_value_list env params))
+        sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length args) "i64")) in
+      sprintf "((%s)%s)%s" cast_func_str (gen_value v1) (gen_args args))
 | TIf (v, t1, t2) ->
-    sprintf "(%s) ? (%s) : (%s)" (gen_value env v) (gen_term env t1) (gen_term env t2)
+    sprintf "(%s) ? (%s) : (%s)" (gen_value v) (gen_term t1) (gen_term t2)
 | TNew value_list ->
     let size = List.length value_list in
     let init = sprintf "i64 temp = (i64)malloc(%d * sizeof(i64));" size
       ^ "\n"
-      ^ String.concat "\n" (List.mapi (fun i v -> sprintf "((i64*)temp)[%d] = %s;" i (gen_value env v)) value_list)
+      ^ String.concat "\n" (List.mapi (fun i v -> sprintf "((i64*)temp)[%d] = %s;" i (gen_value v)) value_list)
       ^ "\ntemp;\n" in
     sprintf "({%s})" init
 | TGet (v, v2) ->
-    sprintf "((i64*)%s)[%s]" (gen_value env v) (gen_value env v2)
+    sprintf "((i64*)%s)[%s]" (gen_value v) (gen_value v2)
 | TSet (v1, v2, v3) ->
-    sprintf "((i64*)%s)[%s] = %s" (gen_value env v1) (gen_value env v2) (gen_value env v3) 
+    sprintf "((i64*)%s)[%s] = %s" (gen_value v1) (gen_value v2) (gen_value v3) 
 | THdl (env_list, body_var, _, effsig) ->
-    let hdl_list = lookup_eff_sig_dcls effsig (get_eff_sig_env env) in
+    let hdl_list = lookup_eff_sig_dcls effsig (get_eff_sig_env !env) in
     let hdl_str = "(" ^ (String.concat ", " (List.map 
       (fun hdl_name -> 
-        let hdl_type = lookup_hdl_type hdl_name (get_eff_type_env env) in
+        let hdl_type = lookup_hdl_type hdl_name (get_eff_type_env !env) in
           (sprintf "{%s, %s}" hdl_type hdl_name)) hdl_list)) ^ ")" in
     let env_str = "(" ^ String.concat ", " env_list ^ ")" in
     sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
-| TRaise (stub, hdl, params) ->
-    let hdl_idx = lookup_hdl_index hdl (get_eff_sig_env env) in
-    sprintf "RAISE(((meta_t*)%s), %d, %s)" stub hdl_idx (gen_value_list env params)
-| TResume (k, v) -> sprintf "THROW(%s, %s)" k (gen_value env v)
-| TResumeFinal (k, v) -> sprintf "FINAL_THROW(%s, %s)" k (gen_value env v)
+| TRaise (stub, hdl, args) ->
+    let hdl_idx = lookup_hdl_index hdl (get_eff_sig_env !env) in
+    sprintf "RAISE(((meta_t*)%s), %d, %s)" stub hdl_idx (gen_args args)
+| TResume (k, v) -> sprintf "THROW(%s, %s)" k (gen_value v)
+| TResumeFinal (k, v) -> sprintf "FINAL_THROW(%s, %s)" k (gen_value v)
 
 (* let genFunc func = function
 | VAbs (name, params, body)
@@ -233,4 +269,24 @@ let gen_toplevel toplevel =
   let eff_sig_env = sig_pass toplevel in
   let eff_type_env = eff_type_pass toplevel in
   let fun_type_env = fun_type_pass toplevel in
-  String.concat "\n" (header :: (List.map (fun x -> gen_value (eff_sig_env, eff_type_env, fun_type_env) x) toplevel))
+  env := (eff_sig_env, eff_type_env, fun_type_env);
+  let declarations = String.concat "\n" (List.map 
+      (fun v -> (match v with
+      | VAbs (name, params, _) -> 
+        sprintf "i64 %s(%s);"
+          name 
+          (String.concat ", " (list_repeat (List.length params) "i64"))
+      | VObj (_, _, hdl_list) ->
+        String.concat "\n"
+          (List.map (fun (_, hname, hparams, _) -> 
+            sprintf "i64 %s(%s);"
+            hname 
+            (String.concat ", " (list_repeat (List.length hparams) "i64")))
+          hdl_list)
+      | _ -> ""))
+    toplevel) in
+  sprintf "%s\n%s\n%s" header declarations
+    (String.concat "\n" 
+      (List.map 
+        (fun x -> gen_value x)
+        toplevel))
