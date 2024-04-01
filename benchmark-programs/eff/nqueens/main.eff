@@ -1,0 +1,37 @@
+(* A n-queens implementation without top-level bindings and no polymorphism *)
+
+effect Pick : int -> int
+effect Fail : unit -> empty
+
+type rows = RowsEmpty | RowsCons of int * rows
+
+let run n =
+
+  let rec safe queen diag xs =
+    match xs with
+    | RowsEmpty -> true
+    | RowsCons(q, qs) ->  if (queen <> q && queen <> q + diag && queen <> q - diag)
+        then safe queen (diag + 1) qs
+        else false
+  in
+
+  let rec place size column =
+    let absurd void = (match void with) in
+    if column = 0
+      then RowsEmpty
+      else (
+        let rest = place size (column - 1) in
+        let next = perform (Pick size) in
+        if safe next 1 rest
+          then RowsCons(next, rest)
+          else absurd (perform (Fail ())))
+  in
+
+  handle (place n n) with
+  | _x -> 1
+  | effect (Fail ()) k -> 0
+  | effect (Pick size) k ->
+      let rec loop i a =
+        if i = size then a + k i
+        else loop (i+1) (a + k i)
+      in loop 1 0

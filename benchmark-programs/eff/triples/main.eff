@@ -1,0 +1,34 @@
+
+effect Flip : unit -> bool
+effect Fail : unit -> empty
+
+let rec choice n =
+  let absurd void = (match void with) in
+  if (n < 1)
+    then (absurd (perform (Fail ())))
+    else (if (perform (Flip ()))
+      then n
+      else choice (n - 1)
+    )
+
+let triple n s =
+  let absurd void = (match void with) in
+  let i = choice n in
+  let j = choice (i - 1) in
+  let k = choice (j - 1) in
+  if (i + j + k = s) then (i, j, k)
+  else (absurd (perform (Fail ())))
+
+let hash (a,b,c) =
+  (53 * a + 2809 * b + 148877 * c) mod 1000000007 (* 2089 = 53 * 53, 148877 = 53 * 2089  *)
+
+let run n s =
+  handle
+    hash (triple n s)
+  with
+  | effect (Fail ()) k -> 0
+  | effect (Flip ()) k ->
+      let l = k true in
+      let r = k false in
+      (l + r) mod 1000000007
+

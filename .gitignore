@@ -33,3 +33,22 @@ setup.log
 _opam/
 
 .vscode/
+
+dump*
+*.out
+*.out.*
+perf.data
+perf.data.old
+.vscode/
+flamegraph.svg
+*.svg
+actual
+expected
+vgcore.*
+*.ll
+out
+main
+results.csv
+results.json
+runtimes.txt
+plot.png

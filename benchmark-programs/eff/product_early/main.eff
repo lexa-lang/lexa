@@ -1,0 +1,30 @@
+
+effect Done : int -> int
+
+type intlist = Nil | Cons of int * intlist
+
+let rec product xs =
+  match xs with
+  | Nil -> 0
+  | Cons (y, ys) -> if y = 0 then perform (Done 0) else y * product ys
+
+let rec enumerate i =
+  if i < 0
+    then Nil
+    else Cons (i, enumerate (i - 1))
+
+let run_product xs =
+  handle
+    product xs
+  with
+  | effect (Done r) k -> r
+
+let rec run n =
+  let xs = enumerate 1000 in
+  let rec loop i a =
+    if i = 0
+      then a
+      else loop (i - 1) (a + run_product xs)
+  in
+  loop n 0
+
