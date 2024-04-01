@@ -8,7 +8,7 @@ def parse(prob_stub, tokens, symbols) {
     let cond = ~listIsEmpty(symbols) in
     if cond then
         let cond = ~listIsEmpty(tokens) in
-        if code then
+        if cond then
             0
         else
             raise prob_stub.fail 
@@ -52,7 +52,7 @@ def foldl1(env, acc, i, n) {
         let logits = env[1] in
         let r = resume k i in
         let logit = logits[i] in
-        let p = r * logic in
+        let p = r * logit in
         let s = acc + p in
         let inc = i + 1 in
         foldl1(env, s, inc, n)
@@ -65,7 +65,7 @@ def foldl2(env, acc, i, n) {
     else
         let k = env[0] in
         let r = resume k i in
-        let s = acc + p in
+        let s = acc + r in
         let inc = i + 1 in
         foldl2(env, s, inc, n)
 }
