@@ -17,12 +17,12 @@ test: build
 
 build:
 	echo "Building programs..."
-	cd countdown ; clang -O3 -I ../include main.c -o main
-	cd product_early ; clang -O3 -I ../include main.c -o main
-	cd iterator ; clang -O3 -I ../include main.c -o main
-	cd tree_explore ; clang -O3 -I ../include main.c -o main
-	cd countdown2 ; clang -O3 -I ../include main.c -o main
-	cd scheduler_ocaml ; clang -O3 -I ../include main.c -o main
+	cd countdown ; clang -O3 -I ../../../stacktrek main.c -o main
+	cd product_early ; clang -O3 -I ../../../stacktrek main.c -o main
+	cd iterator ; clang -O3 -I ../../../stacktrek main.c -o main
+	cd tree_explore ; clang -O3 -I ../../../stacktrek main.c -o main
+	cd countdown2 ; clang -O3 -I ../../../stacktrek main.c -o main
+	cd scheduler_ocaml ; clang -O3 -I ../../../stacktrek main.c -o main
 
 clean:
 	-rm */main
