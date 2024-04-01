@@ -148,10 +148,8 @@ int64_t queueLen(queue_t* q) {
   return len;
 }
 
-typedef char* string_t;
-
-string_t stringMake(char c, int64_t n) {
-  string_t s = (string_t)xmalloc(n + 1);
+char* stringMake(char c, int64_t n) {
+  char* s = (char*)xmalloc(n + 1);
   for (int64_t i = 0; i < n; i++) {
     s[i] = c;
   }
@@ -159,9 +157,9 @@ string_t stringMake(char c, int64_t n) {
   return s;
 }
 
-string_t stringSubStr(string_t s, int64_t startpos, int64_t endpos) {
+char* stringSubStr(char* s, int64_t startpos, int64_t endpos) {
   int64_t n = endpos - startpos;
-  string_t sub = (string_t)xmalloc(n + 1);
+  char* sub = (char*)xmalloc(n + 1);
   for (int64_t i = 0; i < n; i++) {
     sub[i] = s[startpos + i];
   }
@@ -169,6 +167,7 @@ string_t stringSubStr(string_t s, int64_t startpos, int64_t endpos) {
   return sub;
 }
 
-char stringCharAt(string_t s, int64_t pos) {
+int64_t stringCharAt(char* s, int64_t pos) {
   return s[pos];
 }
+

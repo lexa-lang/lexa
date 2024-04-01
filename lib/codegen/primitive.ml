@@ -3,7 +3,7 @@ type prim_type =
   | PTNodeP (* node_t* *)
   | PTTreeP (* tree_t* *)
   | PTQueueP (* queue_t* *)
-  | PTStringP (* string_t *)
+  | PTStringP (* char* *)
 
 type prim_env = (string * prim_type list) list
 
@@ -42,7 +42,7 @@ let gen_prim_type = function
 | PTNodeP -> "(node_t*)"
 | PTTreeP -> "(tree_t*)"
 | PTQueueP -> "(queue_t*)"
-| PTStringP -> "(string_t)"
+| PTStringP -> "(char*)"
 
 
    
