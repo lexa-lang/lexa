@@ -19,6 +19,7 @@ let prim_env = [
   ("listAppend", [PTNodeP; PTNodeP]);
   ("listMax", [PTNodeP]);
   ("listLen", [PTNodeP]);
+  ("listAt", [PTNodeP; PTI64]);
   ("treeNode", [PTI64; PTTreeP; PTTreeP]);
   ("treeLeaf", []);
   ("treeIsEmpty", [PTTreeP]);
@@ -35,6 +36,11 @@ let prim_env = [
   ("stringMake", [PTI64; PTI64]);
   ("stringSubStr", [PTStringP; PTI64; PTI64]);
   ("stringCharAt", [PTStringP; PTI64]);
+  ("stringLen", [PTStringP]);
+  ("floatMake", [PTI64; PTI64]);
+  ("floatAdd", [PTI64; PTI64]);
+  ("floatMul", [PTI64; PTI64]);
+  ("floatPrint", [PTI64]);
 ]
 
 let gen_prim_type = function
@@ -43,6 +49,3 @@ let gen_prim_type = function
 | PTTreeP -> "(tree_t*)"
 | PTQueueP -> "(queue_t*)"
 | PTStringP -> "(char*)"
-
-
-   
