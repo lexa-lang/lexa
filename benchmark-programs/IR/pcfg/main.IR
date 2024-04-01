@@ -97,7 +97,7 @@ def parse_S(prob_stub, tokens) {
     parse(prob_stub, tokens, production)
 }
 
-def body(prob_stub, env) {
+def body(env, prob_stub) {
     let tokens = ~stringMake(97, 10) in
     let _ = parse_S(prob_stub, tokens) in
     ~floatMake(1, 10)
