@@ -55,8 +55,6 @@ rule read =
   | '*' { MULT }
   | '/' { DIV }
   | "!=" { NEQ }
-  | '>' { GT }
-  | '<' { LT }
   | "==" { CMPEQ }
   | "if" { IF }
   | "then" { THEN }

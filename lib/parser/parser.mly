@@ -39,8 +39,6 @@
 %token DIV
 %token NEQ
 %token CMPEQ
-%token GT
-%token LT
 %token IF
 %token THEN
 %token ELSE
@@ -68,7 +66,7 @@ arith:
 cmp:
   | CMPEQ { CEq }
   | NEQ { CNeq }
-  | GT { CGt }
+  | GTS { CGt }
   | LTS { CLt }
 
 effect_sig:
