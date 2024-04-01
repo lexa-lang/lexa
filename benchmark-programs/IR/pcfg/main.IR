@@ -53,7 +53,7 @@ def foldl1(env, acc, i, n) {
         let k = env[0] in
         let logits = env[1] in
         let r = resume k i in
-        let logit = logits[i] in
+        let logit = ~listAt(logits, i) in
         let p = ~floatMul(r, logit) in
         let s = ~floatAdd(acc, p) in
         let inc = i + 1 in
@@ -82,7 +82,8 @@ obj marginalize(env) {
 
     hdl_s choose(n, k) {
         let fold_env = newref <k> in
-        foldl2(fold_env, 0, 0, n)
+        let n1 = n+1 in
+        foldl2(fold_env, 0, 0, n1)
     }
 
     exc fail(_) {
@@ -93,14 +94,14 @@ obj marginalize(env) {
 def parse_S(prob_stub, tokens) {
     let productions = make_productions() in
     let prod = raise prob_stub.sampleCategorical 0 in
-    let production = productions[prod] in
+    let production = ~listAt(productions,prod) in
     parse(prob_stub, tokens, production)
 }
 
 def body(env, prob_stub) {
-    let tokens = ~stringMake(97, 10) in
+    let tokens = ~stringMake(97, 1) in
     let _ = parse_S(prob_stub, tokens) in
-    ~floatMake(1, 10)
+    ~floatMake(1, 1)
 }
 
 def make_logits() {
@@ -115,7 +116,7 @@ def make_productions() {
     let p1 = ~listEnd() in
     let p20 = ~listEnd() in
     let p21 = ~listNode(parse_S, p20) in
-    let p2 = ~listNode(parse_S, p21) in
+    let p2 = ~listNode(parse_terminal, p21) in
     let s0 = ~listEnd() in
     let s1 = ~listNode(p2, s0) in
     ~listNode(p1, s1)
