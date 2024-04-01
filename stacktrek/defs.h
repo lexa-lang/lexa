@@ -314,7 +314,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
             break; \
         } \
         case ABORT: { \
-            if (nargs != 1) { exit(EXIT_FAILURE); } \
+            if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
             __asm__ ( \
                 "movq %2, %%rsp\n\t" \
                 "jmpq *%3\n\t" \
@@ -323,14 +323,14 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
             __builtin_unreachable(); \
         } \
         case SINGLESHOT: { \
-            if (nargs != 1) { exit(EXIT_FAILURE); } \
+            if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
             resumption_t* k = (resumption_t*)(stub->sp_exchanger); \
             out = save_switch_and_run_handler(stub->env, args[0], k,\
                 (stub->defs[index].func)); \
             break; \
         } \
         case MULTISHOT: { \
-            if (nargs != 1) { exit(EXIT_FAILURE); } \
+            if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
             resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t)); \
             k->ctx_sp = stub->sp_exchanger; \
             out = double_save_switch_and_run_handler(stub->env, args[0], k,\
