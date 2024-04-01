@@ -41,10 +41,10 @@ static i64 explore(i64 state, i64 tree, i64 choice_stub) {
 }
 
 
-static int64_t body(i64 choice_stub) {
+static int64_t body(i64 env, i64 choice_stub) {
   return (i64)({
     listNode(
-      explore(((meta_t*)choice_stub)->env[0], ((meta_t*)choice_stub)->env[1], choice_stub), 
+      explore(((i64*)env)[0], ((i64*)env)[1], choice_stub), 
       listEnd());
   });
 }

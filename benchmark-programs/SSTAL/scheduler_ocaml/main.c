@@ -82,9 +82,9 @@ i64 fork(i64 env, i64 job_closure, i64 k){
 }
 
 
-static i64 body(i64 sch_stub) {
+static i64 body(i64 env, i64 sch_stub) {
   return ({
-    i64 job_closure = ((meta_t*)sch_stub)->env[0];
+    i64 job_closure = ((i64*)env)[0];
     i64 job_func = ((i64*)job_closure)[0];
     i64 job_env = ((i64*)job_closure)[1];
     ((i64 (*)(i64, i64))job_func)(job_env, sch_stub);

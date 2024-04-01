@@ -20,10 +20,10 @@ i64 range(i64 emit_stub, i64 l, i64 u){
   });
 }
 
-static i64 body(i64 emit_stub) {
+static i64 body(i64 env, i64 emit_stub) {
     return ({
-      range(emit_stub, 0, ((meta_t*)emit_stub)->env[0]);
-      *(i64*)((meta_t*)emit_stub)->env[1];
+      range(emit_stub, 0, ((i64*)env)[0]);
+      *(i64*)((i64*)env)[1];
     });
 }
 

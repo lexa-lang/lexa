@@ -175,13 +175,13 @@ int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, resumption_t* k,
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_body(void* stub, void** exc, void* new_sp, void* body) {
+int64_t save_switch_and_run_body(intptr_t* env, void* stub, void** exc, void* new_sp, void* body) {
     __asm__ (
-        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
-        "movq %%rdx, %%rsp\n\t" // Switch to the new stack new_sp
-        "pushq %%rsi\n\t" // Save the exchanger in the stack
-        "pushq %%rsi\n\t" // Ensure the stack is aligned
-        "callq *%%rcx\n\t"
+        "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
+        "movq %%rcx, %%rsp\n\t" // Switch to the new stack new_sp
+        "pushq %%rdx\n\t" // Save the exchanger in the stack
+        "pushq %%rdx\n\t" // Ensure the stack is aligned
+        "callq *%%r8\n\t"
         "movq %%rax, %%r12\n\t" // Save the return value into a callee-saved register
         "popq %%rbx\n\t" // Restore the exchanger into a callee-saved register
         "popq %%rbx\n\t" // Ensure the stack is aligned
@@ -196,10 +196,10 @@ int64_t save_switch_and_run_body(void* stub, void** exc, void* new_sp, void* bod
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_and_run_body(void* stub, void** exc, void* body) {
+int64_t save_and_run_body(intptr_t* env, void* stub, void** exc, void* body) {
     __asm__ (
-        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
-        "jmpq *%%rdx\n\t" // Call the body, the first argument is already in the right register
+        "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
+        "jmpq *%%rcx\n\t" // Call the body, the first argument is already in the right register
         :
     );
 }
@@ -263,13 +263,13 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         meta_t stub; \
         stub.defs = (handler_def_t[]){EXPAND m_defs}; \
         stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
-        out = body((intptr_t)&stub); \
+        out = body((intptr_t)stub.env, (intptr_t)&stub); \
     } else if (mode == ABORT) { \
         meta_t stub; \
         stub.defs = (handler_def_t[]){EXPAND m_defs}; \
         stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
         stub.sp_exchanger = stub._sp_exchanger; \
-        out = save_and_run_body((void*)&stub, stub.sp_exchanger, body); \
+        out = save_and_run_body(stub.env, (void*)&stub, stub.sp_exchanger, body); \
     } else { \
         handler_def_t _defs[] = {EXPAND m_defs}; \
         intptr_t _env[] = {EXPAND m_free_vars}; \
@@ -284,7 +284,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         memcpy(new_sp, _env, sizeof(_env)); \
         stub->env = (intptr_t*)new_sp; \
         new_sp = (char*)((intptr_t)new_sp & ~0xF); \
-        out = save_switch_and_run_body(stub, stub->sp_exchanger, new_sp, body); \
+        out = save_switch_and_run_body(stub->env, stub, stub->sp_exchanger, new_sp, body); \
     } \
     out; \
     })
