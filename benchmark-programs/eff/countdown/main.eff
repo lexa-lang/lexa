@@ -1,0 +1,19 @@
+
+effect Get : unit -> int
+effect Set : int -> unit
+
+let rec countdown () =
+  let i = perform (Get ()) in
+  if (i = 0)
+    then i
+    else (
+      perform (Set (i - 1));
+      countdown ())
+
+let run n =
+  (handle
+    countdown ()
+  with
+  | x -> fun _ -> x
+  | effect (Get ()) k -> fun s -> (k s) s
+  | effect (Set s) k -> fun _ -> (k ()) s) n

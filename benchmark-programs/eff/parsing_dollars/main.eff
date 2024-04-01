@@ -1,0 +1,52 @@
+
+type chr = int
+
+effect Read : unit -> chr
+
+effect Emit : int -> unit
+
+effect Stop : unit -> unit
+
+
+let newline = 10
+let is_newline c = c = 10
+let dollar = 36
+let is_dollar c = c = 36
+
+let run n =
+
+  let rec parse a =
+    let c = perform (Read ()) in
+    if (is_dollar c)
+      then parse (a + 1)
+      else if (is_newline c)
+        then (perform (Emit a) ; parse 0)
+        else perform (Stop ()) in
+
+  let sum action =
+    (handle
+      action ()
+    with
+    | effect (Emit e) k -> fun s -> k () (s + e)
+    | _ -> fun s -> s) 0 in
+
+  let catch action =
+    handle
+      action ()
+    with
+    | effect (Stop ()) k -> () in
+
+  let feed n action =
+    (handle
+      action ()
+    with
+    | x -> fun i j -> x
+    | effect (Read ()) k -> fun i j ->
+      if (i > n)
+        then perform (Stop ())
+        else if(j = 0)
+          then k newline (i + 1) (i + 1)
+          else k dollar i (j - 1)) 0 0 in
+
+  sum (fun () -> catch (fun () -> feed n (fun () -> parse 0)))
+

@@ -1,0 +1,39 @@
+import immutable/list
+import immutable/option
+import io/args
+import text/string
+
+effect Prime(e: Int): Boolean
+
+def primes(i: Int, n: Int, a: Int): Int / {Prime} =
+  if (i >= n) {
+    a
+  } else {
+    if (do Prime(i)) {
+      try {
+        primes(i + 1, n, a + i)
+      } with Prime { (e: Int) =>
+        if (mod(e, i) == 0) {
+          resume(false)
+        } else {
+          resume(do Prime(e))
+        }
+      }
+    } else {
+      primes(i + 1, n, a)
+    }
+  }
+
+def run(n: Int) = {
+  try {
+    primes(2, n, 0)
+  } with Prime { (e: Int) =>
+    resume(true)
+  }
+}
+
+def main() = {
+  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 10000 };
+  val r = run(n);
+  println(r)
+}

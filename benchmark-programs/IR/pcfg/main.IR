@@ -1,0 +1,123 @@
+effect Prob {
+  dcl choose
+  dcl sampleCategorical
+  dcl fail
+}
+
+def parse(prob_stub, tokens, symbols) {
+    let cond = ~listIsEmpty(symbols) in
+    if cond then
+        let cond = ~listIsEmpty(tokens) in
+        if code then
+            0
+        else
+            raise prob_stub.fail 
+    else
+        let s = ~listHead(symbols) in
+        let ss = ~listTail(symbols) in
+        let len = ~listLen(tokens) in
+        let sp = raise prob_stub.choose len in
+        let substr1 = ~stringSubStr(tokens, 0, sp) in
+        let _ = s(prob_stub, substr1) in
+        let substr2 = ~stringSubStr(tokens, sp, len) in
+        parse(prob_stub, substr2, ss)
+}
+
+def parse_empty(prob_stub, tokens) {
+    let end = ~listEnd() in
+    parse(prob_stub, tokens, end)
+}
+
+def parse_terminal(prob_stub, tokens) {
+    let cond = ~listIsEmpty(tokens) in
+    if cond then
+        raise prob_stub.fail 
+    else
+        let first = ~stringCharAt(tokens, 0) in
+        let cond = first == 97 in
+        if cond then
+            let len = ~listLen(tokens) in
+            let rest = ~stringSubStr(tokens, 1, len) in
+            parse_empty(prob_stub, rest)
+        else
+            raise prob_stub.fail 
+}
+
+def foldl1(env, acc, i, n) {
+    let cond = i == n in
+    if cond then
+        acc
+    else
+        let k = env[0] in
+        let logits = env[1] in
+        let r = resume k i in
+        let logit = logits[i] in
+        let p = r * logic in
+        let s = acc + p in
+        let inc = i + 1 in
+        foldl1(env, s, inc, n)
+}
+
+def foldl2(env, acc, i, n) {
+    let cond = i == n in
+    if cond then
+        acc
+    else
+        let k = env[0] in
+        let r = resume k i in
+        let s = acc + p in
+        let inc = i + 1 in
+        foldl2(env, s, inc, n)
+}
+
+obj marginalize(env) {
+    hdl_s sampleCategorical(k) {
+        let logits = env[0] in
+        let n = ~listLen(logits) in
+        let fold_env = newref <k, logits> in
+        foldl1(fold_env, 0, 0, n)
+    }
+
+    hdl_s choose(n, k) {
+        let fold_env = newref <k> in
+        foldl2(fold_env, 0, 0, n)
+    }
+
+    exc fail() {
+        0
+    }
+}
+
+def parse_S(prob_stub, env) {
+    let logits = env[0] in
+    let productions = env[1] in
+    let tokens = env[2] in
+    let prod = raise prob_stub.sampleCategorical logits in
+    let production = productions[prod] in
+    parse(prob_stub, tokens, production)
+}
+
+def make_logits() {
+    let l0 = ~listEnd() in
+    let l1 = ~listNode(7, l0) in
+    ~listNode(3, l1)
+}
+
+def make_productions() {
+    let p1 = ~listEnd() in
+    let p20 = ~listEnd() in
+    let p21 = ~listNode(parse_S, p20) in
+    let p2 = ~listNode(parse_S, p21) in
+    let s0 = ~listEnd() in
+    let s1 = ~listNode(p2, s0) in
+    ~listNode(p1, s1)
+}
+
+def main() {
+    let logits = make_logits() in
+    let productions = make_productions() in
+    let tokens = ~stringMake(97, 10) in
+    handle <logits, productions, tokens>
+        parse_S
+    with marginalize: Prob
+}

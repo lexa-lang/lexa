@@ -1,0 +1,67 @@
+import immutable/dequeue
+import immutable/option
+import text/string
+import io/args
+
+interface Process {
+  def yield(): Unit
+  def exit(): Nothing
+  def fork { p: () => Unit }: Unit
+}
+
+def scheduler { prog: => Unit / Process } = region this {
+  var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
+
+  def run(): Unit = queue.popBack match {
+    case None() => ()
+    case Some((k, q)) =>
+      queue = q
+      k();
+      run()
+  }
+  try { prog() } with Process {
+    def yield() = {
+      queue = queue.pushFront(fun() { resume(()) })
+    }
+    // Not sure why it's written in this awkward way. I suspect it's because one can't pass
+    // a block when raising an effect, and therefore the block argument is coupled with resume
+    // statement.
+    def fork() /* {{() => Unit} => Unit} => Unit */ = {
+      queue = queue
+        .pushFront(fun() { resume { {p: () => Unit} => p() /* FIX do abort() */ } })
+        .pushFront(fun() { resume { {_: () => Unit} => () } })
+    }
+    def exit() /* Nothing => Unit */ = ()
+  }
+
+  run()
+}
+
+def run(n: Int): Int = {
+  var c = 0;
+  scheduler {
+    def loop(i: Int): Unit = {
+        if (i < n) {
+            do fork {
+              do yield();
+              c = c + 1;
+              do yield();
+              c = c + 1;
+              do exit() // FIX this is crucial since fork is not implemented correctly
+            }
+            loop(i + 1)
+        }
+    };
+    loop(0)
+  };
+  c
+}
+
+def main() = commandLineArgs() match {
+  case Nil() => println(run(1000000))
+  case Cons(x, Nil()) => toInt(x) match {
+    case Some(i) => println(run(i))
+    case _ => println("Unexpected non-integer(s) '" ++ show(x) ++ "'")
+  }
+  case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
+}
