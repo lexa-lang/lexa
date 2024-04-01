@@ -105,7 +105,7 @@ term:
   | IF v = value THEN t1 = term ELSE t2 = term { TIf (v, t1, t2) }
   | NEWREF heap_value { TNew $2 }
   | v = value LSB v2 = value RSB { TGet (v, v2) }
-  | v1 = value LSB i = INT RSB COLONEQ v2 = value { TSet (v1, i, v2) }
+  | v1 = value LSB v2 = value RSB COLONEQ v3 = value { TSet (v1, v2, v3) }
   | RAISE stub = VAR DOT hdl = VAR params = separated_list(COMMA, value) { TRaise (stub, hdl, params) }
   // | ABORT v1 = value v2 = value { TAbort (v1, v2) }
   | RESUME k = VAR v = value { TResume (k, v) }

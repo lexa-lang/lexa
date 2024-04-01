@@ -165,8 +165,8 @@ and gen_term (env : env) = function
     sprintf "({%s})" init
 | TGet (v, v2) ->
     sprintf "((i64*)%s)[%s]" (gen_value env v) (gen_value env v2)
-| TSet (v1, i, v2) ->
-    sprintf "((i64*)%s)[%d] = %s" (gen_value env v1) i (gen_value env v2) 
+| TSet (v1, v2, v3) ->
+    sprintf "((i64*)%s)[%s] = %s" (gen_value env v1) (gen_value env v2) (gen_value env v3) 
 | THdl (env_list, body_var, _, effsig) ->
     let hdl_list = lookup_eff_sig_dcls effsig (get_eff_sig_env env) in
     let hdl_str = "(" ^ (String.concat ", " (List.map 
