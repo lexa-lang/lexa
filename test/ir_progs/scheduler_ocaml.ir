@@ -72,7 +72,7 @@ def runnext(job_queue) {
         0
     else
         let k = ~queueDeq(job_queue) in
-        resume k 0
+        resume_final k 0
 }
 
 def body(env, sch_stub) {
