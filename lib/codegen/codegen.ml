@@ -13,6 +13,7 @@ exception UndefinedSignature of string
 exception ParameterMismatch of string
 exception NestedFunction of string
 exception UnexpectedResume of string
+exception InvalidHandleBody of string
 
 let get_eff_sig_env ((a, _, _) : env) = a
 let get_eff_type_env ((_, b, _) : env) = b
@@ -132,7 +133,7 @@ and gen_c_dec (dec : c_dec) : string =
       (String.concat "," (List.map (fun t -> gen_c_type t) t_params))
 
 and gen_params params =
-  String.concat "," (List.map (fun (t, v) -> ((gen_c_type t) ^ v)) params)
+  String.concat "," (List.map (fun (t, v) -> ((gen_c_type t) ^ " " ^ v)) params)
 
 and gen_value = function
 | VVar x -> x
@@ -151,23 +152,23 @@ and gen_value = function
         CDef (CTI64, name, (List.map (fun param -> (CTI64, param)) params),
           (subst_var body env_var (sprintf "((meta_t*)%s)->%s" stub env_var)))
       in let cdec = 
-        CDec (CTI64, name, (List.map (fun _ -> CTI64) params)) 
+        CDec (CTI64, name, [CTI64; CTI64]) (* The params of body are env and stub *)
       in
       c_decs := (name, cdec) :: !c_decs;
       (gen_c_def cdef)
-    | _ -> raise (ParameterMismatch name))
-  else 
+    | _ -> raise (InvalidHandleBody name))
+  else
+    let cdec = 
+      CDec (CTI64, name, (List.map (fun _ -> CTI64) params)) in
+    c_decs := (name, cdec) :: !c_decs;
     sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_term body)
 | VEffSig _ -> ""
 | VObj (_, obj_params, hdls) -> 
-  let genParams hdl_params =
-    String.concat ", " 
-      ((List.map (fun obj_param -> "i64* " ^ obj_param) obj_params) 
-        @ (List.map (fun hdl_param -> "i64 " ^ hdl_param) hdl_params))
-  in
   let gen_hdl (_, name, hdl_params, body) = 
-    sprintf "i64 %s(%s) {\nreturn(%s);\n}" name ((genParams hdl_params) ^ ", void** exc")
-    (gen_term body)
+    let concated_params = (List.map (fun x -> (CTI64P, x)) obj_params) 
+      @ (List.map (fun x -> (CTI64, x)) hdl_params) @ [(CTVoidPP, "exc")] in
+    let c_def = CDef (CTI64, name, concated_params, body) in
+    gen_c_def c_def
   in
   String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
 | VPrim prim ->
@@ -290,23 +291,15 @@ let gen_toplevel toplevel =
   let eff_type_env = eff_type_pass toplevel in
   let fun_type_env = fun_type_pass toplevel in
   env := (eff_sig_env, eff_type_env, fun_type_env);
+  let prog = (String.concat "\n" 
+    (List.map 
+      (fun x -> gen_value x)
+      toplevel)) in
   let declarations = String.concat "\n" (List.map 
-      (fun v -> (match v with
-      | VAbs (name, params, _) -> 
-        sprintf "i64 %s(%s);"
-          name 
-          (String.concat ", " (list_repeat (List.length params) "i64"))
-      | VObj (_, _, hdl_list) ->
-        String.concat "\n"
-          (List.map (fun (_, hname, hparams, _) -> 
-            sprintf "i64 %s(%s);"
-            hname 
-            (String.concat ", " (list_repeat (List.length hparams) "i64")))
-          hdl_list)
-      | _ -> ""))
-    toplevel) in
-  sprintf "%s\n%s\n%s" header declarations
-    (String.concat "\n" 
-      (List.map 
-        (fun x -> gen_value x)
-        toplevel))
+    (fun (_, d) -> (match d with
+      | CDec (t_return, name, t_param) -> 
+        sprintf "%s %s(%s);" (gen_c_type t_return) name 
+          (String.concat ", " (List.map (fun t -> (gen_c_type t)) t_param))))
+    !c_decs) in
+  sprintf "%s\n%s\n%s" header declarations prog
+    
