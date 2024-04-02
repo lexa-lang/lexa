@@ -20,3 +20,11 @@ c-compile:
 		clang -O3 -I $(INCLUDE_DIR) "$$file" -o "$$outputfile"; \
 	done
 	@echo "C programs compiled successfully."
+
+c-test: ir-compile c-compile
+	@echo "Running programs..."
+	for file in $(OUT_DIR)/*.out; do \
+		echo "Running: $$file"; \
+		$$file 5; \
+	done
+	@echo "Tests completed."
