@@ -4,17 +4,21 @@
   # Specifies the inputs for this flake, including nixpkgs
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     sbt.url = "github:zaninime/sbt-derivation";
     sbt.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # Utilize flake-utils to simplify multi-system support
-  outputs = { self, nixpkgs, flake-utils, sbt, ... }:
+  outputs = { self, nixpkgs, unstable, flake-utils, sbt, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         # Import the nixpkgs with overlays and configuration options as needed
         pkgs = import nixpkgs {
+          inherit system;
+        };
+        pkgs-unstable = import unstable {
           inherit system;
         };
         # clang_main = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
@@ -80,9 +84,9 @@
 
           passthru.isClang = true;
         });
-
-
+        
       in {
+        packages.koka = pkgs-unstable.haskellPackages.callPackage ./koka.nix { };
         packages.effekt72f006 = sbt.mkSbtDerivation.${system} {
           pname = "effekt";
           version = "OOPSLA23";
@@ -272,8 +276,9 @@
             chez
             nodejs_21
             # self.packages.${system}.effekt72f006
-            # self.packages.${system}.effekt_0_2_2
+            self.packages.${system}.effekt_0_2_2
             # self.packages.${system}.effekt_may_27
+            self.packages.${system}.koka
 
             (python3.withPackages (ps: with ps; [
               matplotlib
