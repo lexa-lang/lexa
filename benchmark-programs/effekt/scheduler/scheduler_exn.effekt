@@ -1,0 +1,90 @@
+import exnlist
+import exndequeue
+import immutable/option
+import io/args
+import text/string
+
+interface Tick {
+  def tick(): Unit
+}
+
+interface Process {
+  def yield(): Unit
+  def exit(): Nothing
+  def fork(): Boolean
+}
+
+def scheduler { prog: => Unit / Process }: Unit / Tick = region this {
+  var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
+
+  def run(): Unit = 
+    try {
+      queue.popBack match {
+        case (k, q) =>
+          queue = q
+          k();
+          run()
+      }
+    } with NoSuchElementException {
+      def throwNSE() = ()
+    }
+
+  try { 
+    prog()
+  } with Process {
+    def yield() = {
+      queue = queue.pushFront(fun() { resume(()) })
+    }
+    def fork()  = {
+      queue = queue
+        .pushFront(fun() { resume(true) })
+        .pushFront(fun() { resume(false) })
+    }
+    def exit() /* Nothing => Unit */ = ()
+  }
+  run()
+}
+
+def job(n_yields: Int): Unit / {Process, Tick} = {
+  var i = 0;
+  while (i < n_yields) {
+    do yield()
+    i = i + 1
+    do tick()
+  }
+}
+
+def entry(n_yields: Int): Unit / {Process, Tick} = {
+  val n_jobs = 10;
+  var i = 0;
+  while (i < n_jobs) {
+    println(i);
+    if (do fork ()) {
+      job(n_yields)
+      do exit()
+    }
+    i = i + 1
+  }
+}
+
+def run(n: Int): Int = {
+  var a = 0;
+  try { 
+    scheduler { entry(n) }
+  } with Tick {
+    def tick() = {
+      a = a + 1;
+      resume( () );
+    }
+  }
+  a
+}
+
+def main() = commandLineArgs() match {
+  case Nil() => println(run(10))
+  case Cons(x, Nil()) => toInt(x) match {
+    case None() => println("Unexpected non-integer '" ++ show(x) ++ "'")
+    case Some(i) => println(run(i))
+  }
+  case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
+}
