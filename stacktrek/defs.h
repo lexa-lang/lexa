@@ -186,7 +186,7 @@ int64_t save_switch_and_run_body(intptr_t* env, void* stub, void** exc, void* ne
         "popq %%rbx\n\t" // Restore the exchanger into a callee-saved register
         "popq %%rbx\n\t" // Ensure the stack is aligned
         "movq %%rsp, %%rdi\n\t" // Move the current stack pointer to the first argument
-        "callq free_stack\n\t" // Free the stack
+        "callq free_stack\n\t" // Free the stack. NB HACK ATTENTTION!!!! This results in use-after-free in the next few instructions
         "movq 0(%%rbx), %%rsp\n\t" // Restore the parent stack pointer
         "movq %%r12, %%rax\n\t" // Move the return value to the return register
         "retq\n\t"
