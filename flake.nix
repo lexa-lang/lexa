@@ -278,6 +278,14 @@
             (python3.withPackages (ps: with ps; [
               matplotlib
               numpy
+
+              capstone
+              keystone-engine
+              pygments
+              requests
+              ropper
+              rpyc
+              unicorn
             ]))
             
             cmake
