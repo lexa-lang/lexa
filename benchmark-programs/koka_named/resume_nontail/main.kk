@@ -2,22 +2,24 @@ module main
 
 import std/os/env
 
-effect ctl operator(x : int) : ()
+named effect operator
+  ctl operator(x : int) : ()
 
-fun loop(i : int, s : int) : <div, operator> int
+fun loop(r, i : int, s : int) : pure int
   if (i == 0)
     then s
     else
-      operator(i)
-      loop(i - 1, s)
+      r.operator(i)
+      loop(r, i - 1, s)
 
-fun run(n : int, s : int) : div int
-  with ctl operator(x : int)
-    val y = resume(())
-    abs (x - (503 * y) + 37) % 1009
-  loop(n, s)
+fun run(n : int, s : int) : pure int
+  with r <- named handler
+    ctl operator(x : int)
+      val y = resume(())
+      abs (x - (503 * y) + 37) % 1009
+  loop(r, n, s)
 
-fun repeat(n : int) : div int
+fun repeat(n : int) : pure int
   fun step(l, s)
     if (l == 0)
       then s

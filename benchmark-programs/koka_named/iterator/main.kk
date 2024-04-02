@@ -2,21 +2,23 @@ module main
 
 import std/os/env
 
-effect fun emit(e : int) : ()
+named effect emitter
+  fun emit(e : int) : ()
 
-fun range(l : int, u : int)
+fun range(r, l : int, u : int)
   if(l > u)
     then ()
     else
-      emit(l)
-      range(l + 1, u)
+      r.emit(l)
+      range(r, l + 1, u)
 
 fun run(n : int)
   var s := 0
-  with fun emit(e)
-    s := s + e
-    ()
-  range(0, n)
+  with r <- named handler
+    fun emit(e) 
+      s := s + e 
+      ()
+  range(r, 0, n)
   s
 
 pub fun main()

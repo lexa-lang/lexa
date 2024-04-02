@@ -3,8 +3,8 @@ module main
 import std/os/env
 import std/text/parse
 
-effect choose
-  ctl choose() : bool
+named effect choice
+  ctl choice() : bool
 
 type tree
   Leaf
@@ -25,19 +25,19 @@ fun run(n : int)
   val tree = make(n)
   var state := 0
 
-  fun explore(t : tree)
+  fun explore(r_choose: hnd/ev<choice>, t : tree)
     match t
       Leaf -> state
       Node(l, v, r) ->
-        val next = if choose() then l else r
+        val next = if r_choose.choice() then l else r
         state := operator(state, v)
-        operator(v, explore(next))
+        operator(v, explore(r_choose, next))
 
   fun paths()
-    with handler
+    with r <- named handler
       return(x) [x]
-      ctl choose() resume(True) ++ resume(False)
-    explore(tree)
+      ctl choice() resume(True) ++ resume(False)
+    explore(r, tree)
 
   fun loop(i : int)
     if i == 0

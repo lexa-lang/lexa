@@ -2,13 +2,13 @@ module main
 
 import std/os/env
 
-effect abort
+named effect abort
   ctl done(i : int): a
 
-fun product(xs : list<int>)
+fun product(r, xs : list<int>)
   match xs
     Nil -> 0
-    Cons(y, ys) -> if y == 0 then done(0) else y * product(ys)
+    Cons(y, ys) -> if y == 0 then r.done(0) else y * product(r, ys)
 
 fun enumerate(i : int)
   if i < 0
@@ -16,8 +16,9 @@ fun enumerate(i : int)
    else Cons(i, enumerate(i - 1))
 
 fun run-product(xs : list<int>)
-  with ctl done(r) r
-  product(xs)
+  with r <- named handler
+    ctl done(r) r
+  product(r, xs)
 
 fun run(n : int)
   val xs = enumerate(1000)

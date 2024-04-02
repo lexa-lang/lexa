@@ -2,35 +2,37 @@ module main
 
 import std/os/env
 
-effect flip
+named effect flip
   ctl flip() : bool
-effect fail
+named effect fail
   ctl fail<a>() : a
 
-fun choice(n : int)
+fun choice(r_flip, r_fail, n : int)
   if (n < 1)
-    then fail()
-  elif (flip())
+    then r_fail.fail()
+  elif (r_flip.flip())
     then n
-  else choice(n - 1)
+  else choice(r_flip, r_fail, n - 1)
 
-fun triple(n : int, s: int)
-  val i = choice(n)
-  val j = choice(i - 1)
-  val k = choice(j - 1)
+fun triple(r_flip, r_fail, n : int, s: int)
+  val i = choice(r_flip, r_fail, n)
+  val j = choice(r_flip, r_fail, i - 1)
+  val k = choice(r_flip, r_fail, j - 1)
   if i + j + k == s
     then (i, j, k)
-  else fail()
+  else r_fail.fail()
 
 fun hash((a,b,c)) : int
   (53 * a + 2809 * b + 148877 * c) % 1000000007
 
-fun run(n : int, s : int) : div int
-  with ctl flip()
-    ((resume(True) : int) + resume(False)) % 1000000007
-  with ctl fail()
-    0
-  hash(triple(n, s))
+fun run(n : int, s : int) : pure int
+  with r_flip <- named handler
+    ctl flip()
+      ((resume(True) : int) + resume(False)) % 1000000007
+  with r_fail <- named handler
+    ctl fail()
+      0
+  hash(triple(r_flip, r_fail, n, s))
 
 pub fun main()
   val n = get-args().head("").parse-int().default(10)
