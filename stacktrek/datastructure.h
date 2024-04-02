@@ -1,13 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#define DEBUG 1
-#ifdef DEBUG
-#define DEBUG_ATTRIBUTE __attribute__((noinline))
-#else
-#define DEBUG_ATTRIBUTE
-#endif
+#include <common.h>
 
 #define xmalloc(size) ({                \
     void *_ptr = malloc(size);          \
@@ -265,4 +259,5 @@ int64_t floatPrint(int64_t x) {
   double f;
   memcpy(&f, &x, sizeof(int64_t));
   printf("%f\n", f);
+  return 0;
 }
