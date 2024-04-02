@@ -35,17 +35,15 @@ obj scheduler(env) {
     }
 }
 
-def job(env, sch_stub) {
+def job(state, sch_stub) {
     let _ = raise sch_stub.yield 0 in
-    let v1 = env[0] in
-    let v2 = v1[0] in
-    let res1 = v2 + 1 in
-    let _ = v1[0] := res1 in
+    let v1 = state[0] in
+    let res1 = v1 + 1 in
+    let _ = state[0] := res1 in
     let _ = raise sch_stub.yield 0 in
-    let v3 = env[0] in
-    let v4 = v3[0] in
-    let res2 = v4 + 1 in
-    v3[0] := res2
+    let v3 = state[0] in
+    let res2 = v3 + 1 in
+    state[0] := res2
 }
 
 def loop(i, job_closure, sch_stub) {
@@ -81,7 +79,7 @@ def body(env, sch_stub) {
     let job_closure = env[0] in
     let job_func = job_closure[0] in
     let job_env = job_closure[1] in
-    job_func(job_env)
+    job_func(job_env, sch_stub)
 }
 
 def startScheduler(init_closure) {
