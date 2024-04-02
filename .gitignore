@@ -9,6 +9,7 @@
 *.cmxa
 *.asm
 *.o
+*.out
 *.exe
 **/.DS_Store
 
