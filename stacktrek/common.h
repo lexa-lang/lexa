@@ -4,3 +4,9 @@
 #else
 #define DEBUG_ATTRIBUTE
 #endif
+
+#ifdef DEBUG
+#define DEBUG_CODE(block) block
+#else
+#define DEBUG_CODE(block)
+#endif
