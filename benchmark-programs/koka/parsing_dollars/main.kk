@@ -66,7 +66,7 @@ fun run(n : int)
   sum({ catch({ feed(n, { parse(0) })})})
 
 pub fun main()
-  val n = get-args().head("").parse-int-default(10)
+  val n = get-args().head("").parse-int().default(10)
   val r = run(n)
   println(r)
 

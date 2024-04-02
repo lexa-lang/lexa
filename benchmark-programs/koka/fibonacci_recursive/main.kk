@@ -10,7 +10,7 @@ fun fibonacci(n : int) : div int
       else fibonacci(n - 1) + fibonacci(n - 2)
 
 pub fun main()
-  val n = get-args().head("").parse-int-default(5)
+  val n = get-args().head("").parse-int().default(5)
   val r = fibonacci(n)
   println(r)
 

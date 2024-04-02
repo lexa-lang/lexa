@@ -33,6 +33,6 @@ fun run(n : int, s : int) : div int
   hash(triple(n, s))
 
 pub fun main()
-  val n = get-args().head("").parse-int-default(10)
+  val n = get-args().head("").parse-int().default(10)
   val r = run(n, n)
   println(r)

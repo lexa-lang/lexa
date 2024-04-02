@@ -22,7 +22,7 @@ fun run(n : int)
   countdown()
 
 pub fun main()
-  val n = get-args().head("").parse-int-default(5)
+  val n = get-args().head("").parse-int().default(5)
   val r = run(n)
   println(r)
 
