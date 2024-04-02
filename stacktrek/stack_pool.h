@@ -21,13 +21,14 @@ void destroy_stack_pool() {
     bitmap = 0;
 }
 
+// HACK! TODO: scheduler_ocaml needs the following attribute for correctness
+__attribute__((noinline))
 char* get_stack() {
     if (!buffer) {
         init_stack_pool();
     }
     int index = __builtin_ffsll(bitmap);
     if (index == 0) {
-        // DEBUG_CODE({printf("!!!Out of stack space\n");})
         char* out = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
         return out + STACK_SIZE;
     }
