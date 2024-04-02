@@ -1,6 +1,5 @@
 #pragma once
 
-#define DEBUG 1
 #ifdef DEBUG
 #define DEBUG_ATTRIBUTE __attribute__((noinline))
 #else
