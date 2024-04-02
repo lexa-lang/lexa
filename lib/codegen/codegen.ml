@@ -78,6 +78,10 @@ let rec subst_var (t : term) (name : var) (name_new : var) =
       THdl ((List.map (fun var -> if var = name then name_new else var) env),
         body, obj, sig_name)
 
+(* If a function is a handler body *)
+let is_body name = 
+  (List.mem name (get_fun_type_env !env))
+
 let genArith = function
 | AAdd -> "+"
 | AMult -> "*"
@@ -97,8 +101,13 @@ type c_type =
   | CTVoidPP (* void** *)
   | CTCharP (* char* *)
 
-type c_dec = c_type * var * c_type list
-type c_def = c_type * var * (c_type * var) list * term
+type c_dec = 
+  | CDec of c_type * var * c_type list
+
+type c_def = 
+  | CDef of c_type * var * (c_type * var) list * term
+
+let c_decs : (var * c_dec) list ref = ref []
 
 let gen_c_type = function
 | CTI64 -> "i64"
@@ -108,18 +117,23 @@ let gen_c_type = function
 | CTCharP -> "char*"
 
 let rec gen_c_def (def : c_def) : string = 
-  let (t_return, name, params, body) = def in
-  sprintf "%s %s(%s) {\n %s \n}" 
-    (gen_c_type t_return) 
-    name 
-    (gen_params params)
-    (gen_term body)
+  match def with
+  | CDef (t_return, name, params, body) ->
+    sprintf "%s %s(%s) {\nreturn(%s);\n}\n" 
+      (gen_c_type t_return) 
+      name 
+      (gen_params params)
+      (gen_term body)
 
-and gen_c_dec (_ : c_dec) : string = ""
+and gen_c_dec (dec : c_dec) : string =
+  match dec with
+  | CDec (t_return, name, t_params) ->
+    sprintf "%s %s(%s);" (gen_c_type t_return) name
+      (String.concat "," (List.map (fun t -> gen_c_type t) t_params))
 
 and gen_params params =
   String.concat "," (List.map (fun (t, v) -> ((gen_c_type t) ^ v)) params)
-  
+
 and gen_value = function
 | VVar x -> x
 | VInt i -> string_of_int i
@@ -130,11 +144,17 @@ and gen_value = function
   in
   if name = "main" then
     sprintf "int main(int argc, char *argv[]) {\nreturn((int)%s);\n}\n" (gen_term body)
-  else if (List.mem name (get_fun_type_env !env)) then
+  else if (is_body name) then (* The function is a handle body *)
     (match params with
     | [env_var; stub] -> 
-      sprintf "i64 %s(i64 %s) {\nreturn(%s);\n}\n" name stub 
-        (gen_term (subst_var body env_var (sprintf "((meta_t*)%s)->%s" stub env_var))) 
+      let cdef = 
+        CDef (CTI64, name, (List.map (fun param -> (CTI64, param)) params),
+          (subst_var body env_var (sprintf "((meta_t*)%s)->%s" stub env_var)))
+      in let cdec = 
+        CDec (CTI64, name, (List.map (fun _ -> CTI64) params)) 
+      in
+      c_decs := (name, cdec) :: !c_decs;
+      (gen_c_def cdef)
     | _ -> raise (ParameterMismatch name))
   else 
     sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_term body)
