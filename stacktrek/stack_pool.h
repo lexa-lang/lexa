@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <common.h>
 
-#define STACK_SIZE (1024 * 8)
+#define STACK_SIZE (1024LL * 8)
 #define PREALLOCATED_STACKS 64
 #define ALIGN_DOWN(ptr, alignment) ((intptr_t)(ptr) & ~((alignment) - 1))
 
@@ -26,8 +27,9 @@ char* get_stack() {
     }
     int index = __builtin_ffsll(bitmap);
     if (index == 0) {
-        // Out of stack space
-        return (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
+        // DEBUG_CODE({printf("!!!Out of stack space\n");})
+        char* out = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE);
+        return out + STACK_SIZE;
     }
     index -= 1;
     bitmap &= ~(1ULL << index);
@@ -42,7 +44,8 @@ void free_stack(char* stack) {
         // NB: why -1? Think what should happen when an empty stack is freeed.
         // Because an empty stack is +STACK_SIZE from the beginning of the buffer,
         // If we don't -1, the stack pointer will be pointing to the start of the next stack.
-        free((void*)(((intptr_t)stack - 1) / STACK_SIZE * STACK_SIZE));
+        char* stack_start = (char*)(((intptr_t)stack - 1) / STACK_SIZE * STACK_SIZE);
+        free(stack_start);
     }
 }
 
