@@ -37,7 +37,7 @@ char* get_stack() {
 void free_stack(char* stack) {
     if (stack >= buffer && stack < buffer + (STACK_SIZE * PREALLOCATED_STACKS)) {
         int index = ((intptr_t)stack - 1 - (intptr_t)buffer) / STACK_SIZE;
-        bitmap |= (1 << index);
+        bitmap |= (1LL << index);
     } else {
         // NB: why -1? Think what should happen when an empty stack is freeed.
         // Because an empty stack is +STACK_SIZE from the beginning of the buffer,
