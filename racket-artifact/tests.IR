@@ -1,0 +1,64 @@
+
+
+
+// A tail resumptive handler: the whole program should evaluate to 43
+def body(env, ask_L) {
+    let val = raise ask_L 0 in
+    43
+}
+
+def ask(env, _) {
+    env[0]
+}
+
+def main() {
+    let s = newref <42> in {
+        handle <s>
+            body
+        with TAIL ask
+    }
+}
+----------------------
+// An abortive handler: the whole program should evaluate to 42
+def body(env, ask_L) {
+    let val = raise ask_L 0 in
+    43
+}
+
+def ask(env, _) {
+    let val = env[0] in
+    val
+}
+
+def main() {
+    let s = newref <42> in {
+        handle <s>
+            body
+        with ABORT ask
+    }
+}
+----------------------
+// An general handler: that resumes resumption twice
+// the whole program should evaluate to 44
+def body(env, inc_L) {
+    let _ = raise inc_L 0 in
+    let val = env[0] in
+    let _ = env[0] <- val + 1 in
+    0
+}
+
+def inc(env, _, k) {
+    let _ = resume k 0 in
+    let _ = resume k 0 in
+    0
+}
+
+def main() {
+    let s = newref <42> in 
+    let _ = {
+        handle <s>
+            body
+        with MULTISHOT inc
+    } in
+    s[0]
+}
