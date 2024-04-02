@@ -64,5 +64,6 @@ def run(n) {
 def main() {
     let arg1 = ~readInt() in
     let arg2 = run(arg1) in
-    ~printInt(arg2)
+    let _ = ~printInt(arg2) in
+    0;
 }
