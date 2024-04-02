@@ -168,6 +168,8 @@ and gen_value = function
     let concated_params = (List.map (fun x -> (CTI64P, x)) obj_params) 
       @ (List.map (fun x -> (CTI64, x)) hdl_params) @ [(CTVoidPP, "exc")] in
     let c_def = CDef (CTI64, name, concated_params, body) in
+    let c_dec = CDec (CTI64, name, (List.map (fun (a, _) -> a) concated_params)) in
+    c_decs := (name, c_dec) :: !c_decs;
     gen_c_def c_def
   in
   String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
@@ -223,7 +225,7 @@ and gen_term = function
     let size = List.length value_list in
     let init = sprintf "i64 temp = (i64)malloc(%d * sizeof(i64));" size
       ^ "\n"
-      ^ String.concat "\n" (List.mapi (fun i v -> sprintf "((i64*)temp)[%d] = %s;" i (gen_value v)) value_list)
+      ^ String.concat "\n" (List.mapi (fun i v -> sprintf "((i64*)temp)[%d] = (i64)%s;" i (gen_value v)) value_list)
       ^ "\ntemp;\n" in
     sprintf "({%s})" init
 | TGet (v, v2) ->
@@ -240,7 +242,7 @@ and gen_term = function
     sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
 | TRaise (stub, hdl, args) ->
     let hdl_idx = lookup_hdl_index hdl (get_eff_sig_env !env) in
-    sprintf "RAISE(((meta_t*)%s), %d, %s)" stub hdl_idx (gen_args args)
+    sprintf "RAISE(%s, %d, %s)" stub hdl_idx (gen_args args)
 | TResume (k, v) -> sprintf "THROW(%s, %s)" k (gen_value v)
 | TResumeFinal (k, v) -> sprintf "FINAL_THROW(%s, %s)" k (gen_value v)
 
