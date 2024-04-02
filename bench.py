@@ -18,10 +18,10 @@ def run_command_with_hyperfine(command, n_values, plot_file):
             results = json.load(results_file)
             mean_runtime = results['results'][0]['mean']
             runtimes.append(mean_runtime)
-    # save n_values and runtimes to a file, each line is a pair of n and runtime
-    with open("runtimes.txt", "w") as f:
-        for n, runtime in zip(n_values, runtimes):
-            f.write(f"{n} {runtime}\n")
+        # save runtimes in every iteration to avoid interruptions
+        with open("runtimes.txt", "w") as f:
+            for n, runtime in zip(n_values, runtimes):
+                f.write(f"{n} {runtime}\n")
 
     # zip n_values and runtimes to a list of pairs
     return list(zip(n_values, runtimes))
