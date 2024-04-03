@@ -6,7 +6,7 @@ import io/args
 interface Process {
   def yield(): Unit
   def exit(): Nothing
-  def fork { p: () => Unit / Process }: Unit
+  def fork { p: () => Unit / Process }: Boolean
 }
 
 extern pure def cast[T, R](x : T): R =
@@ -38,8 +38,8 @@ def scheduler { prog: => Unit / Process } = region this {
         runnext()
       }
       def fork() = {
-        queue = queue.pushFront(fun() { resume { {_: () => Unit / Process } => () } })
-        resume { {p: () => Unit / Process } => spawn(cast(box p)) } 
+        queue = queue.pushFront(fun() { resume { {_: () => Unit / Process } => false } })
+        resume { {p: () => Unit / Process } => spawn(cast(box p)); true } 
       }
       def exit() = ()
     }
@@ -60,7 +60,9 @@ def run(n: Int): Int = {
   scheduler {
     def loop(i: Int): Unit = {
         if (i < n) {
-            do fork {job}
+            if (do fork {job}) {
+              do exit()
+            }
             loop(i + 1)
         }
     };
