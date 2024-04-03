@@ -9,6 +9,10 @@ interface Process {
   def fork { p: () => Unit / Process }: Unit
 }
 
+extern pure def cast[T, R](x : T): R =
+  "${x}"
+
+
 def scheduler { prog: => Unit / Process } = region this {
   var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
 
@@ -19,35 +23,44 @@ def scheduler { prog: => Unit / Process } = region this {
       k();
       run()
   }
-  def spawn(prog1: () => Unit / Process at {this, prog} ): Unit =
+
+  def runnext(): Unit = queue.popFront match {
+    case None() => ()
+    case Some((k, q)) =>
+      queue = q
+      k()
+  }
+
+  def spawn(prog1: () => Unit / Process at {this, prog} ): Unit = {
     try { prog1() } with Process {
       def yield() = {
         queue = queue.pushFront(fun() { resume(()) })
+        runnext()
       }
       def fork() = {
-        queue = queue
-          .pushFront(fun() { resume { {p: () => Unit / Process } => spawn(p) } })
-          .pushFront(fun() { resume { {_: () => Unit / Process } => () } })
+        queue = queue.pushFront(fun() { resume { {_: () => Unit / Process } => () } })
+        resume { {p: () => Unit / Process } => spawn(cast(box p)) } 
       }
-      def exit() /* Nothing => Unit */ = ()
+      def exit() = ()
     }
+    runnext()
+  }
 
   spawn(prog)
-  run()
 }
 
 def run(n: Int): Int = {
   var c = 0;
+  def job(): Unit / Process = {
+    do yield();
+    c = c + 1;
+    do yield();
+    c = c + 1;
+  }
   scheduler {
     def loop(i: Int): Unit = {
         if (i < n) {
-            do fork {
-              do yield();
-              c = c + 1;
-              do yield();
-              c = c + 1;
-              do exit() // FIX this is crucial since fork is not implemented correctly
-            }
+            do fork {job}
             loop(i + 1)
         }
     };
