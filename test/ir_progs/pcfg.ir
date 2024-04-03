@@ -1,0 +1,134 @@
+effect Prob {
+  dcl choose
+  dcl sampleCategorical
+  dcl fail
+}
+
+def parse(prob_stub, tokens, symbols) {
+    let cond = ~listIsEmpty(symbols) in
+    if cond then
+        let tokenLen = ~stringLen(tokens) in
+        let cond = tokenLen == 0 in
+        if cond then
+            0
+        else
+            raise prob_stub.fail 0
+    else
+        let s = ~listHead(symbols) in
+        let ss = ~listTail(symbols) in
+        let len = ~stringLen(tokens) in
+        let sp = raise prob_stub.choose len in
+        let substr1 = ~stringSubStr(tokens, 0, sp) in
+        let _ = s(prob_stub, substr1) in
+        let substr2 = ~stringSubStr(tokens, sp, len) in
+        parse(prob_stub, substr2, ss)
+}
+
+def parse_empty(prob_stub, tokens) {
+    let end = ~listEnd() in
+    parse(prob_stub, tokens, end)
+}
+
+def parse_terminal(prob_stub, tokens) {
+    let tokenLen = ~stringLen(tokens) in
+    let cond = tokenLen == 0 in
+    if cond then
+        raise prob_stub.fail 0
+    else
+        let first = ~stringCharAt(tokens, 0) in
+        let cond = first == 97 in
+        if cond then
+            let len = ~stringLen(tokens) in
+            let rest = ~stringSubStr(tokens, 1, len) in
+            parse_empty(prob_stub, rest)
+        else
+            raise prob_stub.fail 0
+}
+
+def foldl1(env, acc, i, n) {
+    let cond = i == n in
+    if cond then
+        acc
+    else
+        let k = env[0] in
+        let logits = env[1] in
+        let r = resume k i in
+        let logit = ~listAt(logits, i) in
+        let p = ~floatMul(r, logit) in
+        let s = ~floatAdd(acc, p) in
+        let inc = i + 1 in
+        foldl1(env, s, inc, n)
+}
+
+def foldl2(env, acc, i, n) {
+    let cond = i == n in
+    if cond then
+        acc
+    else
+        let k = env[0] in
+        let r = resume k i in
+        let s = ~floatAdd(acc, r) in
+        let inc = i + 1 in
+        foldl2(env, s, inc, n)
+}
+
+obj marginalize(env) {
+    hdl_s sampleCategorical(_, k) {
+        let logits = make_logits() in
+        let n = ~listLen(logits) in
+        let fold_env = newref <k, logits> in
+        foldl1(fold_env, 0, 0, n)
+    }
+
+    hdl_s choose(n, k) {
+        let fold_env = newref <k> in
+        let n1 = n+1 in
+        foldl2(fold_env, 0, 0, n1)
+    }
+
+    exc fail(_) {
+        ~floatMake(0, 10)
+    }
+}
+
+def parse_S(prob_stub, tokens) {
+    let productions = make_productions() in
+    let prod = raise prob_stub.sampleCategorical 0 in
+    let production = ~listAt(productions,prod) in
+    parse(prob_stub, tokens, production)
+}
+
+def body(env, prob_stub) {
+    let tokens = ~stringMake(97, 1) in
+    let _ = parse_S(prob_stub, tokens) in
+    ~floatMake(1, 1)
+}
+
+def make_logits() {
+    let f7 = ~floatMake(7, 10) in
+    let f3 = ~floatMake(3, 10) in
+    let l0 = ~listEnd() in
+    let l1 = ~listNode(f7, l0) in
+    ~listNode(f3, l1)
+}
+
+def make_productions() {
+    let p1 = ~listEnd() in
+    let p20 = ~listEnd() in
+    let p21 = ~listNode(parse_S, p20) in
+    let p2 = ~listNode(parse_terminal, p21) in
+    let s0 = ~listEnd() in
+    let s1 = ~listNode(p2, s0) in
+    ~listNode(p1, s1)
+}
+
+def main() {
+    let logits = make_logits() in
+    let productions = make_productions() in
+    let out = 
+        handle <logits, productions>
+            body
+        with marginalize: Prob
+    in
+    ~floatPrint(out)
+}

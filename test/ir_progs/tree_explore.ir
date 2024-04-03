@@ -1,0 +1,90 @@
+effect Choice {
+  dcl choose
+}
+
+def operator(x, y) {
+    let sub1 = x in
+    let sub2 = 503 * y in
+    let plus1 = sub1 - sub2 in
+    let plus2 = 37 in
+    let arg = plus1 + plus2 in
+    let mod1 = ~mathAbs(arg) in
+    mod1 % 1009
+}
+
+def make(n) {
+    let cond = n == 0 in
+    if cond then
+        ~treeLeaf()
+    else
+        let arg = n - 1 in
+        let t = make(arg) in
+        ~treeNode(n, t, t)
+}
+
+def explore(state, tree, choice_stub) {
+    let cond = ~treeIsEmpty(tree) in
+    if cond then
+        state[0]
+    else
+        let next = 
+            let cond = raise choice_stub.choose 0 in
+            if cond then 
+                ~treeLeft(tree)
+            else
+                ~treeRight(tree)
+            in
+        let arg1 = state[0] in
+        let arg2 = ~treeValue(tree) in
+        let v = operator(arg1, arg2) in
+        let _ = state[0] := v in
+        let arg3 = explore(state, next, choice_stub) in
+        operator(arg2, arg3)
+}
+
+obj choice(env) {
+    hdl_s choose(_, k) {
+        let arg1 = resume k true in
+        let arg2 = resume k false in
+        ~listAppend(arg1, arg2)
+    }
+}
+
+def body(env, choice_stub) {
+    let arg1 = env[0] in
+    let arg2 = env[1] in
+    let arg3 = explore(arg1, arg2, choice_stub) in
+    let arg4 = ~listEnd() in
+    ~listNode(arg3, arg4)
+}
+
+def paths(state, tree) {
+    handle <state, tree>
+        body
+    with choice: Choice
+}
+
+def loop(state, tree, i) {
+    let cond = i == 0 in
+    if cond then
+        state[0]
+    else
+        let arg1 = paths(state, tree) in
+        let v = ~listMax(arg1) in
+        let _ = state[0] := v in
+        let arg2 = i - 1 in
+        loop(state, tree, arg2)
+}
+
+def run(n) {
+    let tree = make(n) in
+    let state = newref <0> in
+        loop(state, tree, n)
+}
+
+def main() {
+    let n = ~readInt() in
+    let res = run(n) in
+    let _ = ~printInt(res) in
+    0
+}
