@@ -1,0 +1,76 @@
+effect Choice {
+    dcl flip
+    dcl fail
+}
+
+def choice(n, choice_stub) {
+    let cond = n < 1 in
+    if cond then
+        raise choice_stub.fail 0
+    else
+        let cond = raise choice_stub.flip 0 in
+        if cond then
+            n
+        else
+            let arg = n - 1 in
+            choice(arg, choice_stub)
+}
+
+def triple(n, s, choice_stub) {
+    let i = choice(n, choice_stub) in
+    let arg = i - 1 in
+    let j = choice(arg, choice_stub) in
+    let arg = j - 1 in
+    let k = choice(arg, choice_stub) in
+    let temp = i + j in
+    let sum = temp + k in
+    let cond = sum == s in
+    if cond then
+        hash(i, j, k)
+    else
+        raise choice_stub.fail 0
+}
+
+def body(env, choice_stub) {
+    let n = env[0] in
+    let s = env[1] in
+    triple(n, s, choice_stub)
+}
+
+obj choice(env) {
+    exc fail(_) {
+        0
+    }
+
+    hdl_s flip(_, k) {
+        let p1 = resume k true in
+        let p2 = resume k false in
+        let mod1 = p1 + p2 in
+        let mod2 = 1000000007 in
+        mod1 % mod2
+    }
+}
+
+def run(n, s) {
+    handle <n, s>
+        body
+    with choice: Choice
+}
+
+def hash(a,b,c) {
+    let plus1 = 53 * a in
+    let plus2 = 2809 * b in
+    let plus3 = 148877 * c in
+    let interm = plus1 + plus2 in
+    let mod1 = interm + plus3 in
+    let mod2 = 1000000007 in
+    mod1 % mod2
+}
+
+def main() {
+    let n = ~readInt() in
+    let res = run(n, n) in
+    let _ = ~printInt(res) in
+    0
+}
+
