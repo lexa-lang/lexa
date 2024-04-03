@@ -50,6 +50,7 @@
 %token OBJ
 %token RESUME
 %token RESUMEFINAL
+%token PERC
 
 %start <Syntax.value list> prog
 %%
@@ -62,7 +63,8 @@ arith:
   | SUB { ASub }
   | MULT { AMult }
   | DIV { ADiv }
-
+  | PERC { AMod }
+  
 cmp:
   | CMPEQ { CEq }
   | NEQ { CNeq }

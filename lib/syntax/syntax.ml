@@ -5,6 +5,7 @@ type arith =
   | AMult
   | ASub
   | ADiv
+  | AMod
 
 type cmp =
   | CEq

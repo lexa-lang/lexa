@@ -88,6 +88,7 @@ let genArith = function
 | AMult -> "*"
 | ASub -> "-"
 | ADiv -> "/"
+| AMod -> "%"
 
 let genCmp = function
 | CEq -> "=="
