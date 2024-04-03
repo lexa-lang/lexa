@@ -41,6 +41,7 @@ let prim_env = [
   ("floatAdd", [PTI64; PTI64]);
   ("floatMul", [PTI64; PTI64]);
   ("floatPrint", [PTI64]);
+  ("mathAbs", [PTI64])
 ]
 
 let gen_prim_type = function
