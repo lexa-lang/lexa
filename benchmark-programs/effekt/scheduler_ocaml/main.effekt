@@ -18,7 +18,7 @@ extern pure def cast[T, R](x : T): R =
   "${x}"
 
 
-def scheduler { prog: => Unit / Process } = region this {
+def scheduler { prog: => Unit / Process }: Unit = region this {
   var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
 
   def driver(): Unit = 
@@ -50,28 +50,30 @@ def scheduler { prog: => Unit / Process } = region this {
   driver()
 }
 
-def run(n_yields: Int): Int = {
+def job(n_yields: Int): Unit / Process = {
+  var i = 0;
+  while (i < n_yields) {
+    do yield();
+    i = i + 1
+  }
+}
+
+def jobs(n_yields: Int): Unit / {Process, Tick} = {
   val n_jobs = 10;
+  var i = 0;
+  while (i < n_jobs) {
+    if (do fork {job(n_yields); do tick()}) {
+      do exit()
+    }
+    i = i + 1
+  }
+}
+
+def run(n_yields: Int): Int = {
   var c = 0;
   try {
-    def job(): Unit / Process = {
-      var i = 0;
-      while (i < n_yields) {
-        do yield();
-        i = i + 1
-      }
-    }
-    def entry(): Unit / Process = {
-      var i = 0;
-      while (i < n_jobs) {
-        if (do fork {job(); do tick()}) {
-          do exit()
-        }
-        i = i + 1
-      }
-    };
     scheduler {
-      entry
+      jobs(n_yields)
     };
   } with Tick {
     def tick() = {
