@@ -7,6 +7,18 @@ effect Tick {
     dcl tick
 }
 
+effect Exn {
+    dcl throw
+}
+
+def queueDeqExn(q, exn_stub) {
+    let cond = ~queueIsEmpty(q) in
+    if cond then
+        raise exn_stub.throw 0
+    else
+        ~queueDeq(q)
+}
+
 def job(env, sch_stub) {
     raise sch_stub.yield 0
 }
@@ -49,14 +61,25 @@ def body(env, sch_stub) {
     job_func(job_env, sch_stub)
 }
 
-def driver(job_queue) {
-    let cond = ~queueIsEmpty(job_queue) in
-    if cond then
+def body_driver(env, exn_stub) {
+    let job_queue = env[0] in
+    let k = queueDeqExn(job_queue, exn_stub) in
+    let _ = resume_final k 0 in
+    driver(job_queue)
+}
+
+obj exn(env) {
+    exc throw(_) {
         0
-    else
-        let k = ~queueDeq(job_queue) in
-        let _ = resume_final k 0 in
-        driver(job_queue)
+    }
+}
+
+def driver(job_queue) {
+    let _ = 
+        handle <job_queue>
+            body_driver
+        with exn: Exn in
+    0
 }
 
 def spawn(job_closure, job_queue) {
