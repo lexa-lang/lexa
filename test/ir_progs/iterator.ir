@@ -1,0 +1,42 @@
+effect Emit {
+    dcl emit
+}
+
+def range(l, u, emit_stub) {
+    let cond = l > u in
+    if cond then
+        0
+    else
+        let _ = raise emit_stub.emit l in
+        let arg = l + 1 in
+        range(arg, u, emit_stub)
+}
+
+obj emit(env) {
+    def emit(e) {
+        let ss = env[1] in
+        let s = ss[0] in
+        let s_updated = s + e in
+        ss[0] := s_updated
+    }
+}
+
+def body(env, emit_stub) {
+    let n = env[0] in
+    range(0, n, emit_stub)
+}
+
+def run(n) {
+    let s = newref <0> in
+    let _ = handle <n, s>
+        body
+    with emit: Emit in
+    s[0]
+}
+
+def main() {
+    let n = ~readInt() in
+    let res = run(n) in
+    let _ = ~printInt(res) in
+    0
+}
