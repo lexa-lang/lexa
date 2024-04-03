@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <common.h>
+#include <string.h>
+#include <stdio.h>
 
 #define xmalloc(size) ({                \
     void *_ptr = malloc(size);          \
