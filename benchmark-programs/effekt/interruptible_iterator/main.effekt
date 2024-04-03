@@ -1,0 +1,56 @@
+
+import immutable/list
+import immutable/option
+import text/string
+import io/args
+
+effect Yield(value: Int): Unit / { Replace, Behead }
+effect Replace(value: Int): Unit
+effect Behead(): Unit
+
+def range(start: Int, size: Int): List[Int] = {
+  build(size) { i => start + i }
+}
+
+def iter(l: List[Int]): List[Int] / { Yield, Behead } = {
+    var in: List[Int] = l;
+    var out: List[Int] = Nil();
+
+    while (not(in.isEmpty)) { ignoring[EmptyList] {
+        val hd = in.head;
+        val tl = in.tail;
+        try { do Yield(hd); in = tl }
+        with Replace { n =>
+            out = Cons(n, out);
+            resume(())
+        }
+        with Behead { resume(()) }
+    }};
+
+    out.reverse
+}
+
+def run(n: Int) = ignoring[EmptyList] {
+    var lst = range(0-n, 2*n);
+
+    val res = try { lst.iter }
+    with Yield { x =>
+      resume { if (x < 0) do Behead() else do Replace(x * 2) }
+    }
+    with Behead { () =>
+        println("beheading in client?");
+        lst = lst.tail;
+        resume(())
+    };
+
+    println(sum(res))
+}
+
+def main() = commandLineArgs() match {
+  case Nil() => run(10)
+  case Cons(x, Nil()) => toInt(x) match {
+    case Some(i) => run(i)
+    case _ => println("Unexpected non-integer(s) '" ++ show(x) ++ "'")
+  }
+  case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
+}
