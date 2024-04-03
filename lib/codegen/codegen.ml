@@ -167,7 +167,7 @@ and gen_value = function
 | VObj (_, obj_params, hdls) -> 
   let gen_hdl (hdl_anno, name, hdl_params, body) = 
     let concated_params = (List.map (fun x -> (CTI64P, x)) obj_params) 
-      @ (List.map (fun x -> (CTI64, x)) hdl_params) @ [(CTVoidPP, "exc")] in
+      @ (List.map (fun x -> (CTI64, x)) hdl_params) in
     let annotation = (match hdl_anno with
     | HDef | HExc -> CAFastSwitch
     | _ -> CANone) in
