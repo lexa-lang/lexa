@@ -1,58 +1,81 @@
-import immutable/dequeue
+import exnlist
+import exndequeue
 import immutable/option
 import text/string
 import io/args
 
+interface Tick {
+  def tick(): Unit
+}
+
 interface Process {
   def yield(): Unit
   def exit(): Nothing
-  def fork { p: () => Unit / Process }: Unit
+  def fork { p: () => Unit / Process }: Boolean
 }
 
-def scheduler { prog: => Unit / Process } = region this {
+extern pure def cast[T, R](x : T): R =
+  "${x}"
+
+
+def scheduler { prog: => Unit / Process }: Unit = region this {
   var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
 
-  def run(): Unit = queue.popBack match {
-    case None() => ()
-    case Some((k, q)) =>
-      queue = q
-      k();
-      run()
-  }
-  def spawn(prog1: () => Unit / Process at {this, prog} ): Unit =
+  def driver(): Unit = 
+    try {
+      queue.popBack match {
+        case (k, q) =>
+          queue = q
+          k();
+          driver()
+      }
+    } with NoSuchElementException {
+      def throwNSE() = ()
+    }
+
+  def spawn(prog1: () => Unit / Process at {this, prog} ): Unit = {
     try { prog1() } with Process {
       def yield() = {
         queue = queue.pushFront(fun() { resume(()) })
       }
       def fork() = {
-        queue = queue
-          .pushFront(fun() { resume { {p: () => Unit / Process } => spawn(p) } })
-          .pushFront(fun() { resume { {_: () => Unit / Process } => () } })
+        queue = queue.pushFront(fun() { resume { {_: () => Unit / Process } => false } })
+        resume { {p: () => Unit / Process } => spawn(cast(box p)); true } 
       }
-      def exit() /* Nothing => Unit */ = ()
+      def exit() = ()
     }
+  }
 
   spawn(prog)
-  run()
+  driver()
+}
+
+def job(): Unit / Process = {
+  do yield();
+}
+
+def jobs(n_jobs: Int): Unit / {Process, Tick} = {
+  var i = 0;
+  while (i < n_jobs) {
+    if (do fork {job(); do tick()}) {
+      do exit()
+    }
+    i = i + 1
+  }
 }
 
 def run(n: Int): Int = {
   var c = 0;
-  scheduler {
-    def loop(i: Int): Unit = {
-        if (i < n) {
-            do fork {
-              do yield();
-              c = c + 1;
-              do yield();
-              c = c + 1;
-              do exit() // FIX this is crucial since fork is not implemented correctly
-            }
-            loop(i + 1)
-        }
+  try {
+    scheduler {
+      jobs(n)
     };
-    loop(0)
-  };
+  } with Tick {
+    def tick() = {
+      c = c + 1;
+      resume( () );
+    }
+  }
   c
 }
 
