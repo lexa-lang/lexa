@@ -1,0 +1,57 @@
+effect Operator {
+    dcl operator
+}
+
+def loop(i, s, operator_stub) {
+    let cond = i == 0 in
+    if cond then
+        s
+    else
+        let _ = raise operator_stub.operator i in
+        let i_dec = i - 1 in
+        loop(i_dec, s, operator_stub)
+}
+
+obj operator(env) {
+    hdl_1 operator(x, k) {
+        let y = resume k 0 in
+        let y503 = 503 * y in
+        let minus_res = x - y503 in
+        let plus_res = minus_res + 37 in
+        let abs_res = ~mathAbs(plus_res) in
+        abs_res % 1009
+    }
+}
+
+def run(n, s) {
+    handle <n, s>
+        body
+    with operator: Operator
+}
+
+def body(env, operator_stub) {
+    let n = env[0] in
+    let s = env[1] in
+    loop(n, s, operator_stub)
+}
+
+def step(l, s, n) {
+    let cond = l == 0 in
+    if cond then
+        s
+    else
+        let l_dec = l - 1 in
+        let run_res = run(n, s) in
+        step(l_dec, run_res, n)
+}
+
+def repeat(n) {
+    step(1000, 0, n)
+}
+
+def main() {
+    let n = ~readInt() in
+    let result = repeat(n) in
+    let _ = ~printInt(result) in
+    0
+}
