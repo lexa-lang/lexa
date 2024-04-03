@@ -21,12 +21,13 @@ extern pure def cast[T, R](x : T): R =
 def scheduler { prog: => Unit / Process } = region this {
   var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
 
-  def runnext(): Unit = 
+  def driver(): Unit = 
     try {
       queue.popBack match {
         case (k, q) =>
           queue = q
-          k()
+          k();
+          driver()
       }
     } with NoSuchElementException {
       def throwNSE() = ()
@@ -36,7 +37,6 @@ def scheduler { prog: => Unit / Process } = region this {
     try { prog1() } with Process {
       def yield() = {
         queue = queue.pushFront(fun() { resume(()) })
-        runnext()
       }
       def fork() = {
         queue = queue.pushFront(fun() { resume { {_: () => Unit / Process } => false } })
@@ -44,10 +44,10 @@ def scheduler { prog: => Unit / Process } = region this {
       }
       def exit() = ()
     }
-    runnext()
   }
 
   spawn(prog)
+  driver()
 }
 
 def run(n_yields: Int): Int = {
