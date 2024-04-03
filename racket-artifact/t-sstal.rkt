@@ -74,7 +74,7 @@
                 ,@cb))   
     ]
     ;; handler (new stack, +)
-    [`(let ([,x (handle+ ,Lbody ,Lop under ,vEnv)]) ,t)
+    [`(let ([,x (handle+ ,Lbody ,A ,Lop under ,vEnv)]) ,t)
      (define cEnv (compile-value env vEnv `($ 3)))
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
@@ -101,7 +101,7 @@
                (mov sp ($ 2))
                (return)))]
     ;; handler (same stack, =)
-    [`(let ([,x (handle= ,Lbody ,Lop under ,vEnv)]) ,t)
+    [`(let ([,x (handle= ,Lbody ,A ,Lop under ,vEnv)]) ,t)
      (define cEnv (compile-value env vEnv `($ 3)))
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
@@ -201,6 +201,8 @@
          (mov sp ($ 29))
          (return)
          ))]
+    [`skip
+     (values 0 '())]
     ;; 
     ;; value
     [`(let ([,x ,v]) t)

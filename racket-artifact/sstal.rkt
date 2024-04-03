@@ -137,7 +137,7 @@
 (define (load-program! l)
   (set! IM (list->vector l)))
 
-(define (run-sstal l)
+(define (run-sstal! l)
   (load-program! l)
   (set! R (make-vector 32))
   (set! M (make-vector 32 empty))
