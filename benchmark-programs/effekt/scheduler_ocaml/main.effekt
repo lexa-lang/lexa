@@ -50,30 +50,25 @@ def scheduler { prog: => Unit / Process }: Unit = region this {
   driver()
 }
 
-def job(n_yields: Int): Unit / Process = {
-  var i = 0;
-  while (i < n_yields) {
-    do yield();
-    i = i + 1
-  }
+def job(): Unit / Process = {
+  do yield();
 }
 
-def jobs(n_yields: Int): Unit / {Process, Tick} = {
-  val n_jobs = 10;
+def jobs(n_jobs: Int): Unit / {Process, Tick} = {
   var i = 0;
   while (i < n_jobs) {
-    if (do fork {job(n_yields); do tick()}) {
+    if (do fork {job(); do tick()}) {
       do exit()
     }
     i = i + 1
   }
 }
 
-def run(n_yields: Int): Int = {
+def run(n: Int): Int = {
   var c = 0;
   try {
     scheduler {
-      jobs(n_yields)
+      jobs(n)
     };
   } with Tick {
     def tick() = {
