@@ -3,6 +3,10 @@ import immutable/option
 import text/string
 import io/args
 
+interface Tick {
+  def tick(): Unit
+}
+
 interface Process {
   def yield(): Unit
   def exit(): Nothing
@@ -15,14 +19,6 @@ extern pure def cast[T, R](x : T): R =
 
 def scheduler { prog: => Unit / Process } = region this {
   var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
-
-  def run(): Unit = queue.popBack match {
-    case None() => ()
-    case Some((k, q)) =>
-      queue = q
-      k();
-      run()
-  }
 
   def runnext(): Unit = queue.popFront match {
     case None() => ()
@@ -49,25 +45,35 @@ def scheduler { prog: => Unit / Process } = region this {
   spawn(prog)
 }
 
-def run(n: Int): Int = {
+def run(n_yields: Int): Int = {
+  val n_jobs = 10;
   var c = 0;
-  def job(): Unit / Process = {
-    do yield();
-    c = c + 1;
-    do yield();
-    c = c + 1;
-  }
-  scheduler {
-    def loop(i: Int): Unit = {
-        if (i < n) {
-            if (do fork {job}) {
-              do exit()
-            }
-            loop(i + 1)
+  try {
+    def job(): Unit / Process = {
+      var i = 0;
+      while (i < n_yields) {
+        do yield();
+        i = i + 1
+      }
+    }
+    def entry(): Unit / Process = {
+      var i = 0;
+      while (i < n_jobs) {
+        if (do fork {job(); do tick()}) {
+          do exit()
         }
+        i = i + 1
+      }
     };
-    loop(0)
-  };
+    scheduler {
+      entry
+    };
+  } with Tick {
+    def tick() = {
+      c = c + 1;
+      resume( () );
+    }
+  }
   c
 }
 
