@@ -1,4 +1,7 @@
 #lang racket
+
+(provide program1 program2 program3)
+
 ;; def body(env, ask_L) {
 ;;    let val = raise ask_L 0 in
 ;;   43

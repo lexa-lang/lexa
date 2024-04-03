@@ -1,5 +1,7 @@
 #lang racket
 
+(provide compile-program)
+
 ;; compile env program -> (values #let #pgrm)
 (define (compile-value env value [result `($ 1)])
   (match value
