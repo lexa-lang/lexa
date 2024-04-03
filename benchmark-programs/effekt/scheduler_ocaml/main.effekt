@@ -1,4 +1,5 @@
-import immutable/dequeue
+import exnlist
+import exndequeue
 import immutable/option
 import text/string
 import io/args
@@ -20,12 +21,16 @@ extern pure def cast[T, R](x : T): R =
 def scheduler { prog: => Unit / Process } = region this {
   var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
 
-  def runnext(): Unit = queue.popFront match {
-    case None() => ()
-    case Some((k, q)) =>
-      queue = q
-      k()
-  }
+  def runnext(): Unit = 
+    try {
+      queue.popBack match {
+        case (k, q) =>
+          queue = q
+          k()
+      }
+    } with NoSuchElementException {
+      def throwNSE() = ()
+    }
 
   def spawn(prog1: () => Unit / Process at {this, prog} ): Unit = {
     try { prog1() } with Process {
