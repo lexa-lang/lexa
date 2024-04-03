@@ -35,6 +35,7 @@ wrapCC ( stdenv.mkDerivation rec {
     mkdir -p $out/bin
     cp build/bin/clang $out/bin
     cp build/bin/opt $out/bin
+    cp build/bin/clang-format $out/bin
     cp -r build/lib $out/lib
     '';
 
