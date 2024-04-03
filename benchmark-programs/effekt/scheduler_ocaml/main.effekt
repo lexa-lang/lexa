@@ -57,9 +57,10 @@ def job(): Unit / Process = {
 def jobs(n_jobs: Int): Unit / {Process, Tick} = {
   var i = 0;
   while (i < n_jobs) {
-    if (do fork {job(); do tick()}) {
+    if (do fork {job}) {
       do exit()
     }
+    do tick()
     i = i + 1
   }
 }
