@@ -64,7 +64,7 @@
                 ,@cb))
      ]
     ;; record set
-    [`(let ([,x (set-and-return ,a ,i ,v)]) ,t)
+    [`(let ([,x (update ,a ,i ,v)]) ,t)
       (define-values (nlet cb) (compile-statement (cons x env) t))
      (values (add1 nlet)
               `(,@(compile-value env v `($ 1))
