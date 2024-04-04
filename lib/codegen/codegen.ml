@@ -169,8 +169,8 @@ and gen_value = function
     let concated_params = (List.map (fun x -> (CTI64P, x)) obj_params) 
       @ (List.map (fun x -> (CTI64, x)) hdl_params) in
     let annotation = (match hdl_anno with
-    | HDef -> CAFastSwitch
-    | HExc -> CANone
+    | HDef -> CANone
+    | HExc -> CAFastSwitch
     | _ -> CAFastSwitch) in
     let c_def = CDef (annotation, CTI64, name, concated_params, body) in
     let c_dec = CDec (annotation, CTI64, name, (List.map (fun (a, _) -> a) concated_params)) in
