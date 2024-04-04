@@ -13,8 +13,7 @@ def body_loop_1(env, replace_stub) {
     let yield_stub = env[1] in
     let behead_stub = env[2] in
     let val = ~listHead(it) in
-    let bundle = newref <val, behead_stub, replace_stub> in
-    raise yield_stub.yield bundle
+    raise yield_stub.yield val, behead_stub, replace_stub
 }
 
 obj replace_loop(env) {
@@ -62,10 +61,7 @@ def body_main_2(env, yield_stub) {
 }
 
 obj yield_main(env) {
-    def yield(bundle) {
-        let x = bundle[0] in
-        let behead_stub = bundle[1] in
-        let replace_stub = bundle[2] in
+    def yield(x, behead_stub, replace_stub) {
         let cond = x < 0 in
         if cond then
             raise behead_stub.behead 0
