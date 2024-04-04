@@ -36,6 +36,10 @@ void free_stack(char* stack) {
 }
 
 void free_stack_on_abort(char* curr_stack, char* target_stack) {
+    if ((char*)0x7fffff7ff000 <= curr_stack && curr_stack < (char*)0x7fffffffffff) {
+        // We are currently on the main stack, no need to free
+        return;
+    }
     if (((intptr_t)curr_stack - 1) / STACK_SIZE == ((intptr_t)target_stack - 1) / STACK_SIZE) {
         // Going to the same stack, no need to free
         return;
@@ -97,6 +101,10 @@ void free_stack(char* stack) {
 }
 
 void free_stack_on_abort(char* curr_stack, char* target_stack) {
+    if ((char*)0x7fffff7ff000 <= curr_stack && curr_stack < (char*)0x7fffffffffff) {
+        // We are currently on the main stack, no need to free
+        return;
+    }
     if (((intptr_t)curr_stack - 1) / STACK_SIZE == ((intptr_t)target_stack - 1) / STACK_SIZE) {
         // Going to the same stack, no need to free
         return;
