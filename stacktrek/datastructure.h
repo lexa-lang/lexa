@@ -4,6 +4,7 @@
 #include <common.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #define xmalloc(size) ({                \
     void *_ptr = malloc(size);          \
