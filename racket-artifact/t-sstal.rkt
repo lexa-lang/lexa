@@ -7,13 +7,13 @@
   (match value
     ;; variable
     [(? symbol? name)
-     `(load result sp ,(index-of env name))]
+     `((load ,result sp ,(index-of env name)))]
     ;; number
     [(? number? i)
-     `(mov result ,i)]
+     `((mov ,result ,i))]
     ;; symbol (function name)
     [(? symbol? i)
-     `(mov result i)]))
+     `((mov ,result i))]))
 
 ;; compile env program -> (values #let #pgrm)
 (define (compile-statement env program)
@@ -80,7 +80,7 @@
      (define cEnv (compile-value env vEnv `($ 3)))
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
-     (define Lenter (gensym))
+     (define Lenter (gensym ("let-handle+-")))
      (values (add1 nlet)
              `(,@cEnv
                (mov ($ 2) ,Lop)
@@ -107,7 +107,7 @@
      (define cEnv (compile-value env vEnv `($ 3)))
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
-     (define Lenter (gensym))
+     (define Lenter (gensym "let-handle="))
      (values (add1 nlet)
              `(,@cEnv
                (mov ($ 2) ,Lop)
@@ -131,7 +131,7 @@
        (compile-statement (cons x env) t))
       (define cV1 (compile-value env v1 `($ 1)))
       (define cV2 (compile-value env v2 `($ 2)))
-      (define Lraise (gensym))
+      (define Lraise (gensym "let-raise-"))
       (values (add1 nlet)
               `(
                 ,@cV2
@@ -183,15 +183,15 @@
        (compile-statement (cons x env) t))
       (define cV1 (compile-value env v1 `($ 1)))
       (define cV2 (compile-value env v2 `($ 2)))
-      (define Lresume (gensym))
+      (define Lresume (gensym "let-resume"))
       (values
        (add1 nlet)
        `(,@cV2
          ,@cV1
-         (call Lresume)
+         (call ,Lresume)
          (push ($ 1))
          ,@cb
-         (label Lresume)
+         (label ,Lresume)
          (load ($ 3) ($ 1) 0)
          ;; set an invalid IP to crash if
          ;; double-shot resume
@@ -203,13 +203,15 @@
          (mov sp ($ 29))
          (return)
          ))]
-    [`skip
-     (values 0 '())]
     ;; 
     ;; value
-    [`(let ([,x ,v]) t)
-     (compile-value env v)
-     `(push ($ 1))]))
+    [`(let ([,x ,v]) ,t)
+      (define result (compile-value env v))
+      (define-values (nlet cb)
+       (compile-statement (cons x env) t))
+     (values (add1 nlet) `(,@result (push ($ 1)) ,@cb))]
+    ;; value
+    [x (values 0 (compile-value env x))]))
     
        
 (define (compile-program pgrm)
@@ -219,15 +221,14 @@
      ;; ( (fun name (args) body) ... )
     [`((fun ,name (,@params) ,body) ,rest ...)
      (define-values (num-let compiled-body)
-       (compile-statement params body))
-     (define Lskip (gensym))
-     (define Lfun (gensym))
+      (compile-statement params body))
+     (define Lskip (gensym (format "~a-skip" name)))
      `((jmp ,Lskip)
-       (label name)
+       (label ,name)
        ,@(for/list ([i (in-range (length params) 0 -1)])
            `(push ($ ,i)))
        ,@compiled-body
-       (sfree (+ (length params) num-let))
+       (sfree ,(+ (length params) num-let))
        (return)
        (label ,Lskip)
-       ,(compile-program rest))]))
+       ,@(compile-program rest))]))

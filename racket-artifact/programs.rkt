@@ -25,12 +25,12 @@
             43)
       )
       (fun ask (env _)
-        (let ([val (select env 0)]
-            val))
+        (let ([val (select env 0)])
+            val)
       )
       (fun main ()
         (let ([s (newref 42)])
-            (let ([x (handle= body TAIL ask s)])
+            (let ([x (handle= body TAIL ask under s)])
                 skip)))
     ))
 
@@ -57,13 +57,13 @@
             43)
       )
       (fun ask (env _)
-        (let ([val (select env 0)]
-            val))
+        (let ([val (select env 0)])
+            val)
       )
       (fun main ()
         (let ([s (newref 42)])
-            (let ([x (handle= body TAIL ask s)])
-                skip)))
+            (let ([x (handle= body TAIL ask under s)])
+                0)))
     ))
 
 ;; // An general handler: that resumes resumption twice
@@ -92,19 +92,20 @@
 ;; }
 (define program3
     '((fun body (env incL)
-        (let ([_ (raise incL 0)]
-              [val (select env 0)]
-              [_ (update env 0 (+ val 1))])
-            0)
+        (let ([_ (raise incL 0)])
+            (let ([val (select env 0)])
+                (let ([newval (+ val 1)])
+                    (let ([_ (update env 0 newval)])
+                        0))))
       )
       (fun inc (env _ k)
-        (let ([_ (resume k 0)]
-              [_ (resume k 0)])
-            0)
+        (let ([_ (resume k 0)])
+            (let ([_ (resume k 0)])
+                0))
       )
       (fun main ()
         (let ([s (newref 42)])
-            (let ([_ (handle= body MULTISHOT inc s)])
+            (let ([_ (handle= body MULTISHOT inc under s)])
                 (let ([val (select s 0)])
                     val)))
       )
