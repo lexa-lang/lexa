@@ -129,7 +129,7 @@ let gen_c_annotation = function
 let rec gen_c_def (def : c_def) : string = 
   match def with
   | CDef (annotation, t_return, name, params, body) ->
-    sprintf "%s %s %s(%s) {\nreturn(%s);\n}\n" 
+    sprintf "%s%s %s(%s) {\nreturn(%s);\n}\n" 
       (gen_c_annotation annotation)
       (gen_c_type t_return) 
       name 
