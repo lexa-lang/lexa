@@ -107,13 +107,21 @@ type c_annotation =
   | CAFastSwitch
   | CANone
 
+type c_keyword =
+| CKStatic
+| CKNone
+
 type c_dec = 
-  | CDec of c_annotation * c_type * var * c_type list
+  | CDec of c_annotation * c_keyword * c_type * var * c_type list
 
 type c_def = 
-  | CDef of c_annotation * c_type * var * (c_type * var) list * term
+  | CDef of c_annotation * c_keyword * c_type * var * (c_type * var) list * term
 
 let c_decs : (var * c_dec) list ref = ref []
+
+let gen_c_keyword = function
+  | CKStatic -> "static"
+  | CKNone -> ""
 
 let gen_c_type = function
 | CTI64 -> "i64"
@@ -128,9 +136,10 @@ let gen_c_annotation = function
 
 let rec gen_c_def (def : c_def) : string = 
   match def with
-  | CDef (annotation, t_return, name, params, body) ->
-    sprintf "%s%s %s(%s) {\nreturn(%s);\n}\n" 
+  | CDef (annotation, keyword, t_return, name, params, body) ->
+    sprintf "%s%s %s %s(%s) {\nreturn(%s);\n}\n" 
       (gen_c_annotation annotation)
+      (gen_c_keyword keyword)
       (gen_c_type t_return) 
       name 
       (gen_params params)
@@ -138,9 +147,10 @@ let rec gen_c_def (def : c_def) : string =
 
 and gen_c_dec (dec : c_dec) : string =
   match dec with
-  | CDec (annotation, t_return, name, t_params) ->
-    sprintf "%s %s %s(%s);"
+  | CDec (annotation, keyword, t_return, name, t_params) ->
+    sprintf "%s%s %s %s(%s);"
       (gen_c_annotation annotation)
+      (gen_c_keyword keyword)
       (gen_c_type t_return) name
       (String.concat "," (List.map (fun t -> gen_c_type t) t_params))
 
@@ -152,17 +162,17 @@ and gen_value = function
 | VInt i -> string_of_int i
 | VBool b -> if b then "1" else "0"
 | VAbs (name, params, body) -> 
-  let genParams params =
-    String.concat ", " (List.map (fun p -> "i64 " ^ p) params)
-  in
   if name = "main" then
     sprintf "int main(int argc, char *argv[]) {\ninit_stack_pool();\ni64 res = %s;\ndestroy_stack_pool();\nreturn((int)res);\n}\n"
       (gen_term body)
   else
     let cdec = 
-      CDec (CANone, CTI64, name, (List.map (fun _ -> CTI64) params)) in
+      CDec (CANone, CKStatic, CTI64, name, (List.map (fun _ -> CTI64) params)) in
     c_decs := (name, cdec) :: !c_decs;
-    sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_term body)
+    let cdef =
+      CDef (CANone, CKStatic, CTI64, name, (List.map (fun p -> (CTI64, p)) params), body) in
+    gen_c_def cdef
+    (* sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_term body) *)
 | VEffSig _ -> ""
 | VObj (_, obj_params, hdls) -> 
   let gen_hdl (hdl_anno, name, hdl_params, body) = 
@@ -172,8 +182,8 @@ and gen_value = function
     | HDef -> CANone
     | HExc -> CANone
     | _ -> CAFastSwitch) in
-    let c_def = CDef (annotation, CTI64, name, concated_params, body) in
-    let c_dec = CDec (annotation, CTI64, name, (List.map (fun (a, _) -> a) concated_params)) in
+    let c_def = CDef (annotation, CKNone, CTI64, name, concated_params, body) in
+    let c_dec = CDec (annotation, CKNone, CTI64, name, (List.map (fun (a, _) -> a) concated_params)) in
     c_decs := (name, c_dec) :: !c_decs;
     gen_c_def c_def
   in
@@ -303,11 +313,5 @@ let gen_toplevel toplevel =
       (fun x -> gen_value x)
       toplevel)) in
   let declarations = String.concat "\n" (List.map 
-    (fun (_, d) -> (match d with
-      | CDec (annotation, t_return, name, t_param) -> 
-        sprintf "%s %s %s(%s);" (gen_c_annotation annotation)
-          (gen_c_type t_return) name 
-          (String.concat ", " (List.map (fun t -> (gen_c_type t)) t_param))))
-    !c_decs) in
+    (fun (_, d) -> gen_c_dec d) !c_decs) in
   sprintf "%s\n%s\n%s" header declarations prog
-    
