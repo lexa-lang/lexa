@@ -1,5 +1,7 @@
 #lang racket
 
+(provide compile-program)
+
 ;; compile env program -> (values #let #pgrm)
 (define (compile-value env value [result `($ 1)])
   (match value
@@ -64,7 +66,7 @@
                 ,@cb))
      ]
     ;; record set
-    [`(let ([,x (set-and-return ,a ,i ,v)]) ,t)
+    [`(let ([,x (update ,a ,i ,v)]) ,t)
       (define-values (nlet cb) (compile-statement (cons x env) t))
      (values (add1 nlet)
               `(,@(compile-value env v `($ 1))
@@ -74,7 +76,7 @@
                 ,@cb))   
     ]
     ;; handler (new stack, +)
-    [`(let ([,x (handle+ ,Lbody ,Lop under ,vEnv)]) ,t)
+    [`(let ([,x (handle+ ,Lbody ,A ,Lop under ,vEnv)]) ,t)
      (define cEnv (compile-value env vEnv `($ 3)))
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
@@ -101,7 +103,7 @@
                (mov sp ($ 2))
                (return)))]
     ;; handler (same stack, =)
-    [`(let ([,x (handle= ,Lbody ,Lop under ,vEnv)]) ,t)
+    [`(let ([,x (handle= ,Lbody ,A ,Lop under ,vEnv)]) ,t)
      (define cEnv (compile-value env vEnv `($ 3)))
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
@@ -201,6 +203,8 @@
          (mov sp ($ 29))
          (return)
          ))]
+    [`skip
+     (values 0 '())]
     ;; 
     ;; value
     [`(let ([,x ,v]) t)

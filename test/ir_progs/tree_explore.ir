@@ -79,7 +79,7 @@ def loop(state, tree, i) {
 def run(n) {
     let tree = make(n) in
     let state = newref <0> in
-        loop(state, tree, n)
+        loop(state, tree, 10)
 }
 
 def main() {
