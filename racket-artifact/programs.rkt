@@ -30,7 +30,7 @@
       )
       (fun main ()
         (let ([s (newref 42)])
-            (let ([x (handle= body TAIL ask under s)])
+            (let ([x (handle= body tail ask under s)])
                 skip)))
     ))
 
@@ -62,7 +62,7 @@
       )
       (fun main ()
         (let ([s (newref 42)])
-            (let ([x (handle= body TAIL ask under s)])
+            (let ([x (handle= body abort ask under s)])
                 0)))
     ))
 
@@ -105,7 +105,7 @@
       )
       (fun main ()
         (let ([s (newref 42)])
-            (let ([_ (handle= body MULTISHOT inc under s)])
+            (let ([_ (handle+ body general inc under s)])
                 (let ([val (select s 0)])
                     val)))
       )
