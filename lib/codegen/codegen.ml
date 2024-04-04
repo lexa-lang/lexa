@@ -129,7 +129,7 @@ let gen_c_annotation = function
 let rec gen_c_def (def : c_def) : string = 
   match def with
   | CDef (annotation, t_return, name, params, body) ->
-    sprintf "%s %s %s(%s) {\nreturn(%s);\n}\n" 
+    sprintf "%s%s %s(%s) {\nreturn(%s);\n}\n" 
       (gen_c_annotation annotation)
       (gen_c_type t_return) 
       name 
@@ -169,7 +169,7 @@ and gen_value = function
     let concated_params = (List.map (fun x -> (CTI64P, x)) obj_params) 
       @ (List.map (fun x -> (CTI64, x)) hdl_params) in
     let annotation = (match hdl_anno with
-    | HDef -> CAFastSwitch
+    | HDef -> CANone
     | HExc -> CANone
     | _ -> CAFastSwitch) in
     let c_def = CDef (annotation, CTI64, name, concated_params, body) in

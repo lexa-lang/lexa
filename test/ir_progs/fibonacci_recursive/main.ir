@@ -1,6 +1,6 @@
 def fib(n) {
     let cond = n == 0 in 
-    if cond then 1 else
+    if cond then 0 else
         let cond = n == 1 in
         if cond then 1 else
             let a = n - 1 in

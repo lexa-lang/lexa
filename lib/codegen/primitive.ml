@@ -14,8 +14,12 @@ let prim_env = [
   ("listNode", [PTI64; PTNodeP]);
   ("listEnd", []);
   ("listIsEmpty", [PTNodeP]);
+  ("listRange", [PTI64; PTI64]);
+  ("listPrint", [PTNodeP]);
   ("listHead", [PTNodeP]);
   ("listTail", [PTNodeP]);
+  ("listSetHead", [PTNodeP; PTI64]);
+  ("listSetTail", [PTNodeP; PTNodeP]);
   ("listAppend", [PTNodeP; PTNodeP]);
   ("listMax", [PTNodeP]);
   ("listLen", [PTNodeP]);

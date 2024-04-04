@@ -4,6 +4,7 @@
 #include <common.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #define xmalloc(size) ({                \
     void *_ptr = malloc(size);          \
@@ -39,6 +40,25 @@ node_t* listNode(int64_t value, node_t* next) {
 }
 
 DEBUG_ATTRIBUTE
+node_t* listRange(int64_t start, int64_t end) {
+  if (start >= end) {
+    return NULL;
+  } else {
+    return listNode(start, listRange(start + 1, end));
+  }
+}
+
+DEBUG_ATTRIBUTE
+node_t* listPrint(node_t* xs) {
+  while (xs != NULL) {
+    printf("%ld ", xs->value);
+    xs = xs->next;
+  }
+  printf("\n");
+  return NULL;
+}
+
+DEBUG_ATTRIBUTE
 node_t* listEnd() {
   return NULL;
 }
@@ -54,8 +74,20 @@ int64_t listHead(node_t* xs) {
 }
 
 DEBUG_ATTRIBUTE
+int64_t listSetHead(node_t* xs, int64_t value) {
+  xs->value = value;
+  return value;
+}
+
+DEBUG_ATTRIBUTE
 node_t* listTail(node_t* xs) {
   return xs->next;
+}
+
+DEBUG_ATTRIBUTE
+int64_t listSetTail(node_t* xs, node_t* new_tail) {
+  xs->next = new_tail;
+  return 0;
 }
 
 DEBUG_ATTRIBUTE
