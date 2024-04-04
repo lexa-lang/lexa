@@ -137,8 +137,7 @@
                (push ($ 2))
                (push ($ 3))
                (push ($ 4))
-               (mov ($ 10) -1)
-               (push ($ 10))
+               (push -1)
                (mov ($ 6) ($ 1))
                (mov ($ 2) sp)
                (mov ($ 1) ($ 3))
@@ -237,7 +236,7 @@
 (define (compile-program pgrm)
    (match pgrm
      ;; nothing
-    [`() `()]
+    [`() `((halt))]
      ;; ( (fun name (args) body) ... )
     [`((fun ,name (,@params) ,body) ,rest ...)
      (define-values (num-let compiled-body)

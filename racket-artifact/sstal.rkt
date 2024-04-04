@@ -1,4 +1,6 @@
 #lang racket
+
+(provide run-sstal!)
 ;; simulator state
 
 ;; Register file R + PC + SP
@@ -52,7 +54,8 @@
                 o)]))
 ;; add rd, o
 (define (add rd o)
-  (define v1 (load `($ ,rd)))
+  (match-define rdf `($ ,rd))
+  (define v1 (load `($ ,rdf)))
   (define v2 (load o))
 
   (store `($ ,rd) (match `(,v1 ,v2)
@@ -83,25 +86,31 @@
   (set! sp `(! ,l ,(- j i))))
 
 ;; malloc rd, i
-(define (malloc reg i)
+(define (malloc rd i)
+  (match-define rdf `($ ,rd))
   (define results (make-vector i))
   (vector-set! M fm (array results))
-  (store `($ ,reg) `(! ,fm 0))
+  (store `($ ,rdf) `(! ,fm 0))
   (set! fm (add1 fm)))
 
 ;; mov rd, o
-(define (mov reg o)
-  (store `($ ,reg) (load o)))
+(define (mov rd o)
+  (match-define rdf `($ ,rd))
+  (store `($ ,rdf) (load o)))
 
 ;; load rd, [rs + i]
 (define (iload rd rs i)
-  (match-define `(! ,l ,b) (load `($ ,rs)))
-  (store `($ ,rd) (load-memory `(! ,l ,(+ b i)))))
+  (match-define rdf `($ ,rd))
+  (match-define rsf `($ ,rs))
+  (match-define `(! ,l ,b) (load `($ ,rsf)))
+  (store `($ ,rdf) (load-memory `(! ,l ,(+ b i)))))
 
 ;; store rs, [rd + i]
 (define (istore rs rd i)
-  (match-define `(! ,l ,b) (load `($ ,rd)))
-  (store `(! ,l ,(+ b i)) (load `($ ,rs))))
+  (match-define rdf `($ ,rd))
+  (match-define rsf `($ ,rs))
+  (match-define `(! ,l ,b) (load `($ ,rdf)))
+  (store `(! ,l ,(+ b i)) (load `($ ,rsf))))
 
 ;; call
 (define (call o)
@@ -113,6 +122,10 @@
   ;; set PC to (read o)
   (set! pc (load o)))
 
+;; jmp
+(define (jmp o)
+  (set! pc (load o)))
+
 ;; return
 (define (return)
   ;; get next IP
@@ -122,8 +135,26 @@
   (set! sp `(! ,l ,(add1 b)))
   ;; set PC to nip
   (set! pc nip))
+
+;; push o
+(define (push o)
+  (match-define `(! ,l ,j) sp)
+  (define v (stack-v (vector-ref M l)))
+  (vector-set! M l (stack (vector-append `#(,(load o)) v)))
+  (set! sp `(! ,l ,(+ j 1))))
+
+;; pop rd
+(define (pop rd)
+  (match-define `(! ,l ,j) sp)
+  (define old-stack (stack-v (vector-ref M l)))
+  (store `($ ,rd) (vector-ref old-stack 0))
+  (define new-stack (vector-drop old-stack 1))
+  (vector-set! M l (stack new-stack))
+  (set! sp `(! ,l ,(- j 1))))
   
-(define dispatch-table (hash 'add add 'mkstk mkstk 'salloc salloc 'sfree sfree 'malloc malloc 'mov mov 'load iload 'store istore 'call call 'return return 'halt #f))
+(define dispatch-table (hash 'add add 'mkstk mkstk 'salloc salloc 'sfree sfree 'malloc malloc 'mov mov 
+                       'load iload 'store istore 'call call 'return return 'halt #f
+                       'push push 'pop pop 'jmp jmp))
 
 (define (fetch-execute-once)
   (match-define `(! ,lpc ,_) pc)
