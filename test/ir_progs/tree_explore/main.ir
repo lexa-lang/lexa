@@ -45,7 +45,7 @@ def explore(state, tree, choice_stub) {
 obj choice(env) {
     hdl_s choose(_, k) {
         let arg1 = resume k true in
-        let arg2 = resume k false in
+        let arg2 = resume_final k false in
         ~listAppend(arg1, arg2)
     }
 }
