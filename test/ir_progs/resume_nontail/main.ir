@@ -14,7 +14,7 @@ def loop(i, s, operator_stub) {
 
 obj operator(env) {
     hdl_1 operator(x, k) {
-        let y = resume k 0 in
+        let y = resume_final k 0 in
         let y503 = 503 * y in
         let minus_res = x - y503 in
         let plus_res = minus_res + 37 in
