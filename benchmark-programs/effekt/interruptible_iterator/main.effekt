@@ -11,8 +11,8 @@ effect Yield(value: Int): Unit / { Replace, Behead }
 effect Replace(value: Int): Unit
 effect Behead(): Unit
 
-def range(start: Int, size: Int): List[Int] = {
-  build(size) { i => start + i }
+def range(lo: Int, hi: Int): List[Int] = {
+  build(hi-lo+1) { i => lo + i }
 }
 
 def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
@@ -48,7 +48,7 @@ def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
 }
 
 def run(n: Int) = ignoring0[EmptyList] {
-    var lst = range(0-n, 2*n);
+    var lst = range(0-n, n);
     var beheaded = false;
     var res = try { lst.iter }
         with Yield { x =>
