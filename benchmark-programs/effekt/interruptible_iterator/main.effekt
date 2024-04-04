@@ -4,6 +4,9 @@ import immutable/option
 import text/string
 import io/args
 
+def ignoring0[E] { prog: => List[Int] / Exception[E] }: List[Int] =
+  try { prog() } with Exception[E] { def raise(exception: E, msg: String) = [] }
+
 effect Yield(value: Int): Unit / { Replace, Behead }
 effect Replace(value: Int): Unit
 effect Behead(): Unit
@@ -12,37 +15,46 @@ def range(start: Int, size: Int): List[Int] = {
   build(size) { i => start + i }
 }
 
-def iter(l: List[Int]): List[Int] / { Yield, Behead } = {
-    var in: List[Int] = l;
-    var out: List[Int] = Nil();
+def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
 
-    while (not(in.isEmpty)) { ignoring[EmptyList] {
-        val hd = in.head;
-        val tl = in.tail;
-        try { do Yield(hd); in = tl }
-        with Replace { n =>
-            out = Cons(n, out);
+    def loop(it: List[Int]): List[Int] / { Yield, Behead } = ignoring0[EmptyList] {
+        var hd = it.head;
+        var tl = it.tail;
+        var beheadCount = 0;
+        try { 
+            do Yield(hd); 
+        } with Replace { n =>
+            hd = n;
             resume(())
         }
-        with Behead { resume(()) }
-    }};
-
-    out.reverse
+        val newtl =
+            if (not(isEmpty(tl))) {
+                try {
+                    loop(tl)
+                } with Behead {
+                    beheadCount = beheadCount + 1;
+                    resume(())
+                }
+            } else {
+                []
+            }
+        Cons(hd, drop(newtl, beheadCount))
+    }
+    loop(l)
 }
 
 def run(n: Int) = ignoring[EmptyList] {
     var lst = range(0-n, 2*n);
-
-    val res = try { lst.iter }
+    var beheadCount = 0;
+    var res = try { lst.iter }
     with Yield { x =>
       resume { if (x < 0) do Behead() else do Replace(x * 2) }
     }
     with Behead { () =>
-        println("beheading in client?");
-        lst = lst.tail;
+        beheadCount = beheadCount + 1;
         resume(())
     };
-
+    res = drop(res, beheadCount)
     println(sum(res))
 }
 
