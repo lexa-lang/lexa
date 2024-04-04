@@ -65,8 +65,8 @@ def jobs(n_jobs: Int): Unit / {Process, Tick} = {
   }
 }
 
-def run(n: Int): Int = {
-  var c = 0;
+def run(n: Int, init: Int): Int = {
+  var c = init;
   try {
     scheduler {
       jobs(n)
@@ -80,10 +80,22 @@ def run(n: Int): Int = {
   c
 }
 
+def step(i: Int, acc: Int, n_jobs: Int): Int = {
+  if (i == 0) {
+    acc
+  } else {
+    step(i - 1, run(n_jobs, acc), n_jobs)
+  }
+}
+
+def repeat(n_jobs: Int): Int = {
+  step(1000, 0, n_jobs)
+}
+
 def main() = commandLineArgs() match {
-  case Nil() => println(run(1000000))
+  case Nil() => println(repeat(1000000))
   case Cons(x, Nil()) => toInt(x) match {
-    case Some(i) => println(run(i))
+    case Some(i) => println(repeat(i))
     case _ => println("Unexpected non-integer(s) '" ++ show(x) ++ "'")
   }
   case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
