@@ -15,6 +15,16 @@
     [(? symbol? i)
      `((mov ,result i))]))
 
+(define (compile-handler-type type [result `($ 1)])
+  (match type
+    ['general
+     `((mov ,result 0))]
+    ['tail
+     `((mov ,result 2))]
+    ['abort
+     `((mov ,result 1))])
+)
+
 ;; compile env program -> (values #let #pgrm)
 (define (compile-statement env program)
   (match program
@@ -71,35 +81,39 @@
      (values (add1 nlet)
               `(,@(compile-value env v `($ 1))
                 ,@(compile-value env a `($ 2))
-                (store ($ 1) ($ 2) ,i)
+                (store ($ 2) ($ 1) ,i)
                 (push ($ 1))
-                ,@cb))   
+                ,@cb))
     ]
     ;; handler (new stack, +)
     [`(let ([,x (handle+ ,Lbody ,A ,Lop under ,vEnv)]) ,t)
      (define cEnv (compile-value env vEnv `($ 3)))
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
-     (define Lenter (gensym ("let-handle+-")))
+     (define Lenter (gensym "let-handle+-"))
+     (unless (equal? A 'general)
+       (error "handle+ only supports general handlers."))
      (values (add1 nlet)
-             `(,@cEnv
+             `(,@(compile-handler-type A `($ 4))
+               ,@cEnv
                (mov ($ 2) ,Lop)
                (mov ($ 1) ,Lbody)
                (call ,Lenter)
                (push ($ 1))
                ,@cb
                (label ,Lenter)
-               (mov ($ 29) sp)
+               (mov ($ 5) sp)
                (mkstk sp)
                (push ($ 2))
                (push ($ 3))
-               (push ($ 29))
-               (mov ($ 4) ($ 1))
+               (push ($ 4))
+               (push ($ 5))
+               (mov ($ 6) ($ 1))
                (mov ($ 2) sp)
                (mov ($ 1) ($ 3))
-               (call ($ 4))
+               (call ($ 6))
                (pop ($ 2))
-               (sfree 2)
+               (sfree 3)
                (mov sp ($ 2))
                (return)))]
     ;; handler (same stack, =)
@@ -108,8 +122,12 @@
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
      (define Lenter (gensym "let-handle="))
+      (unless (or (equal? A 'abort)
+                  (equal? A 'tail))
+       (error "handle= only supports tail recursive or escape handlers."))
      (values (add1 nlet)
-             `(,@cEnv
+             `(,@(compile-handler-type A `($ 4))
+               ,@cEnv
                (mov ($ 2) ,Lop)
                (mov ($ 1) ,Lbody)
                (call ,Lenter)
@@ -118,12 +136,15 @@
                (label ,Lenter)
                (push ($ 2))
                (push ($ 3))
-               (mov ($ 4) ($ 1))
+               (push ($ 4))
+               (mov ($ 10) -1)
+               (push ($ 10))
+               (mov ($ 6) ($ 1))
                (mov ($ 2) sp)
                (mov ($ 1) ($ 3))
-               (call ($ 4))
+               (call ($ 6))
                (pop ($ 2))
-               (sfree 1)
+               (sfree 4)
                (return)))]
     ;; raise
     [`(let ([,x (raise ,v1 ,v2)]) ,t)
@@ -140,14 +161,14 @@
                 (push ($ 1))
                 ,@cb
                 (label ,Lraise)
-                (load ($ 29) ($ 1) 0)
+                (load ($ 4) ($ 1) 0)
                 (store sp ($ 1) 0)
-                (mov sp ($ 29))
-                (load ($ 4) ($ 1) 2)
+                (mov sp ($ 4))
+                (load ($ 5) ($ 1) 3)
                 (malloc ($ 3) 1)
                 (store ($ 1) ($ 3) 0)
-                (load ($ 1) ($ 1) 1)
-                (call ($ 4))
+                (load ($ 1) ($ 1) 2)
+                (call ($ 5))
                 (return)))]
     [`(let ([,x (tailraise ,v1 ,v2)]) ,t)
       (define-values (nlet cb)
@@ -171,11 +192,10 @@
       (values (add1 nlet)
               `(,@cV2
                 ,@cV1
+                (load ($ 3) ($ 1) 3)
+                (load ($ 1) ($ 1) 2)
                 (load sp ($ 1) 0)
-                (load ($ 3) ($ 1) 2)
-                (load ($ 1) ($ 1) 1)
-                (call ($ 3))
-                (push ($ 1))
+                (sfree 4)
                 (jump ($ 3))))]
     ;; resume
     [`(let ([,x (resume ,v1 ,v2)]) ,t)
@@ -195,12 +215,12 @@
          (load ($ 3) ($ 1) 0)
          ;; set an invalid IP to crash if
          ;; double-shot resume
-         (mov ($ 29) -1)
-         (store ($ 29) ($ 1) 0)
-         (load ($ 29) ($ 3) 0)
+         (mov ($ 10) -1)
+         (store ($ 10) ($ 1) 0)
+         (load ($ 4) ($ 3) 0)
          (store sp ($ 3) 0)
          (mov ($ 1) ($ 2))
-         (mov sp ($ 29))
+         (mov sp ($ 4))
          (return)
          ))]
     ;; 
