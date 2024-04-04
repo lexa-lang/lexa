@@ -44,7 +44,7 @@ obj choice(env) {
 
     hdl_s flip(_, k) {
         let p1 = resume k true in
-        let p2 = resume k false in
+        let p2 = resume_final k false in
         let mod1 = p1 + p2 in
         let mod2 = 1000000007 in
         mod1 % mod2

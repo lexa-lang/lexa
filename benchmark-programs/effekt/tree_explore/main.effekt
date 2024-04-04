@@ -14,9 +14,7 @@ def maximum(l: List[Int]): Int =
   }
 
 
-effect Choose {
-  def choose(): Boolean
-}
+effect Choose(): Boolean
 
 type Tree {
   Leaf();
@@ -43,7 +41,7 @@ def run(n: Int) = {
     t match {
       case Leaf() => state
       case Node(l, v, r) =>
-        val next = { if (do choose()) { l } else { r } };
+        val next = { if (do Choose()) { l } else { r } };
         state = operator(state, v);
         operator(v, explore(next))
     }
@@ -52,7 +50,7 @@ def run(n: Int) = {
     try {
       [explore(tree)]
     } with Choose {
-      def choose() = append(resume(true), resume(false))
+      def Choose() = append(resume(true), resume(false))
     }
 
   def loop(i: Int): Int =
