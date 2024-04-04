@@ -235,8 +235,13 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         case ABORT: { \
             if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
             __asm__ ( \
-                "movq %2, %%rsp\n\t" \
-                "jmpq *%3\n\t" \
+                "movq %2, %%r12\n\t" \
+                "movq %3, %%r13\n\t" \
+                "movq %%rsp, %%rdi\n\t" \
+                "movq %%r12, %%rsi\n\t" \
+                "callq free_stack_on_abort\n\t" \
+                "movq %%r12, %%rsp\n\t" \
+                "jmpq *%%r13\n\t" \
                 :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
             ); \
             __builtin_unreachable(); \
