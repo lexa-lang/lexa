@@ -5,18 +5,14 @@ import text/string
 
 record Triple(a: Int, b: Int, c: Int)
 
-effect Flip {
-  def flip(): Boolean
-}
+effect Flip(): Boolean
 
-effect Fail {
-  def fail(): Nothing
-}
+effect Fail(): Nothing
 
 def choice(n: Int): Int / {Flip, Fail} = {
   if (n < 1) {
-    do fail() match {}
-  } else if (do flip()) {
+    do Fail() match {}
+  } else if (do Flip()) {
     n
   } else {
     choice(n - 1)
@@ -30,7 +26,7 @@ def triple(n: Int, s: Int): Triple / {Flip, Fail} = {
   if (i + j + k == s) {
     Triple(i, j, k)
   } else {
-    do fail() match {}
+    do Fail() match {}
   }
 }
 
@@ -42,9 +38,9 @@ def run(n: Int, s: Int): Int =
   try {
     hash(triple(n, s))
   } with Flip {
-    def flip() = mod(resume(true) + resume(false), 1000000007)
+    def Flip() = mod(resume(true) + resume(false), 1000000007)
   } with Fail {
-    def fail() = 0
+    def Fail() = 0
   }
 
 def main() = {

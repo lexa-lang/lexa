@@ -5,7 +5,7 @@ import text/string
 
 type Solution = List[Int]
 
-effect Search {
+interface Search {
   def pick(size: Int): Int
   def fail(): Nothing
 }
