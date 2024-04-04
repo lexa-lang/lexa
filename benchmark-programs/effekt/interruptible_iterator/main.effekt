@@ -20,7 +20,7 @@ def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
     def loop(it: List[Int]): List[Int] / { Yield, Behead } = ignoring0[EmptyList] {
         var hd = it.head;
         var tl = it.tail;
-        var beheadCount = 0;
+        var beheaded = false;
         try { 
             do Yield(hd); 
         } with Replace { n =>
@@ -28,34 +28,38 @@ def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
             resume(())
         }
         val newtl =
-            if (not(isEmpty(tl))) {
+            if (isEmpty(tl)) {
+                []
+            } else {
                 try {
                     loop(tl)
                 } with Behead {
-                    beheadCount = beheadCount + 1;
+                    beheaded = true
                     resume(())
                 }
-            } else {
-                []
             }
-        Cons(hd, drop(newtl, beheadCount))
+        if (beheaded) {
+            Cons(hd, newtl.drop(1))
+        } else {
+            Cons(hd, newtl)
+        }
     }
     loop(l)
 }
 
 def run(n: Int) = ignoring[EmptyList] {
     var lst = range(0-n, 2*n);
-    var beheadCount = 0;
+    var beheaded = false;
     var res = try { lst.iter }
-    with Yield { x =>
-      resume { if (x < 0) do Behead() else do Replace(x * 2) }
-    }
-    with Behead { () =>
-        beheadCount = beheadCount + 1;
-        resume(())
-    };
-    res = drop(res, beheadCount)
-    println(sum(res))
+        with Yield { x =>
+        resume { if (x < 0) do Behead() else do Replace(x * 2) }
+        }
+        with Behead { () =>
+            beheaded = true;
+            resume(())
+        };
+    res = if (beheaded) res.drop(1) else res;
+    println(res)
 }
 
 def main() = commandLineArgs() match {
