@@ -47,7 +47,7 @@ def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
     loop(l)
 }
 
-def run(n: Int) = ignoring[EmptyList] {
+def run(n: Int) = ignoring0[EmptyList] {
     var lst = range(0-n, 2*n);
     var beheaded = false;
     var res = try { lst.iter }
@@ -58,14 +58,25 @@ def run(n: Int) = ignoring[EmptyList] {
             beheaded = true;
             resume(())
         };
-    res = if (beheaded) res.drop(1) else res;
-    println(res)
+    if (beheaded) res.drop(1) else res
+}
+
+def step(i: Int, acc: Int, n_jobs: Int): Int = {
+  if (i == 0) {
+    acc
+  } else {
+    step(i - 1, sum(run(n_jobs))+acc, n_jobs)
+  }
+}
+
+def repeat(n_jobs: Int): Int = {
+  step(1000, 0, n_jobs)
 }
 
 def main() = commandLineArgs() match {
-  case Nil() => run(10)
+  case Nil() => println(repeat(10))
   case Cons(x, Nil()) => toInt(x) match {
-    case Some(i) => run(i)
+    case Some(i) => println(repeat(i))
     case _ => println("Unexpected non-integer(s) '" ++ show(x) ++ "'")
   }
   case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
