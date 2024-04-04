@@ -95,6 +95,17 @@ obj behead_main(env) {
     }
 }
 
+def listSum(l, acc) {
+    let cond = ~listIsEmpty(l) in
+    if cond then
+        acc
+    else
+        let head = ~listHead(l) in
+        let tail = ~listTail(l) in
+        let newacc = acc + head in
+        listSum(tail, newacc)
+}
+
 def run(n) {
     let minusn = 0 - n in
     let l = ~listRange(minusn, n) in
@@ -110,13 +121,27 @@ def run(n) {
         else
             newtl
     in
-    let _ = ~listPrint(res) in
-    0
+    listSum(res)
+}
+
+def step(i, acc, n_jobs) {
+    let cond = i == 0 in
+    if cond then
+        acc
+    else
+        let i_dec = i - 1 in
+        let res = run(n_jobs) in
+        let acc2 = acc + res in
+        step(i_dec, acc2, n_jobs)
+}
+
+def repeat(n_jobs) {
+    step(1000, 0, n_jobs)
 }
 
 def main() {
     let arg1 = ~readInt() in
-    let arg2 = run(arg1) in
+    let arg2 = repeat(arg1) in
     let _ = ~printInt(arg2) in
     0
 }
