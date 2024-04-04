@@ -8,7 +8,7 @@ effect Behead {
     dcl behead
 }
 
-def body_loop_1(env, replace_stub) {
+def loop_body_1(env, replace_stub) {
     let it = env[0] in
     let yield_stub = env[1] in
     let behead_stub = env[2] in
@@ -23,35 +23,45 @@ obj replace_loop(env) {
     }
 }
 
-def body_loop_2(env, behead_stub) {
-    let it = env[0] in
+def loop_body_2(env, behead_stub) {
+    let it_tail = env[0] in
     let yield_stub = env[1] in
-    let it_tail = ~listTail(it) in
     loop(it_tail, yield_stub, behead_stub)
 }
 
-obj behead_loop(env) {
+obj loop_behead(env) {
     def behead(_) {
         let it = env[0] in
-        let it_tail = ~listTail(it) in
-        let it_tail_tail = ~listTail(it_tail) in
-        ~listSetTail(it, it_tail_tail)
+        let beheaded = env[2] in
+        beheaded[0] := 1
     }
 }
 
 def loop(it, yield_stub, behead_stub) {
     let _ = 
         handle <it, yield_stub, behead_stub>
-            body_loop_1
+            loop_body_1
         with replace_loop: Replace in
     let it_tail = ~listTail(it) in
+    let beheaded = newref <0> in
     let cond = ~listIsEmpty(it_tail) in
+    let newtl = 
         if cond then
-            0
+            ~listEnd()
         else
-            handle <it, yield_stub>
-                body_loop_2
-            with behead_loop: Behead
+            handle <it_tail, yield_stub, beheaded>
+                loop_body_2
+            with loop_behead: Behead
+    in
+    let tobehead = beheaded[0] in
+    let _ =
+        if tobehead then
+            let tailtail = ~listTail(newtl) in
+            ~listSetTail(it, tailtail)
+        else
+            0
+    in it
+            
 }
 
 def body_main_2(env, yield_stub) {
@@ -72,8 +82,7 @@ obj yield_main(env) {
 }
 
 def body_main_1(env, behead_stub) {
-    let lref = env[0] in
-    let l = lref[0] in
+    let l = env[0] in
     handle <behead_stub, l>
         body_main_2
     with yield_main: Yield
@@ -81,24 +90,27 @@ def body_main_1(env, behead_stub) {
 
 obj behead_main(env) {
     def behead(_) {
-        let lref = env[0] in
-        let l = lref[0] in
-        let ltail = ~listTail(l) in
-        let _ = lref[0] := ltail in
-        0
+        let beheaded = env[1] in
+        beheaded[0] := 1
     }
 }
 
 def run(n) {
     let minusn = 0 - n in
     let l = ~listRange(minusn, n) in
-    let lref = newref <l> in
-    let _ = 
-        handle <lref>
+    let beheaded = newref <0> in
+    let newtl = 
+        handle <l, beheaded>
             body_main_1
         with behead_main: Behead in
-    let l1 = lref[0] in
-    let _ = ~listPrint(l1) in
+    let tobehead = beheaded[0] in
+    let res =
+        if tobehead then
+            ~listTail(newtl)
+        else
+            newtl
+    in
+    let _ = ~listPrint(res) in
     0
 }
 
