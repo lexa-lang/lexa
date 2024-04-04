@@ -1,5 +1,5 @@
 #lang racket
-
+(require racket/exn)
 (provide run-sstal!)
 ;; simulator state
 
@@ -28,7 +28,6 @@
   (match d
     ;; Destinations can only be registers / memory addresses
     [`($ sp) (set! sp v)]
-    [`sp (set! sp v)]
     [`($ ,n) (vector-set! R n v)]
     [`(! ,b ,o) (vector-set!
                 (match (vector-ref M b)
@@ -39,7 +38,6 @@
   (match s
     ;; Sources can be registers / constants
     [`($ sp) sp]
-    [`sp sp]
     [`($ ,n) (vector-ref R n)]
     [`(! ,b ,o) `(! ,b ,o)]
     [(? number? i) i]))
@@ -83,11 +81,11 @@
   (define old-stack (stack-v (vector-ref M l)))
   (define new-stack (vector-drop old-stack i))
   (vector-set! M l (stack new-stack))
-  (set! sp `(! ,l ,(- j i))))
+  (set! sp `(! ,l ,(- j 0))))
 
 ;; malloc rd, i
 (define (malloc rd i)
-  (match-define rdf `($ ,rd))
+  (match-define `($ ,rdf) rd)
   (define results (make-vector i))
   (vector-set! M fm (array results))
   (store `($ ,rdf) `(! ,fm 0))
@@ -95,20 +93,20 @@
 
 ;; mov rd, o
 (define (mov rd o)
-  (match-define rdf `($ ,rd))
+  (match-define `($ ,rdf) rd)
   (store `($ ,rdf) (load o)))
 
 ;; load rd, [rs + i]
 (define (iload rd rs i)
-  (match-define rdf `($ ,rd))
-  (match-define rsf `($ ,rs))
+  (match-define `($ ,rdf) rd)
+  (match-define `($ ,rsf) rs)
   (match-define `(! ,l ,b) (load `($ ,rsf)))
   (store `($ ,rdf) (load-memory `(! ,l ,(+ b i)))))
 
 ;; store rs, [rd + i]
 (define (istore rs rd i)
-  (match-define rdf `($ ,rd))
-  (match-define rsf `($ ,rs))
+  (match-define `($ ,rdf) rd)
+  (match-define `($ ,rsf) rs)
   (match-define `(! ,l ,b) (load `($ ,rdf)))
   (store `(! ,l ,(+ b i)) (load `($ ,rsf))))
 
@@ -116,9 +114,8 @@
 (define (call o)
   ;; push next IP on current stack
   (match-define `(! ,l ,b) sp)
-  (match-define `(! ,lpc _) pc)
-  (set! sp `(! ,l ,(sub1 b)))
-  (store `sp `(! ,(add1 lpc) 0))
+  (match-define `(! ,lpc ,_) pc)
+  (push `(! ,lpc 0))
   ;; set PC to (read o)
   (set! pc (load o)))
 
@@ -141,16 +138,17 @@
   (match-define `(! ,l ,j) sp)
   (define v (stack-v (vector-ref M l)))
   (vector-set! M l (stack (vector-append `#(,(load o)) v)))
-  (set! sp `(! ,l ,(+ j 1))))
+  (set! sp `(! ,l ,(+ j 0))))
 
 ;; pop rd
 (define (pop rd)
+  (match-define `($ ,rdf) rd)
   (match-define `(! ,l ,j) sp)
   (define old-stack (stack-v (vector-ref M l)))
-  (store `($ ,rd) (vector-ref old-stack 0))
+  (store `($ ,rdf) (vector-ref old-stack 0))
   (define new-stack (vector-drop old-stack 1))
   (vector-set! M l (stack new-stack))
-  (set! sp `(! ,l ,(- j 1))))
+  (set! sp `(! ,l ,(- j 0))))
   
 (define dispatch-table (hash 'add add 'mkstk mkstk 'salloc salloc 'sfree sfree 'malloc malloc 'mov mov 
                        'load iload 'store istore 'call call 'return return 'halt #f
@@ -179,8 +177,18 @@
 
   (mkstk `sp)
 
-  (let loop ()
-    (unless halted?
-      (fetch-execute-once)
-      (loop))))
+  (with-handlers 
+    [(exn:fail? (lambda (e) (set! halted? #t) (display (exn->string e)) (newline)
+      (eprintf "SP=~a PC=~a ~n" sp pc)
+      (match-define `(! ,ls ,js) sp)
+      (eprintf "Stack: ~a ~n" (vector-ref M ls))
+      (for ([i 8])
+        (eprintf "$~a=~a ~n" i (vector-ref R i)))
+      (match-define `(! ,l ,j) pc)
+      (eprintf "Faulting instruction: ~a ~n" (vector-ref IM (sub1 l)))
+    ))]
+    (let loop ()
+      (unless halted?
+        (fetch-execute-once)
+        (loop)))))
       

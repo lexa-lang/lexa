@@ -11,8 +11,8 @@
 
 (pretty-print compiled-program-1)
 (define assembled-program-1 (assemble compiled-program-1))
-(define assembled-program-2 (assemble compiled-program-2))
-(define assembled-program-3 (assemble compiled-program-3))
-(pretty-print assembled-program-1)
+;;(define assembled-program-2 (assemble compiled-program-2))
+;;(define assembled-program-3 (assemble compiled-program-3))
+;;(pretty-print assembled-program-1)
 
 (run-sstal! assembled-program-1)
