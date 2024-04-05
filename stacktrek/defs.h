@@ -296,7 +296,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         case SINGLESHOT: { \
             if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
             resumption_t* k = (resumption_t*)(stub->sp_exchanger); \
-            out = save_switch_and_run_handler_wrapper(stub->env, args[0], k,\
+            out = save_switch_and_run_handler(stub->env, args[0], k,\
                 (stub->defs[index].func)); \
             break; \
         } \
