@@ -204,11 +204,7 @@ and gen_term = function
     gen_value v1 ^ " " 
     ^ genCmp op ^ " " ^ gen_value v2
 | TLet (x, t1, t2) ->
-    String.concat "\n"
-      ["({";
-        "i64 " ^ x ^ " = " ^ (gen_term t1) ^ ";";
-        gen_term t2 ^ ";";
-      "})"]
+    sprintf "({i64 %s = (i64)(%s);\n%s;})" x (gen_term t1) (gen_term t2)
 | TApp (v1, args) ->
     (match v1 with
     | VPrim _ -> 

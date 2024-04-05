@@ -16,7 +16,7 @@ test: build
 	# cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
 	cd triples ; ./main 10 > actual ; echo 779312 > expected ; diff expected actual
-	# cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
+	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
 
 build:
@@ -28,7 +28,7 @@ build:
 	# cd nqueens ; dune exec -- sstal main.ir -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../stacktrek main.c -o main
 	cd tree_explore ; dune exec -- sstal main.ir -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../stacktrek main.c -o main
 	cd triples ; dune exec -- sstal main.ir -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../stacktrek main.c -o main
-	# cd parsing_dollars ; dune exec -- sstal main.ir -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../stacktrek main.c -o main
+	cd parsing_dollars ; dune exec -- sstal main.ir -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../stacktrek main.c -o main
 	cd resume_nontail ; dune exec -- sstal main.ir -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../stacktrek main.c -o main
 
 clean:

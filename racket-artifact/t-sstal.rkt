@@ -7,7 +7,7 @@
   (match value
     ;; variable
     [(? symbol? name)
-     `((load ,result sp ,(index-of env name)))]
+     `((load ,result ($ sp) ,(index-of env name)))]
     ;; number
     [(? number? i)
      `((mov ,result ,i))]
@@ -102,19 +102,19 @@
                (push ($ 1))
                ,@cb
                (label ,Lenter)
-               (mov ($ 5) sp)
-               (mkstk sp)
+               (mov ($ 5) ($ sp))
+               (mkstk ($ sp))
                (push ($ 2))
                (push ($ 3))
                (push ($ 4))
                (push ($ 5))
                (mov ($ 6) ($ 1))
-               (mov ($ 2) sp)
+               (mov ($ 2) ($ sp))
                (mov ($ 1) ($ 3))
                (call ($ 6))
                (pop ($ 2))
                (sfree 3)
-               (mov sp ($ 2))
+               (mov ($ sp) ($ 2))
                (return)))]
     ;; handler (same stack, =)
     [`(let ([,x (handle= ,Lbody ,A ,Lop under ,vEnv)]) ,t)
@@ -137,10 +137,9 @@
                (push ($ 2))
                (push ($ 3))
                (push ($ 4))
-               (mov ($ 10) -1)
-               (push ($ 10))
+               (push -69)
                (mov ($ 6) ($ 1))
-               (mov ($ 2) sp)
+               (mov ($ 2) ($ sp))
                (mov ($ 1) ($ 3))
                (call ($ 6))
                (pop ($ 2))
@@ -162,14 +161,15 @@
                 ,@cb
                 (label ,Lraise)
                 (load ($ 4) ($ 1) 0)
-                (store sp ($ 1) 0)
-                (mov sp ($ 4))
+                (store ($ sp) ($ 1) 0)
+                (mov ($ sp) ($ 4))
                 (load ($ 5) ($ 1) 3)
                 (malloc ($ 3) 1)
                 (store ($ 1) ($ 3) 0)
                 (load ($ 1) ($ 1) 2)
                 (call ($ 5))
                 (return)))]
+    ;; tailraise
     [`(let ([,x (tailraise ,v1 ,v2)]) ,t)
       (define-values (nlet cb)
        (compile-statement (cons x env) t))
@@ -194,7 +194,7 @@
                 ,@cV1
                 (load ($ 3) ($ 1) 3)
                 (load ($ 1) ($ 1) 2)
-                (load sp ($ 1) 0)
+                (load ($ sp) ($ 1) 0)
                 (sfree 4)
                 (jump ($ 3))))]
     ;; resume
@@ -218,9 +218,9 @@
          (mov ($ 10) -1)
          (store ($ 10) ($ 1) 0)
          (load ($ 4) ($ 3) 0)
-         (store sp ($ 3) 0)
+         (store ($ sp) ($ 3) 0)
          (mov ($ 1) ($ 2))
-         (mov sp ($ 4))
+         (mov ($ sp) ($ 4))
          (return)
          ))]
     ;; 
@@ -237,7 +237,7 @@
 (define (compile-program pgrm)
    (match pgrm
      ;; nothing
-    [`() `()]
+    [`() `((call main) (halt))]
      ;; ( (fun name (args) body) ... )
     [`((fun ,name (,@params) ,body) ,rest ...)
      (define-values (num-let compiled-body)

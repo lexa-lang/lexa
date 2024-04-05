@@ -31,7 +31,7 @@
       (fun main ()
         (let ([s (newref 42)])
             (let ([x (handle= body tail ask under s)])
-                skip)))
+                420)))
     ))
 
 ;;
@@ -63,7 +63,7 @@
       (fun main ()
         (let ([s (newref 42)])
             (let ([x (handle= body abort ask under s)])
-                0)))
+                420)))
     ))
 
 ;; // An general handler: that resumes resumption twice

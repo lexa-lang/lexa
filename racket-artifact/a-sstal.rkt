@@ -33,4 +33,5 @@
 (define (assemble p)
   (define-values (lmap p_) (collect-filter-label-defs p))
   (hash-set! lmap 'sp 'sp)
+  (pretty-print lmap)
   (replace-labels lmap p_))
