@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <longjmp.h>
+#include "longjmp.h"
 
 typedef struct node {
     int value;
