@@ -128,7 +128,7 @@ and gen_value = function
 | VBool b -> if b then "1" else "0"
 | VAbs (name, params, body) -> 
   if name = "main" then
-    sprintf "int main(int argc, char *argv[]) {\ninit_stack_pool();\ni64 res = %s;\ndestroy_stack_pool();\nreturn((int)res);\n}\n"
+    sprintf "int main(int argc, char *argv[]) {\ninit_stack_pool();\ni64 __res__ = %s;\ndestroy_stack_pool();\nreturn((int)__res__);\n}\n"
       (gen_term body)
   else
     let cdec = 
