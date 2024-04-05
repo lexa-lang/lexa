@@ -5,10 +5,10 @@
 #define i64 intptr_t
 
 typedef enum {
-    TAIL = 0,
-    ABORT,
+    ABORT = 0,
     SINGLESHOT,
     MULTISHOT,
+    TAIL,
 } handler_mode_t;
 
 typedef struct {
@@ -65,11 +65,9 @@ extern intptr_t ret_val;
     harr;\
     })
 
-__attribute__((noinline))
+__attribute__((naked))
 FAST_SWITCH_DECORATOR
-int64_t double_save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
-    resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
-    k->ctx_sp = stub->sp_exchanger;
+int64_t double_save_switch_and_run_handler_naked(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
     __asm__ (
         "movq 8(%%rdx), %%r8\n\t" // Get the exchanger from the resumption
         "movq 0(%%r8), %%rax\n\t" // Get the context stack from the exchanger
@@ -77,7 +75,27 @@ int64_t double_save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t 
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to the resumption
         "movq %%rax, %%rsp\n\t" // Switch to the context stack
         "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
-        :: "D"(stub->env), "S"(arg), "d"(k), "c"(stub->defs[index].func)
+        :
+    );
+}
+
+__attribute__((noinline))
+FAST_SWITCH_DECORATOR
+int64_t double_save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
+    resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
+    k->ctx_sp = stub->sp_exchanger;
+    return double_save_switch_and_run_handler_naked(stub->env, arg, k, stub->defs[index].func);
+}
+
+__attribute__((naked))
+FAST_SWITCH_DECORATOR
+int64_t save_switch_and_run_handler_naked(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
+    __asm__ (
+        "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
+        "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
+        "movq %%rax, %%rsp\n\t" // Switch to the context stack
+        "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
+        :
     );
 }
 
@@ -85,13 +103,7 @@ __attribute__((noinline))
 FAST_SWITCH_DECORATOR
 int64_t save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
     resumption_t* k = (resumption_t*)(stub->sp_exchanger);
-    __asm__ (
-        "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
-        "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
-        "movq %%rax, %%rsp\n\t" // Switch to the context stack
-        "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
-        :: "D"(stub->env), "S"(arg), "d"(k), "c"(stub->defs[index].func)
-    );
+    save_switch_and_run_handler_naked(stub->env, arg, k, stub->defs[index].func);
 }
 
 // __attribute__((noinline))
@@ -314,8 +326,7 @@ int64_t (FAST_SWITCH_DECORATOR* stack_switching_functions[3])(meta_t* stub, int6
         } \
     } else { \
         if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-        printf("mode: %d\n", stub->defs[index].mode - 1); \
-        stack_switching_functions[stub->defs[index].mode - 1](stub, index, args[0]); \
+        out = stack_switching_functions[stub->defs[index].mode](stub, index, args[0]); \
     } \
     _Pragma("clang diagnostic pop") \
     out; \
