@@ -4,7 +4,7 @@ import std/os/env
 
 effect fun prime(e : int) : bool
 
-fun primes(i : int, n : int, a : int): <div,prime>
+fun primes(i : int, n : int, a : int): <div,prime> int
   if (i >= n)
     then a
     else
