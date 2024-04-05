@@ -48,7 +48,16 @@ fun run(n : int)
   else
     res
 
+fun step(i: int, acc: int, n_jobs: int)
+  if i == 0 then
+    acc
+  else
+    step(i - 1, acc + sum(run(n_jobs)), n_jobs)
+
+fun repeat(n_jobs: int)
+  step(1000, 0, n_jobs)
+
 pub fun main()
   val n = get-args().head("").parse-int().default(5)
-  val r = run(n)
+  val r = repeat(n)
   println(r)

@@ -72,7 +72,6 @@ void destroy_stack_pool() {
 }
 
 // HACK! TODO: scheduler_ocaml needs the following attribute for correctness
-__attribute__((noinline))
 char* get_stack() {
     if (!buffer) {
         init_stack_pool();

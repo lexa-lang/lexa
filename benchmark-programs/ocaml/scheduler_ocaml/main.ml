@@ -47,9 +47,19 @@ let run n_jobs =
   in
   !c
 
+let rec step i acc n_jobs =
+  if i = 0
+    then acc
+    else 
+      let r = run n_jobs in
+      step (i - 1) (acc + r) n_jobs
+
+let repeat n_jobs =
+  step 1000 0 n_jobs
+
 let main () =
   let n = try int_of_string (Sys.argv.(1)) with _ -> 5 in
-  let r = run n in
+  let r = repeat n in
   Printf.printf "%d\n" r
 
 let _ = main ()
