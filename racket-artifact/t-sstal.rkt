@@ -91,6 +91,7 @@
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
      (define Lenter (gensym "let-handle+-"))
+     (define Lend (gensym "let-handler+-end "))
      (unless (equal? A 'general)
        (error "handle+ only supports general handlers."))
      (values (add1 nlet)
@@ -101,6 +102,7 @@
                (call ,Lenter)
                (push ($ 1))
                ,@cb
+               (jmp ,Lend)
                (label ,Lenter)
                (mov ($ 5) ($ sp))
                (mkstk ($ sp))
@@ -115,13 +117,15 @@
                (pop ($ 2))
                (sfree 3)
                (mov ($ sp) ($ 2))
-               (return)))]
+               (return)
+               (label ,Lend)))]
     ;; handler (same stack, =)
     [`(let ([,x (handle= ,Lbody ,A ,Lop under ,vEnv)]) ,t)
      (define cEnv (compile-value env vEnv `($ 3)))
      (define-values (nlet cb)
        (compile-statement (cons x env) t))
      (define Lenter (gensym "let-handle="))
+     (define Lend (gensym "let-handler=-end "))
       (unless (or (equal? A 'abort)
                   (equal? A 'tail))
        (error "handle= only supports tail recursive or escape handlers."))
@@ -133,6 +137,7 @@
                (call ,Lenter)
                (push ($ 1))
                ,@cb
+               (jmp ,Lend)
                (label ,Lenter)
                (push ($ 2))
                (push ($ 3))
@@ -142,9 +147,9 @@
                (mov ($ 2) ($ sp))
                (mov ($ 1) ($ 3))
                (call ($ 6))
-               (pop ($ 2))
                (sfree 4)
-               (return)))]
+               (return)
+               (label ,Lend)))]
     ;; raise
     [`(let ([,x (raise ,v1 ,v2)]) ,t)
       (define-values (nlet cb)
@@ -152,6 +157,7 @@
       (define cV1 (compile-value env v1 `($ 1)))
       (define cV2 (compile-value env v2 `($ 2)))
       (define Lraise (gensym "let-raise-"))
+      (define Lraiseend (gensym "let-raise-end"))
       (values (add1 nlet)
               `(
                 ,@cV2
@@ -159,6 +165,7 @@
                 (call ,Lraise)
                 (push ($ 1))
                 ,@cb
+                (jmp ,Lraiseend)
                 (label ,Lraise)
                 (load ($ 4) ($ 1) 0)
                 (store ($ sp) ($ 1) 0)
@@ -168,7 +175,8 @@
                 (store ($ 1) ($ 3) 0)
                 (load ($ 1) ($ 1) 2)
                 (call ($ 5))
-                (return)))]
+                (return)
+                (label ,Lraiseend)))]
     ;; tailraise
     [`(let ([,x (tailraise ,v1 ,v2)]) ,t)
       (define-values (nlet cb)
@@ -178,8 +186,8 @@
       (values (add1 nlet)
               `(,@cV2
                 ,@cV1
-                (load ($ 3) ($ 1) 2)
-                (load ($ 1) ($ 1) 1)
+                (load ($ 3) ($ 1) 3)
+                (load ($ 1) ($ 1) 2)
                 (call ($ 3))
                 (push ($ 1))
                 ,@cb))]
@@ -192,11 +200,13 @@
       (values (add1 nlet)
               `(,@cV2
                 ,@cV1
+                (dump)
                 (load ($ 3) ($ 1) 3)
                 (load ($ 1) ($ 1) 2)
+ 
                 (load ($ sp) ($ 1) 0)
                 (sfree 4)
-                (jump ($ 3))))]
+                (jmp ($ 3))))]
     ;; resume
     [`(let ([,x (resume ,v1 ,v2)]) ,t)
       (define-values (nlet cb)
@@ -204,6 +214,7 @@
       (define cV1 (compile-value env v1 `($ 1)))
       (define cV2 (compile-value env v2 `($ 2)))
       (define Lresume (gensym "let-resume"))
+      (define Lresume-end (gensym "let-resume-end"))
       (values
        (add1 nlet)
        `(,@cV2
@@ -211,6 +222,7 @@
          (call ,Lresume)
          (push ($ 1))
          ,@cb
+         (jump ,Lresume-end)
          (label ,Lresume)
          (load ($ 3) ($ 1) 0)
          ;; set an invalid IP to crash if
@@ -222,6 +234,7 @@
          (mov ($ 1) ($ 2))
          (mov ($ sp) ($ 4))
          (return)
+         (label ,Lresume-end)
          ))]
     ;; 
     ;; value

@@ -9,10 +9,9 @@
 (define compiled-program-2 (compile-program program2))
 (define compiled-program-3 (compile-program program3))
 
-(pretty-print compiled-program-1)
 (define assembled-program-1 (assemble compiled-program-1))
-;;(define assembled-program-2 (assemble compiled-program-2))
-;;(define assembled-program-3 (assemble compiled-program-3))
-;;(pretty-print assembled-program-1)
+(define assembled-program-2 (assemble compiled-program-2))
+(define assembled-program-3 (assemble compiled-program-3))
 
-(run-sstal! assembled-program-1)
+(pretty-print assembled-program-2)
+(run-sstal! assembled-program-2)

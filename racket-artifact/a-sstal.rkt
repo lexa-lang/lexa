@@ -23,15 +23,15 @@
   (map
    (lambda (inst)
      (match inst
-       [`(call ,(? symbol? l)) `(call (! ,(hash-ref lmap l) 0))]
-       [`(mov ,r ,(? symbol? l)) `(mov ,r (! ,(hash-ref lmap l), 0))]
-       [`(add ,r ,(? symbol? l)) `(mov ,r (! ,(hash-ref lmap l), 0))]
-       [`(jmp ,(? symbol? l)) `(jmp (! ,(hash-ref lmap l), 0))]
+       [`(call ,(? symbol? l)) `(call (* ,(hash-ref lmap l)))]
+       [`(mov ,r ,(? symbol? l)) `(mov ,r (* ,(hash-ref lmap l)))]
+       [`(add ,r ,(? symbol? l)) `(mov ,r (* ,(hash-ref lmap l)))]
+       [`(jmp ,(? symbol? l)) `(jmp (* ,(hash-ref lmap l)))]
        [inst inst]))
    p))
 
 (define (assemble p)
   (define-values (lmap p_) (collect-filter-label-defs p))
   (hash-set! lmap 'sp 'sp)
-  (pretty-print lmap)
+  ;; (pretty-print lmap)
   (replace-labels lmap p_))

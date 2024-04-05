@@ -19,6 +19,7 @@
 ;;    }
 ;; }
 
+;; produces 43 --> val is 42, is placed on the stack
 (define program1
     '((fun body (env askL)
         (let ([val (tailraise askL 0)])
@@ -31,7 +32,7 @@
       (fun main ()
         (let ([s (newref 42)])
             (let ([x (handle= body tail ask under s)])
-                420)))
+                x)))
     ))
 
 ;;
@@ -63,7 +64,7 @@
       (fun main ()
         (let ([s (newref 42)])
             (let ([x (handle= body abort ask under s)])
-                420)))
+                x)))
     ))
 
 ;; // An general handler: that resumes resumption twice
