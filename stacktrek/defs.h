@@ -99,7 +99,8 @@ int64_t save_switch_and_run_handler_wrapper(intptr_t* env, int64_t arg, resumpti
 // __attribute__((noinline, naked))
 // FAST_SWITCH_DECORATOR
 __attribute__((noinline)) // no inline to avoid code bloat
-int64_t switch_free_and_run_handler(intptr_t* env, int64_t arg, void* target_sp, void* func) {
+int64_t switch_free_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
+    void* target_sp = *stub->sp_exchanger;
     void* curr_sp;
     __asm__ (
         "movq %%rsp, %0\n\t"
@@ -109,7 +110,7 @@ int64_t switch_free_and_run_handler(intptr_t* env, int64_t arg, void* target_sp,
     __asm__ (
         "movq %2, %%rsp\n\t"
         "jmpq *%3\n\t"
-        :: "D"(env), "S"(arg), "r"(target_sp), "r"(func)
+        :: "D"(stub->env), "S"(arg), "r"(target_sp), "r"(stub->defs[index].func)
     ); 
 }
 
@@ -261,7 +262,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
     if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-    switch_free_and_run_handler(stub->env, args[0], *stub->sp_exchanger, stub->defs[index].func); \
+    switch_free_and_run_handler(stub, index, args[0]); \
     _Pragma("clang diagnostic pop") \
     out; \
     })
@@ -274,8 +275,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     intptr_t args[] = {EXPAND m_args}; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
-    handler_mode_t mode = stub->defs[index].mode & (TAIL | ABORT | SINGLESHOT | MULTISHOT); \
-    switch (mode) { \
+    switch (stub->defs[index].mode) { \
         case TAIL: { \
             if (nargs == 0) { \
                 out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
@@ -292,7 +292,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         } \
         case ABORT: { \
             if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-            switch_free_and_run_handler(stub->env, args[0], *stub->sp_exchanger, stub->defs[index].func); \
+            switch_free_and_run_handler(stub, index, args[0]); \
         } \
         case SINGLESHOT: { \
             if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
