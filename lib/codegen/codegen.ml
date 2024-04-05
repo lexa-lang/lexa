@@ -48,41 +48,6 @@ let rec list_repeat n s =
   if n = 0 then [] else
   s :: list_repeat (n - 1) s
 
-(* Substitute all occurences of name in t with name_new *)
-let rec subst_var (t : term) (name : var) (name_new : var) =
-  let subst_value v =
-    match v with
-    | VVar x ->  (if x = name then (VVar name_new) else v)
-    | _ -> v
-  in
-  match t with
-  | TValue v -> TValue (subst_value v)
-  | TArith (v1, op, v2) -> TArith (subst_value v1, op, subst_value v2)
-  | TCmp (v1, op, v2) -> TCmp (subst_value v1, op, subst_value v2)
-  | TLet (x, t1, t2) -> 
-      TLet (x, (subst_var t1 name name_new), (subst_var t2 name name_new))
-  | TIf (v, t1, t2) ->
-      TIf (subst_value v, subst_var t1 name name_new, subst_var t2 name name_new)
-  | TApp (v, vs) ->
-      TApp (subst_value v, List.map (fun vv -> subst_value vv) vs)
-  | TNew hv -> 
-      TNew (List.map (fun vv -> subst_value vv) hv)
-  | TGet (v, i) ->
-      TGet (subst_value v, i)
-  | TSet (v1, i, v2) ->
-      TSet (subst_value v1, i, subst_value v2)
-  | TRaise (hdl_stub, h, vs) ->
-      TRaise ((if hdl_stub = name then name_new else hdl_stub), h,
-        (List.map (fun vv -> subst_value vv) vs))
-  | TResume (_, _) | TResumeFinal (_, _) -> raise (UnexpectedResume (""))
-  | THdl (env, body, obj, sig_name) ->
-      THdl ((List.map (fun var -> if var = name then name_new else var) env),
-        body, obj, sig_name)
-
-(* If a function is a handler body *)
-let is_body name = 
-  (List.mem name (get_fun_type_env !env))
-
 let genArith = function
 | AAdd -> "+"
 | AMult -> "*"
