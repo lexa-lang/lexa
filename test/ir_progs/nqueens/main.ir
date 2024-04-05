@@ -1,0 +1,79 @@
+effect Search {
+    dcl pick
+    dcl fail
+}
+
+def safe(queen, diag, xs) {
+    let is_empty = ~listIsEmpty(xs) in
+    if is_empty then
+        true
+    else
+        let q = ~listHead(xs) in
+        let qs = ~listTail(xs) in
+        let cond1 = queen != q in
+        let t1 = q + diag in
+        let cond2 = queen != t1 in
+        let t2 = q - diag in
+        let cond3 = queen != t2 in
+        let cond12 = ~boolAnd(cond1, cond2) in
+        let cond123 = ~boolAnd(cond12, cond3) in
+        if cond123 then
+            let diag_inc = diag + 1 in
+            safe(queen, diag_inc, qs)
+        else
+            false
+}
+
+def place(size, column, search_stub) {
+    let is_zero = column == 0 in
+    if is_zero then
+        ~listEnd()
+    else
+        let column_dec = column - 1 in
+        let rest = place(size, column_dec, search_stub) in
+        let next = raise search_stub.pick size in
+        let is_safe = safe(next, 1, rest) in
+        if is_safe then
+            let head = ~listNode(next, rest) in
+            head
+        else
+            raise search_stub.fail 0
+}
+
+def run(n) {
+    handle <n>
+        body
+    with search: Search
+}
+
+def body(env, search_stub) {
+    let n = env[0] in
+    let _ = place(n, n, search_stub) in
+    1
+}
+
+def loop(i, a, size, k) {
+    let cond = i == size in
+    if cond then
+        let r = resume_final k i in
+        a + r
+    else
+        let r = resume k i in
+        let arg1 = i + 1 in
+        let arg2 = a + r in
+        loop(arg1, arg2, size, k)
+}
+
+obj search(env) {
+    exc fail(_) { 0 }
+    hdl_s pick(size, k) {
+        loop(1, 0, size, k)
+    }
+}
+
+def main() {
+    let n = ~readInt() in
+    let run_res = run(n) in
+    let _ = ~printInt(run_res) in
+    0
+}

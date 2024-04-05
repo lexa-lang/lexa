@@ -297,3 +297,8 @@ int64_t floatPrint(int64_t x) {
   printf("%f\n", f);
   return 0;
 }
+
+DEBUG_ATTRIBUTE
+int64_t boolAnd(int64_t a, int64_t b) {
+  return a && b;
+}
