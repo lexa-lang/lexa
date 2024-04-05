@@ -121,23 +121,23 @@ def parse(a, read_stub, emit_stub, stop_stub) {
             raise stop_stub.stop 0
 }
 
-def parse_wrapper(read_stub, emit_stub, stop_stub) {
+def feed_action(read_stub, emit_stub, stop_stub) {
     parse(0, read_stub, emit_stub, stop_stub)
 }
 
-def catch_wrapper(emit_stub, n) {
-    let feed_wrapper_i64 = feed_wrapper in
-    catch(feed_wrapper_i64, emit_stub, n)
+def sum_action(emit_stub, n) {
+    let catch_action_i64 = catch_action in
+    catch(catch_action_i64, emit_stub, n)
 }
 
-def feed_wrapper(stop_stub, emit_stub, n) {
-    let parse_wrapper_i64 = parse_wrapper in
-    feed(n, parse_wrapper_i64, stop_stub, emit_stub)
+def catch_action(stop_stub, emit_stub, n) {
+    let feed_action_i64 = feed_action in
+    feed(n, feed_action_i64, stop_stub, emit_stub)
 }
 
 def run(n) {
-    let catch_wrapper_i64 = catch_wrapper in
-    sum(catch_wrapper_i64, n)
+    let sum_action_i64 = sum_action in
+    sum(sum_action_i64, n)
 }
 
 def main() {
