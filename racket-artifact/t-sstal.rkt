@@ -222,7 +222,7 @@
          (call ,Lresume)
          (push ($ 1))
          ,@cb
-         (jump ,Lresume-end)
+         (jmp ,Lresume-end)
          (label ,Lresume)
          (load ($ 3) ($ 1) 0)
          ;; set an invalid IP to crash if

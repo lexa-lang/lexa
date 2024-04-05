@@ -60,21 +60,22 @@
                   [(array vec) (vector-ref vec o)])]))
 ;; add rd, o
 (define (add rd o)
-  (match-define rdf `($ ,rd))
+  (match-define `($ ,rdf) rd)
   (define v1 (load `($ ,rdf)))
   (define v2 (load o))
 
-  (store `($ ,rd) (match `(,v1 ,v2)
+  (store `($ ,rdf) (match `(,v1 ,v2)
     [`((! ,b1 ,o1) ,(? number? i)) `(! ,b1 ,(+ o1 i))]
     [`(,(? number? i) (! ,(? number? b2) ,o2)) `(! ,b2 ,(+ o2 i))]
     [`(,(? number? i1) ,(? number? i2)) (+ i1 i2)])))
 
 ;; mkstk r
-(define (mkstk reg)
+(define (mkstk rd)  
+  (match-define `($ ,rdf) rd)
   (vector-set! M fm (stack (make-vector 0)))
   (define res `(! ,fm ,0))
   (set! fm (add1 fm))
-  (store `($ ,reg) res))
+  (store `($ ,rdf) res))
 
 
 ;; sfree i
@@ -186,7 +187,7 @@
   (set! halted? #f)
   (set! fm 0)
 
-  (mkstk `sp)
+  (mkstk `($ sp))
 
   (with-handlers 
     [(exn:fail? (lambda (e) (set! halted? #t) (display (exn->string e)) (newline)
