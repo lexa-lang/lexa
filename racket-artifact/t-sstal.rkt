@@ -142,7 +142,7 @@
                (push ($ 2))
                (push ($ 3))
                (push ($ 4))
-               (push -69)
+               (push ($ sp))
                (mov ($ 6) ($ 1))
                (mov ($ 2) ($ sp))
                (mov ($ 1) ($ 3))
@@ -201,10 +201,10 @@
               `(,@cV2
                 ,@cV1
                 (dump)
+                (load ($ sp) ($ 1) 0)
                 (load ($ 3) ($ 1) 3)
                 (load ($ 1) ($ 1) 2)
- 
-                (load ($ sp) ($ 1) 0)
+                (dump)
                 (sfree 4)
                 (jmp ($ 3))))]
     ;; resume
