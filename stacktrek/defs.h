@@ -79,11 +79,6 @@ int64_t double_save_switch_and_run_handler(intptr_t* env, int64_t arg, resumptio
     );
 }
 
-__attribute__((noinline))
-int64_t save_switch_and_run_handler_wrapper(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
-    return double_save_switch_and_run_handler(env, arg, k, func);
-}
-
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
 int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
@@ -94,6 +89,11 @@ int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, resumption_t* k,
         "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
         :
     );
+}
+
+__attribute__((noinline))
+int64_t save_switch_and_run_handler_wrapper(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
+    return save_switch_and_run_handler(env, arg, k, func);
 }
 
 // __attribute__((noinline, naked))
