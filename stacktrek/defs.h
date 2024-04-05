@@ -5,10 +5,10 @@
 #define i64 intptr_t
 
 typedef enum {
-    TAIL = 1 << 0,
-    ABORT = 1 << 1,
-    SINGLESHOT = 1 << 2,
-    MULTISHOT = 1 << 3,
+    TAIL = 0,
+    ABORT,
+    SINGLESHOT,
+    MULTISHOT,
 } handler_mode_t;
 
 typedef struct {
@@ -65,9 +65,11 @@ extern intptr_t ret_val;
     harr;\
     })
 
-__attribute__((noinline, naked))
+__attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t double_save_switch_and_run_handler(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
+int64_t double_save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
+    resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
+    k->ctx_sp = stub->sp_exchanger;
     __asm__ (
         "movq 8(%%rdx), %%r8\n\t" // Get the exchanger from the resumption
         "movq 0(%%r8), %%rax\n\t" // Get the context stack from the exchanger
@@ -75,26 +77,27 @@ int64_t double_save_switch_and_run_handler(intptr_t* env, int64_t arg, resumptio
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to the resumption
         "movq %%rax, %%rsp\n\t" // Switch to the context stack
         "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
-        :
+        :: "D"(stub->env), "S"(arg), "d"(k), "c"(stub->defs[index].func)
     );
 }
 
-__attribute__((noinline, naked))
+__attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
+int64_t save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
+    resumption_t* k = (resumption_t*)(stub->sp_exchanger);
     __asm__ (
         "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
         "movq %%rax, %%rsp\n\t" // Switch to the context stack
         "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
-        :
+        :: "D"(stub->env), "S"(arg), "d"(k), "c"(stub->defs[index].func)
     );
 }
 
-__attribute__((noinline))
-int64_t save_switch_and_run_handler_wrapper(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
-    return save_switch_and_run_handler(env, arg, k, func);
-}
+// __attribute__((noinline))
+// int64_t save_switch_and_run_handler_wrapper(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
+//     return save_switch_and_run_handler(env, arg, k, func);
+// }
 
 // __attribute__((noinline, naked))
 // FAST_SWITCH_DECORATOR
@@ -183,8 +186,8 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
     if (defs[0].mode == TAIL || (n_defs > 1 && defs[1].mode == TAIL)) { \
         mode = TAIL; \
-    } else if ((defs[0].mode & (SINGLESHOT | MULTISHOT)) || (n_defs > 1 && (defs[1].mode & (SINGLESHOT | MULTISHOT)))) { \
-        if ((defs[0].mode & (MULTISHOT)) || (n_defs > 1 && (defs[1].mode & MULTISHOT))) { \
+    } else if (((defs[0].mode == SINGLESHOT) || (defs[0].mode == MULTISHOT)) || (n_defs > 1 && ((defs[1].mode == SINGLESHOT) || (defs[1].mode == MULTISHOT)))) { \
+        if (((defs[0].mode == MULTISHOT)) || (n_defs > 1 && (defs[1].mode == MULTISHOT))) { \
             mode |= MULTISHOT; \
         } else { \
             mode |= SINGLESHOT; \
@@ -267,6 +270,28 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
     })
 
+#define RAISESINGLE(_stub, index, m_args) \
+    ({ \
+    meta_t* stub = (meta_t*)_stub; \
+    intptr_t out; \
+    intptr_t nargs = NARGS m_args; \
+    intptr_t args[] = {EXPAND m_args}; \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
+    if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
+    resumption_t* k = (resumption_t*)(stub->sp_exchanger); \
+    out = save_switch_and_run_handler(stub->env, args[0], k,\
+        (stub->defs[index].func)); \
+    _Pragma("clang diagnostic pop") \
+    out; \
+    })
+
+int64_t (FAST_SWITCH_DECORATOR* stack_switching_functions[3])(meta_t* stub, int64_t index, int64_t arg) = {
+    (long (FAST_SWITCH_DECORATOR*)(meta_t *, long, long) )switch_free_and_run_handler,
+    save_switch_and_run_handler,
+    double_save_switch_and_run_handler
+};
+
 #define RAISE(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
@@ -275,40 +300,22 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     intptr_t args[] = {EXPAND m_args}; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
-    switch (stub->defs[index].mode) { \
-        case TAIL: { \
-            if (nargs == 0) { \
-                out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
-            } else if (nargs == 1) { \
-                out = ((intptr_t(*)(intptr_t*, intptr_t))stub->defs[index].func)(stub->env, args[0]); \
-            } else if (nargs == 2) { \
-                out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1]); \
-            } else if (nargs == 3) { \
-                out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1], args[2]); \
-            } else { \
-                exit(EXIT_FAILURE); \
-            } \
-            break; \
+    if (stub->defs[index].mode == TAIL) { \
+        if (nargs == 0) { \
+            out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
+        } else if (nargs == 1) { \
+            out = ((intptr_t(*)(intptr_t*, intptr_t))stub->defs[index].func)(stub->env, args[0]); \
+        } else if (nargs == 2) { \
+            out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1]); \
+        } else if (nargs == 3) { \
+            out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1], args[2]); \
+        } else { \
+            exit(EXIT_FAILURE); \
         } \
-        case ABORT: { \
-            if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-            switch_free_and_run_handler(stub, index, args[0]); \
-        } \
-        case SINGLESHOT: { \
-            if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-            resumption_t* k = (resumption_t*)(stub->sp_exchanger); \
-            out = save_switch_and_run_handler(stub->env, args[0], k,\
-                (stub->defs[index].func)); \
-            break; \
-        } \
-        case MULTISHOT: { \
-            if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-            resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t)); \
-            k->ctx_sp = stub->sp_exchanger; \
-            out = double_save_switch_and_run_handler(stub->env, args[0], k,\
-                (stub->defs[index].func)); \
-            break; \
-        } \
+    } else { \
+        if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
+        printf("mode: %d\n", stub->defs[index].mode - 1); \
+        stack_switching_functions[stub->defs[index].mode - 1](stub, index, args[0]); \
     } \
     _Pragma("clang diagnostic pop") \
     out; \
