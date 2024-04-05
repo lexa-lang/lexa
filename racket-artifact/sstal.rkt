@@ -22,12 +22,20 @@
 (struct stack (v) #:transparent)
 (struct array (v) #:transparent)
 
+(define (reset-sp)
+  (match-define `(! ,l ,j) sp)
+  (define old-stack (stack-v (vector-ref M l)))
+  (define new-stack (vector-take old-stack (* -1 j)))
+  (vector-set! M l (stack new-stack)))
+
 ;; Helper functions from storing/loading
 ;; to/from a destination or source.
 (define (store d v)
   (match d
     ;; Destinations can only be registers / memory addresses
-    [`($ sp) (set! sp v)]
+    [`($ sp) (set! sp v)
+             ;; Storing to SP cuts off the rest of the stack.
+             (reset-sp)]
     [`($ ,n) (vector-set! R n v)]
     [`(! ,b ,o) (match (vector-ref M b)
                   ;; stacks count backwards
@@ -150,7 +158,7 @@
   (for ([i 8])
     (eprintf "$~a=~a ~n" i (vector-ref R i)))
   (match-define `(* ,l) pc)
-  (eprintf "Dumped instruction: ~a ~n" (vector-ref IM (sub1 l)))
+  (when (> l 0) (eprintf "Dumped instruction: ~a ~n" (vector-ref IM (sub1 l))))
   (void))
   
 (define dispatch-table (hash 'add add 'mkstk mkstk 'sfree sfree 'malloc malloc 'mov mov 

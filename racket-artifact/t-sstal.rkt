@@ -142,7 +142,7 @@
                (push ($ 2))
                (push ($ 3))
                (push ($ 4))
-               (push ($ sp))
+               (push -70) ;; invalid value
                (mov ($ 6) ($ 1))
                (mov ($ 2) ($ sp))
                (mov ($ 1) ($ 3))
@@ -201,8 +201,8 @@
               `(,@cV2
                 ,@cV1
                 (dump)
-                (load ($ sp) ($ 1) 0)
                 (load ($ 3) ($ 1) 3)
+                (mov ($ sp) ($ 1))
                 (load ($ 1) ($ 1) 2)
                 (dump)
                 (sfree 4)

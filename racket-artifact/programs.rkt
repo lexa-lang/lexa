@@ -66,6 +66,7 @@
             (let ([x (handle= body abort ask under s)])
                 x)))
     ))
+;; returns 42 --> aborts the handler with ask, returning 42, storing that in x, returning x.
 
 ;; // An general handler: that resumes resumption twice
 ;; // the whole program should evaluate to 44
