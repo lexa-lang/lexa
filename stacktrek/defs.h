@@ -245,7 +245,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
     })
 
-#define RAISETAIL(_stub, index, m_args) \
+#define RAISET(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
     intptr_t out; \
@@ -268,33 +268,36 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
     })
 
-#define RAISEABORT(_stub, index, m_args) \
+#define RAISEA(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
     intptr_t out; \
     intptr_t nargs = NARGS m_args; \
     intptr_t args[] = {EXPAND m_args}; \
-    _Pragma("clang diagnostic push") \
-    _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
     if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
     switch_free_and_run_handler(stub, index, args[0]); \
-    _Pragma("clang diagnostic pop") \
     out; \
     })
 
-#define RAISESINGLE(_stub, index, m_args) \
+#define RAISES(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
     intptr_t out; \
     intptr_t nargs = NARGS m_args; \
     intptr_t args[] = {EXPAND m_args}; \
-    _Pragma("clang diagnostic push") \
-    _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
     if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-    resumption_t* k = (resumption_t*)(stub->sp_exchanger); \
-    out = save_switch_and_run_handler(stub->env, args[0], k,\
-        (stub->defs[index].func)); \
-    _Pragma("clang diagnostic pop") \
+    out = save_switch_and_run_handler(stub, index, args[0]); \
+    out; \
+    })
+
+#define RAISEM(_stub, index, m_args) \
+    ({ \
+    meta_t* stub = (meta_t*)_stub; \
+    intptr_t out; \
+    intptr_t nargs = NARGS m_args; \
+    intptr_t args[] = {EXPAND m_args}; \
+    if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
+    out = double_save_switch_and_run_handler(stub, index, args[0]); \
     out; \
     })
 
