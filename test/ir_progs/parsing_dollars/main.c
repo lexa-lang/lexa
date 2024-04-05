@@ -84,7 +84,7 @@ i64 read(i64 *env)
   i64 stop_stub = (i64)(((i64 *)env)[4]);
   if ((i64)(i > n))
   {
-    return RAISE(stop_stub, 0, (0));
+    return RAISEABORT(stop_stub, 0, (0));
   }
   else
   {
@@ -130,7 +130,7 @@ static i64 feed_body(i64 env, i64 read_stub)
 
 static i64 parse(i64 a, i64 read_stub, i64 emit_stub, i64 stop_stub)
 {
-  i64 c = (i64)(RAISE(read_stub, 0, (0)));
+  i64 c = (i64)(RAISETAIL(read_stub, 0, (0)));
   if (((i64(*)(i64))is_dollar)(c))
   {
     i64 a_inc = (i64)(a + 1);
@@ -141,13 +141,13 @@ static i64 parse(i64 a, i64 read_stub, i64 emit_stub, i64 stop_stub)
   {
     if (((i64(*)(i64))is_newline)(c))
     {
-      i64 _ = (i64)(RAISE(emit_stub, 0, (a)));
+      i64 _ = (i64)(RAISETAIL(emit_stub, 0, (a)));
       return ((i64(*)(i64, i64, i64, i64))parse)(0, read_stub, emit_stub,
                                                  stop_stub);
     }
     else
     {
-      return (RAISE(stop_stub, 0, (0)));
+      return (RAISEABORT(stop_stub, 0, (0)));
     }
   }
 }

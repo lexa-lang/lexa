@@ -208,6 +208,48 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     out; \
     })
 
+#define RAISETAIL(_stub, index, m_args) \
+    ({ \
+    meta_t* stub = (meta_t*)_stub; \
+    intptr_t out; \
+    intptr_t nargs = NARGS m_args; \
+    intptr_t args[] = {EXPAND m_args}; \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
+    if (nargs == 0) { \
+        out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
+    } else if (nargs == 1) { \
+        out = ((intptr_t(*)(intptr_t*, intptr_t))stub->defs[index].func)(stub->env, args[0]); \
+    } else if (nargs == 2) { \
+        out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1]); \
+    } else if (nargs == 3) { \
+        out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1], args[2]); \
+    } else { \
+        exit(EXIT_FAILURE); \
+    } \
+    _Pragma("clang diagnostic pop") \
+    out; \
+    })
+
+#define RAISEABORT(_stub, index, m_args) \
+    ({ \
+    meta_t* stub = (meta_t*)_stub; \
+    intptr_t out; \
+    intptr_t nargs = NARGS m_args; \
+    intptr_t args[] = {EXPAND m_args}; \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
+    if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
+    __asm__ ( \
+        "movq %2, %%rsp\n\t" \
+        "jmpq *%3\n\t" \
+        :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
+    ); \
+    __builtin_unreachable(); \
+    _Pragma("clang diagnostic pop") \
+    out; \
+    })
+
 #define RAISE(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
