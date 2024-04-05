@@ -98,6 +98,7 @@ int64_t save_switch_and_run_handler_wrapper(intptr_t* env, int64_t arg, resumpti
 
 // __attribute__((noinline, naked))
 // FAST_SWITCH_DECORATOR
+__attribute__((noinline)) // no inline to avoid code bloat
 int64_t switch_free_and_run_handler(intptr_t* env, int64_t arg, void* target_sp, void* func) {
     void* curr_sp;
     __asm__ (
