@@ -79,6 +79,10 @@ int64_t double_save_switch_and_run_handler(intptr_t* env, int64_t arg, resumptio
     );
 }
 
+__attribute__((noinline))
+int64_t save_switch_and_run_handler_wrapper(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
+    return double_save_switch_and_run_handler(env, arg, k, func);
+}
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
@@ -90,6 +94,22 @@ int64_t save_switch_and_run_handler(intptr_t* env, int64_t arg, resumption_t* k,
         "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
         :
     );
+}
+
+// __attribute__((noinline, naked))
+// FAST_SWITCH_DECORATOR
+int64_t switch_free_and_run_handler(intptr_t* env, int64_t arg, void* target_sp, void* func) {
+    void* curr_sp;
+    __asm__ (
+        "movq %%rsp, %0\n\t"
+        : "=r"(curr_sp)
+    );
+    free_stack_on_abort(curr_sp, target_sp);
+    __asm__ (
+        "movq %2, %%rsp\n\t"
+        "jmpq *%3\n\t"
+        :: "D"(env), "S"(arg), "r"(target_sp), "r"(func)
+    ); 
 }
 
 __attribute__((noinline, naked))
@@ -245,7 +265,6 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         "jmpq *%3\n\t" \
         :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
     ); \
-    __builtin_unreachable(); \
     _Pragma("clang diagnostic pop") \
     out; \
     })
@@ -276,28 +295,12 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         } \
         case ABORT: { \
             if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-            __asm__ ( \
-                "pushq %0\n\t" \
-                "pushq %1\n\t" \
-                "pushq %2\n\t" \
-                "pushq %3\n\t" \
-                "movq %%rsp, %%rdi\n\t" \
-                "movq %%r12, %%rsi\n\t" \
-                "callq free_stack_on_abort\n\t" \
-                "popq %%rcx\n\t" \
-                "popq %%rdx\n\t" \
-                "popq %%rsi\n\t" \
-                "popq %%rdi\n\t" \
-                "movq %%rdx, %%rsp\n\t" \
-                "jmpq *%%rcx\n\t" \
-                :: "r"(stub->env), "r"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
-            ); \
-            __builtin_unreachable(); \
+            switch_free_and_run_handler(stub->env, args[0], *stub->sp_exchanger, stub->defs[index].func); \
         } \
         case SINGLESHOT: { \
             if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
             resumption_t* k = (resumption_t*)(stub->sp_exchanger); \
-            out = save_switch_and_run_handler(stub->env, args[0], k,\
+            out = save_switch_and_run_handler_wrapper(stub->env, args[0], k,\
                 (stub->defs[index].func)); \
             break; \
         } \
