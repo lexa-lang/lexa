@@ -81,7 +81,7 @@
      (values (add1 nlet)
               `(,@(compile-value env v `($ 1))
                 ,@(compile-value env a `($ 2))
-                (store ($ 2) ($ 1) ,i)
+                (store ($ 1) ($ 2) ,i)
                 (push ($ 1))
                 ,@cb))
     ]
@@ -219,6 +219,7 @@
        (add1 nlet)
        `(,@cV2
          ,@cV1
+         (dump)
          (call ,Lresume)
          (push ($ 1))
          ,@cb
@@ -227,7 +228,7 @@
          (load ($ 3) ($ 1) 0)
          ;; set an invalid IP to crash if
          ;; double-shot resume
-         (mov ($ 10) -1)
+         (mov ($ 10) -71)
          (store ($ 10) ($ 1) 0)
          (load ($ 4) ($ 3) 0)
          (store ($ sp) ($ 3) 0)

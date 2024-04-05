@@ -147,7 +147,7 @@
   (match-define `($ ,rdf) rd)
   (match-define `(! ,l ,j) sp)
   (define old-stack (stack-v (vector-ref M l)))
-  (store `($ ,rdf) (vector-ref old-stack 0))
+  (store `($ ,rdf) (vector-ref old-stack (sub1 (* -1 j))))
   (define new-stack (vector-drop-right old-stack 1))
   (vector-set! M l (stack new-stack))
   (set! sp `(! ,l ,(+ j 1))))
