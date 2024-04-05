@@ -309,9 +309,6 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
                 (stub->defs[index].func)); \
             break; \
         } \
-        default: { \
-            exit(EXIT_FAILURE); \
-        } \
     } \
     _Pragma("clang diagnostic pop") \
     out; \
