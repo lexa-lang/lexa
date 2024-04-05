@@ -1,0 +1,64 @@
+effect Prime {
+    dcl prime
+}
+
+obj prime(env) {
+    def prime(e) {
+        let i = env[0] in
+        let r = env[3] in
+        let remainder = e % i in
+        let cond = remainder == 0 in
+        if cond then
+            0
+        else
+            raise r.prime e
+    }
+}
+
+def primes_body(env, prime_stub) {
+    let i = env[0] in
+    let n = env[1] in
+    let a = env[2] in
+    let inc_i = i + 1 in
+    let inc_a = a + i in
+    primes(prime_stub, inc_i, n, inc_a)
+}
+
+def primes(prime_stub, i, n, a) {
+    let cond = i < n in
+    if cond then
+        let cond1 = raise prime_stub.prime i in
+        if cond1 then
+            handle <i, n, a, prime_stub>
+                primes_body
+            with prime: Prime
+        else
+            let inc_i = i + 1 in
+            primes(prime_stub, inc_i, n, a)
+    else
+        a
+}
+
+def body(env, prime_stub) {
+    let n = env[0] in
+    primes(prime_stub, 2, n, 0)
+}
+
+obj prime_true(env) {
+    def prime(e) {
+        1
+    }
+}
+
+def run(n) {
+    handle <n>
+        body
+    with prime_true: Prime
+}
+
+def main() {
+    let arg1 = ~readInt() in
+    let arg2 = run(arg1) in
+    let _ = ~printInt(arg2) in
+    0
+}
