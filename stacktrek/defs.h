@@ -260,11 +260,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
     if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-    __asm__ ( \
-        "movq %2, %%rsp\n\t" \
-        "jmpq *%3\n\t" \
-        :: "D"(stub->env), "S"(args[0]), "r"(*stub->sp_exchanger), "r"(stub->defs[index].func) \
-    ); \
+    switch_free_and_run_handler(stub->env, args[0], *stub->sp_exchanger, stub->defs[index].func); \
     _Pragma("clang diagnostic pop") \
     out; \
     })
