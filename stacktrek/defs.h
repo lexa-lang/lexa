@@ -65,51 +65,34 @@ extern intptr_t ret_val;
     harr;\
     })
 
-__attribute__((naked))
+__attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t double_save_switch_and_run_handler_naked(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
+int64_t double_save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
+    resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
+    k->ctx_sp = stub->sp_exchanger;
     __asm__ (
+        "popq %%rax\n\t" // Pop the dummy slot that is used to align the stack. It is inserted by the compiler, and is needed because of the malloc call. We pop it off because we want to expose the return address
         "movq 8(%%rdx), %%r8\n\t" // Get the exchanger from the resumption
         "movq 0(%%r8), %%rax\n\t" // Get the context stack from the exchanger
         "movq %%rsp, 0(%%r8)\n\t" // Save the current stack pointer to the exchanger. Later when switching back, just need to run a ret
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to the resumption
         "movq %%rax, %%rsp\n\t" // Switch to the context stack
         "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
-        :
-    );
-}
-
-__attribute__((noinline))
-FAST_SWITCH_DECORATOR
-int64_t double_save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
-    resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
-    k->ctx_sp = stub->sp_exchanger;
-    return double_save_switch_and_run_handler_naked(stub->env, arg, k, stub->defs[index].func);
-}
-
-__attribute__((naked))
-FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler_naked(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
-    __asm__ (
-        "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
-        "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
-        "movq %%rax, %%rsp\n\t" // Switch to the context stack
-        "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
-        :
+        :: "D"(stub->env), "S"(arg), "d"(k), "c"(stub->defs[index].func)
     );
 }
 
 __attribute__((noinline))
 FAST_SWITCH_DECORATOR
 int64_t save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
-    resumption_t* k = (resumption_t*)(stub->sp_exchanger);
-    save_switch_and_run_handler_naked(stub->env, arg, k, stub->defs[index].func);
+    __asm__ (
+        "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
+        "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
+        "movq %%rax, %%rsp\n\t" // Switch to the context stack
+        "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
+        :: "D"(stub->env), "S"(arg), "d"(stub->sp_exchanger), "c"(stub->defs[index].func)
+    );
 }
-
-// __attribute__((noinline))
-// int64_t save_switch_and_run_handler_wrapper(intptr_t* env, int64_t arg, resumption_t* k, void* func) {
-//     return save_switch_and_run_handler(env, arg, k, func);
-// }
 
 // __attribute__((noinline, naked))
 // FAST_SWITCH_DECORATOR
