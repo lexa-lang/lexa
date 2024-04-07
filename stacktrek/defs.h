@@ -260,10 +260,11 @@ i64 save_and_restore(i64 arg, void** exc, void* rsp_sp) {
     out; \
     })
 
-i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[3])(meta_t* stub, i64 index, i64 arg) = {
+static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(meta_t* stub, i64 index, i64 arg) = {
     (long (FAST_SWITCH_DECORATOR*)(meta_t *, long, long) )switch_free_and_run_handler,
     save_switch_and_run_handler,
-    double_save_switch_and_run_handler
+    double_save_switch_and_run_handler,
+    (long (FAST_SWITCH_DECORATOR*)(meta_t *, long, long) )run_1_arg_handler_in_place
 };
 
 #define RAISE(_stub, index, m_args) \
