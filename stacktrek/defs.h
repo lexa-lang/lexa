@@ -267,6 +267,27 @@ static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(meta_t* stub, i
     (long (FAST_SWITCH_DECORATOR*)(meta_t *, long, long) )run_1_arg_handler_in_place
 };
 
+i64 stack_switching1(meta_t* stub, i64 index, i64 arg) {
+    if (stub->defs[index].mode == TAIL) {
+        return run_1_arg_handler_in_place(stub, index, arg);
+    } else if (stub->defs[index].mode == ABORT) {
+        return switch_free_and_run_handler(stub, index, arg);
+    } else if (stub->defs[index].mode == SINGLESHOT) {
+        return save_switch_and_run_handler(stub, index, arg);
+    } else if (stub->defs[index].mode == MULTISHOT) {
+        return double_save_switch_and_run_handler(stub, index, arg);
+    }
+}
+
+// this is slightly faster than the above function
+i64 stack_switching2(meta_t* stub, i64 index, i64 arg) {
+    return stack_switching_functions[stub->defs[index].mode](stub, index, arg);
+}
+
+// TODO:
+// tension: if we use a condition below to determine the mode, raising TR handler is fast
+// however, this additional branch slightly blow up the code, impede inlining and further optimizations.
+// The goal is to find short code while still keep the path for TR handler short
 #define RAISE(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
@@ -289,7 +310,7 @@ static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(meta_t* stub, i
         } \
     } else { \
         if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-        out = stack_switching_functions[stub->defs[index].mode](stub, index, args[0]); \
+        out = stack_switching2(stub, index, args[0]); \
     } \
     _Pragma("clang diagnostic pop") \
     out; \
