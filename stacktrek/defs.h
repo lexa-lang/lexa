@@ -21,7 +21,7 @@ typedef struct {
   // to convince the compiler that this struct is immutable, so optimization such as
   // argpromotion can proceed.
   handler_def_t* defs;
-  intptr_t* env;
+  i64* env;
   void* _sp_exchanger[1];
   void** sp_exchanger;
 } meta_t;
@@ -39,35 +39,11 @@ typedef struct {
     _ptr;                               \
 })
 
-extern intptr_t ret_val;
-
 #define ARG_N(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
 #define NARGS(...) ARG_N(_, ## __VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 
-#define STACK_ALLOC_STRUCT(type, ...) \
-    &(type){__VA_ARGS__};
-#define STACK_ALLOC_ARRAY(type, ...) \
-    (type[]){__VA_ARGS__}; 
-// Heap allocate and initialize a variable number of intptr_t
-// The compiler is smart enough to eliminate the intermediate stack allocation and memcpy
-#define HEAP_ALLOC_STRUCT(type, ...) \
-    ({ \
-    type st = {__VA_ARGS__}; \
-    type* hst = xmalloc(sizeof(type)); \
-    memcpy(hst, &st, sizeof(type)); \
-    hst; \
-    })
-#define HEAP_ALLOC_ARRAY(type, ...) \
-    ({ \
-    type arr[] = {__VA_ARGS__}; \
-    type* harr = xmalloc(sizeof(intptr_t)*NARGS(__VA_ARGS__)); \
-    memcpy(harr, arr, sizeof(intptr_t)*NARGS(__VA_ARGS__));\
-    harr;\
-    })
-
-__attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t double_save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
+i64 double_save_switch_and_run_handler(meta_t* stub, i64 index, i64 arg) {
     resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
     k->ctx_sp = stub->sp_exchanger;
     __asm__ (
@@ -82,9 +58,8 @@ int64_t double_save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t 
     );
 }
 
-__attribute__((noinline))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
+i64 save_switch_and_run_handler(meta_t* stub, i64 index, i64 arg) {
     __asm__ (
         "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
@@ -94,10 +69,7 @@ int64_t save_switch_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
     );
 }
 
-// __attribute__((noinline, naked))
-// FAST_SWITCH_DECORATOR
-__attribute__((noinline)) // no inline to avoid code bloat
-int64_t switch_free_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
+i64 switch_free_and_run_handler(meta_t* stub, i64 index, i64 arg) {
     void* target_sp = *stub->sp_exchanger;
     void* curr_sp;
     __asm__ (
@@ -112,9 +84,13 @@ int64_t switch_free_and_run_handler(meta_t* stub, int64_t index, int64_t arg) {
     ); 
 }
 
+i64 run_1_arg_handler_in_place(meta_t* stub, i64 index, i64 arg) {
+    return ((i64(*)(i64*, i64))stub->defs[index].func)(stub->env, arg);
+}
+
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_switch_and_run_body(intptr_t* env, void* stub, void** exc, void* new_sp, void* body) {
+i64 save_switch_and_run_body(i64* env, void* stub, void** exc, void* new_sp, void* body) {
     __asm__ (
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
         "movq %%rcx, %%rsp\n\t" // Switch to the new stack new_sp
@@ -135,7 +111,7 @@ int64_t save_switch_and_run_body(intptr_t* env, void* stub, void** exc, void* ne
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_and_run_body(intptr_t* env, void* stub, void** exc, void* body) {
+i64 save_and_run_body(i64* env, void* stub, void** exc, void* body) {
     __asm__ (
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
         "jmpq *%%rcx\n\t" // Call the body, the first argument is already in the right register
@@ -145,7 +121,7 @@ int64_t save_and_run_body(intptr_t* env, void* stub, void** exc, void* body) {
 
 __attribute__((noinline, naked))
 FAST_SWITCH_DECORATOR
-int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
+i64 save_and_restore(i64 arg, void** exc, void* rsp_sp) {
     __asm__ (
         "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
         "movq %%rdx, %%rsp\n\t" // Switch to the new stack rsp_sp
@@ -173,7 +149,7 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 // away the if-else chain.
 #define HANDLE(body, m_defs, m_free_vars) \
 ({ \
-    intptr_t out; \
+    i64 out; \
     handler_def_t defs[] = {EXPAND m_defs}; \
     size_t n_defs = N_DEFS m_defs; \
     handler_mode_t mode = 0; \
@@ -197,21 +173,21 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 
 #define _HANDLE(mode, body, m_defs, m_free_vars) \
     ({ \
-    intptr_t out; \
+    i64 out; \
     if (mode == TAIL) { \
         meta_t stub; \
         stub.defs = (handler_def_t[]){EXPAND m_defs}; \
-        stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
-        out = body((intptr_t)stub.env, (intptr_t)&stub); \
+        stub.env = (i64[]) {EXPAND m_free_vars}; \
+        out = body((i64)stub.env, (i64)&stub); \
     } else if (mode == ABORT) { \
         meta_t stub; \
         stub.defs = (handler_def_t[]){EXPAND m_defs}; \
-        stub.env = (intptr_t[]) {EXPAND m_free_vars}; \
+        stub.env = (i64[]) {EXPAND m_free_vars}; \
         stub.sp_exchanger = stub._sp_exchanger; \
         out = save_and_run_body(stub.env, (void*)&stub, stub.sp_exchanger, body); \
     } else { \
         handler_def_t _defs[] = {EXPAND m_defs}; \
-        intptr_t _env[] = {EXPAND m_free_vars}; \
+        i64 _env[] = {EXPAND m_free_vars}; \
         char* new_sp = get_stack(); \
         new_sp -= sizeof(meta_t); \
         meta_t* stub = (meta_t*)new_sp; \
@@ -221,8 +197,8 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
         stub->defs = (handler_def_t*)new_sp; \
         new_sp -= sizeof(_env); \
         memcpy(new_sp, _env, sizeof(_env)); \
-        stub->env = (intptr_t*)new_sp; \
-        new_sp = (char*)((intptr_t)new_sp & ~0xF); \
+        stub->env = (i64*)new_sp; \
+        new_sp = (char*)((i64)new_sp & ~0xF); \
         out = save_switch_and_run_body(stub->env, stub, stub->sp_exchanger, new_sp, body); \
     } \
     out; \
@@ -231,19 +207,19 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 #define RAISET(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
-    intptr_t out; \
-    intptr_t nargs = NARGS m_args; \
-    intptr_t args[] = {EXPAND m_args}; \
+    i64 out; \
+    i64 nargs = NARGS m_args; \
+    i64 args[] = {EXPAND m_args}; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
     if (nargs == 0) { \
-        out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
+        out = ((i64(*)(i64*))stub->defs[index].func)(stub->env); \
     } else if (nargs == 1) { \
-        out = ((intptr_t(*)(intptr_t*, intptr_t))stub->defs[index].func)(stub->env, args[0]); \
+        out = ((i64(*)(i64*, i64))stub->defs[index].func)(stub->env, args[0]); \
     } else if (nargs == 2) { \
-        out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1]); \
+        out = ((i64(*)(i64*, i64, i64))stub->defs[index].func)(stub->env, args[0], args[1]); \
     } else if (nargs == 3) { \
-        out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1], args[2]); \
+        out = ((i64(*)(i64*, i64, i64, i64))stub->defs[index].func)(stub->env, args[0], args[1], args[2]); \
     } else { \
         exit(EXIT_FAILURE); \
     } \
@@ -254,9 +230,9 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 #define RAISEA(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
-    intptr_t out; \
-    intptr_t nargs = NARGS m_args; \
-    intptr_t args[] = {EXPAND m_args}; \
+    i64 out; \
+    i64 nargs = NARGS m_args; \
+    i64 args[] = {EXPAND m_args}; \
     if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
     switch_free_and_run_handler(stub, index, args[0]); \
     out; \
@@ -265,9 +241,9 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 #define RAISES(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
-    intptr_t out; \
-    intptr_t nargs = NARGS m_args; \
-    intptr_t args[] = {EXPAND m_args}; \
+    i64 out; \
+    i64 nargs = NARGS m_args; \
+    i64 args[] = {EXPAND m_args}; \
     if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
     out = save_switch_and_run_handler(stub, index, args[0]); \
     out; \
@@ -276,15 +252,15 @@ int64_t save_and_restore(intptr_t arg, void** exc, void* rsp_sp) {
 #define RAISEM(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
-    intptr_t out; \
-    intptr_t nargs = NARGS m_args; \
-    intptr_t args[] = {EXPAND m_args}; \
+    i64 out; \
+    i64 nargs = NARGS m_args; \
+    i64 args[] = {EXPAND m_args}; \
     if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
     out = double_save_switch_and_run_handler(stub, index, args[0]); \
     out; \
     })
 
-int64_t (FAST_SWITCH_DECORATOR* stack_switching_functions[3])(meta_t* stub, int64_t index, int64_t arg) = {
+i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[3])(meta_t* stub, i64 index, i64 arg) = {
     (long (FAST_SWITCH_DECORATOR*)(meta_t *, long, long) )switch_free_and_run_handler,
     save_switch_and_run_handler,
     double_save_switch_and_run_handler
@@ -293,20 +269,20 @@ int64_t (FAST_SWITCH_DECORATOR* stack_switching_functions[3])(meta_t* stub, int6
 #define RAISE(_stub, index, m_args) \
     ({ \
     meta_t* stub = (meta_t*)_stub; \
-    intptr_t out; \
-    intptr_t nargs = NARGS m_args; \
-    intptr_t args[] = {EXPAND m_args}; \
+    i64 out; \
+    i64 nargs = NARGS m_args; \
+    i64 args[] = {EXPAND m_args}; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
     if (stub->defs[index].mode == TAIL) { \
         if (nargs == 0) { \
-            out = ((intptr_t(*)(intptr_t*))stub->defs[index].func)(stub->env); \
+            out = ((i64(*)(i64*))stub->defs[index].func)(stub->env); \
         } else if (nargs == 1) { \
-            out = ((intptr_t(*)(intptr_t*, intptr_t))stub->defs[index].func)(stub->env, args[0]); \
+            out = ((i64(*)(i64*, i64))stub->defs[index].func)(stub->env, args[0]); \
         } else if (nargs == 2) { \
-            out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1]); \
+            out = ((i64(*)(i64*, i64, i64))stub->defs[index].func)(stub->env, args[0], args[1]); \
         } else if (nargs == 3) { \
-            out = ((intptr_t(*)(intptr_t*, intptr_t, intptr_t, intptr_t))stub->defs[index].func)(stub->env, args[0], args[1], args[2]); \
+            out = ((i64(*)(i64*, i64, i64, i64))stub->defs[index].func)(stub->env, args[0], args[1], args[2]); \
         } else { \
             exit(EXIT_FAILURE); \
         } \
@@ -320,7 +296,7 @@ int64_t (FAST_SWITCH_DECORATOR* stack_switching_functions[3])(meta_t* stub, int6
 
 #define THROW(k, arg) \
     ({ \
-    intptr_t out; \
+    i64 out; \
     char* new_sp = dup_stack((char*)((resumption_t*)k)->rsp_sp); \
     out = save_and_restore(arg, ((resumption_t*)k)->ctx_sp, new_sp); \
     out; \
@@ -328,12 +304,12 @@ int64_t (FAST_SWITCH_DECORATOR* stack_switching_functions[3])(meta_t* stub, int6
 
 #define FINAL_THROW(k, arg) \
     ({ \
-    intptr_t out; \
+    i64 out; \
     out = save_and_restore(arg, ((resumption_t*)k)->ctx_sp, ((resumption_t*)k)->rsp_sp); \
     out; \
     })
 
-int64_t mathAbs(int64_t a) {
+i64 mathAbs(i64 a) {
   return labs(a);
 }
 

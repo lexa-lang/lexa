@@ -15,39 +15,10 @@
 
 #define FAST_SWITCH
 #ifdef FAST_SWITCH
-typedef struct {
-  void*     reg_ip;
-  void*     reg_sp;
-} jb_t;
 
-#define SEAL_STACK(cont, sp) \
-    __asm__ ( \
-        "pushq %0\n\t" \
-        "movq %%rsp, 0(%1)\n\t" \
-        :: "r" (cont), "r" (sp) \
-    )
+#define SAVE_CONTEXT(jb, cont)
 
-#define UNSEAL_STACK(sp, ret_val) \
-    __asm__ ( \
-        "movq %0, %%rsp\n\t" \
-        "retq\n\t" \
-        :: "r" (sp), "a" (ret_val) \
-    )
-
-#define SAVE_CONTEXT(jb, cont) \
-    __asm__ ( \
-        "movq    %1,  0(%0)      \n\t" \
-        "leaq    (%%rsp), %1      \n\t" \
-        "movq    %1, 8(%0)    \n\t" \
-        :: "r" (jb), "r" (&&cont) \
-    )
-
-#define RESTORE_CONTEXT(jb) \
-    __asm__ ( \
-        "movq 8(%0), %%rsp    \n\t" \
-        "jmpq *(%0)            \n\t" \
-        :: "r" (jb) \
-    )
+#define RESTORE_CONTEXT(jb)
 
 #define FAST_SWITCH_DECORATOR __attribute__((preserve_none))
 
