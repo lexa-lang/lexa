@@ -267,6 +267,7 @@ static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(meta_t* stub, i
     (long (FAST_SWITCH_DECORATOR*)(meta_t *, long, long) )run_1_arg_handler_in_place
 };
 
+__attribute__((always_inline))
 i64 stack_switching1(meta_t* stub, i64 index, i64 arg) {
     if (stub->defs[index].mode == TAIL) {
         return run_1_arg_handler_in_place(stub, index, arg);
@@ -310,7 +311,7 @@ i64 stack_switching2(meta_t* stub, i64 index, i64 arg) {
         } \
     } else { \
         if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-        out = stack_switching2(stub, index, args[0]); \
+        out = stack_switching1(stub, index, args[0]); \
     } \
     _Pragma("clang diagnostic pop") \
     out; \
