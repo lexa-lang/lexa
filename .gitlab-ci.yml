@@ -8,7 +8,7 @@ build-job:       # This job runs in the build stage, which runs first.
   script:
     - pwd
     - cd benchmark-programs/lexi 
-    - echo "print('aaaaaabbbbbbbbcccccc')" | nix develop nixpkgs#python3 -c python
+    - echo "print('aaaaaabbbbbbbbcccccc')" | nix shell nixpkgs#python3 -c python
     - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose -c "make build"
 
 unit-test-job:   # This job runs in the test stage.
