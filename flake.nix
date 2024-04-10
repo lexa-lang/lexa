@@ -93,9 +93,6 @@
               utop
               menhir
           ]);
-          shellHook = ''
-            exec zsh
-          '';
         };
       });
 }
