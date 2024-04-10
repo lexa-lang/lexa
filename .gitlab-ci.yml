@@ -9,7 +9,7 @@ build-job:       # This job runs in the build stage, which runs first.
     - pwd
     - cd benchmark-programs/lexi 
     - printenv
-    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose .
+    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "-i"
     - printenv
 
 unit-test-job:   # This job runs in the test stage.
