@@ -43,6 +43,7 @@ typedef struct {
 #define NARGS(...) ARG_N(_, ## __VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 
 FAST_SWITCH_DECORATOR
+__attribute__((noinline))
 i64 double_save_switch_and_run_handler(meta_t* stub, i64 index, i64 arg) {
     resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
     k->ctx_sp = stub->sp_exchanger;
@@ -59,6 +60,7 @@ i64 double_save_switch_and_run_handler(meta_t* stub, i64 index, i64 arg) {
 }
 
 FAST_SWITCH_DECORATOR
+__attribute__((noinline))
 i64 save_switch_and_run_handler(meta_t* stub, i64 index, i64 arg) {
     __asm__ (
         "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
