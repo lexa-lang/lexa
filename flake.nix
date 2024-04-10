@@ -51,9 +51,9 @@
             # clang_main
             # clang_dev
             self.packages.${system}.clang_18_preserve_none
+            pkgs.bashInteractive
           ];
           buildInputs = [
-            pkgs.bashInteractive
             mlton
             chez
             nodejs_21
