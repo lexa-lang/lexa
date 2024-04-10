@@ -7,7 +7,7 @@ build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - pwd
-    - nix --extra-experimental-features "nix-command flakes" develop --verbose .
+    - nix --extra-experimental-features "nix-command flakes" develop --verbose --option sandbox false .
     - cd benchmark-programs/lexi 
     - make build
 
