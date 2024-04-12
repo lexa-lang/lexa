@@ -12,7 +12,7 @@ effect Exn {
 }
 
 def queueDeqExn(q, exn_stub) {
-    let cond = ~queueIsEmpty(q) in
+    val cond = ~queueIsEmpty(q);
     if cond then
         raise exn_stub.throw 0
     else
@@ -24,47 +24,47 @@ def job(env, sch_stub) {
 }
 
 def entry(env, sch_stub) {
-    let n_jobs = env[0] in
-    let job_closure = env[1] in
-    let tick_stub = env[2] in
+    val n_jobs = env[0];
+    val job_closure = env[1];
+    val tick_stub = env[2];
     jobs(n_jobs, job_closure, sch_stub, tick_stub)
 }
 
 def jobs(i, job_closure, sch_stub, tick_stub) {
-    let cond = i == 0 in
+    val cond = i == 0;
     if cond then
         0
     else
-        let _ = raise sch_stub.fork job_closure in
-        let a = raise tick_stub.tick 0 in
-        let i0 = i - 1 in
+        val _ = raise sch_stub.fork job_closure;
+        val a = raise tick_stub.tick 0;
+        val i0 = i - 1;
             jobs(i0, job_closure, sch_stub, tick_stub)
 }
 
 obj process(env) {
     hdl_1 yield(_, k) {
-        let job_queue = env[1] in
+        val job_queue = env[1];
         ~queueEnq(job_queue, k)
     }
 
     hdl_1 fork(newjob_closure, k) {
-        let job_queue = env[1] in
-        let _ = ~queueEnq(job_queue, k) in
+        val job_queue = env[1];
+        val _ = ~queueEnq(job_queue, k);
         spawn(newjob_closure, job_queue)
     }
 }
 
 def body(env, sch_stub) {
-    let job_closure = env[0] in
-    let job_func = job_closure[0] in
-    let job_env = job_closure[1] in
+    val job_closure = env[0];
+    val job_func = job_closure[0];
+    val job_env = job_closure[1];
     job_func(job_env, sch_stub)
 }
 
 def body_driver(env, exn_stub) {
-    let job_queue = env[0] in
-    let k = queueDeqExn(job_queue, exn_stub) in
-    let _ = resume_final k 0 in
+    val job_queue = env[0];
+    val k = queueDeqExn(job_queue, exn_stub);
+    val _ = resume_final k 0;
     driver(job_queue)
 }
 
@@ -75,10 +75,10 @@ obj exn(env) {
 }
 
 def driver(job_queue) {
-    let _ = 
+    val _ = 
         handle <job_queue>
             body_driver
-        with exn: Exn in
+        with exn: Exn;
     0
 }
 
@@ -89,47 +89,47 @@ def spawn(job_closure, job_queue) {
 }
 
 def scheduler(init_closure) {
-    let job_queue = ~queueMake () in
-    let _ = spawn(init_closure, job_queue) in
+    val job_queue = ~queueMake ();
+    val _ = spawn(init_closure, job_queue);
     driver(job_queue)
 }
 
 obj tick(env) {
     def tick(_) {
-        let c = env[1] in
-        let v1 = c[0] in
-        let v2 = v1 + 1 in
-        let _ = c[0] := v2 in
+        val c = env[1];
+        val v1 = c[0];
+        val v2 = v1 + 1;
+        val _ = c[0] := v2;
         0
     }
 }
 
 def body_run(env, tick_stub) {
-    let n_jobs = env[0] in
-    let empty = newref <> in
-    let job_closure = newref <job, empty> in
-    let entry_env = newref <n_jobs, job_closure, tick_stub> in
-    let entry_closure = newref <entry, entry_env> in
+    val n_jobs = env[0];
+    val empty = newref <>;
+    val job_closure = newref <job, empty>;
+    val entry_env = newref <n_jobs, job_closure, tick_stub>;
+    val entry_closure = newref <entry, entry_env>;
     scheduler(entry_closure)
 }
 
 def run(n_jobs, init) {
-    let c = newref <init> in
-    let _ = 
+    val c = newref <init>;
+    val _ = 
         handle <n_jobs, c>
             body_run
-        with tick: Tick in
-    let v = c[0] in
+        with tick: Tick;
+    val v = c[0];
     v
 }
 
 def step(i, acc, n_jobs) {
-    let cond = i == 0 in
+    val cond = i == 0;
     if cond then
         acc
     else
-        let i_dec = i - 1 in
-        let acc2 = run(n_jobs, acc) in
+        val i_dec = i - 1;
+        val acc2 = run(n_jobs, acc);
         step(i_dec, acc2, n_jobs)
 }
 
@@ -138,8 +138,8 @@ def repeat(n_jobs) {
 }
 
 def main() {
-    let arg1 = ~readInt() in
-    let arg2 = repeat(arg1) in
-    let _ = ~printInt(arg2) in
+    val arg1 = ~readInt();
+    val arg2 = repeat(arg1);
+    val _ = ~printInt(arg2);
     0
 }

@@ -4,27 +4,27 @@ effect Choice {
 }
 
 def choice(n, choice_stub) {
-    let cond = n < 1 in
+    val cond = n < 1;
     if cond then
         raise choice_stub.fail 0
     else
-        let cond = raise choice_stub.flip 0 in
+        val cond = raise choice_stub.flip 0;
         if cond then
             n
         else
-            let arg = n - 1 in
+            val arg = n - 1;
             choice(arg, choice_stub)
 }
 
 def triple(n, s, choice_stub) {
-    let i = choice(n, choice_stub) in
-    let arg = i - 1 in
-    let j = choice(arg, choice_stub) in
-    let arg = j - 1 in
-    let k = choice(arg, choice_stub) in
-    let temp = i + j in
-    let sum = temp + k in
-    let cond = sum == s in
+    val i = choice(n, choice_stub);
+    val arg = i - 1;
+    val j = choice(arg, choice_stub);
+    val arg = j - 1;
+    val k = choice(arg, choice_stub);
+    val temp = i + j;
+    val sum = temp + k;
+    val cond = sum == s;
     if cond then
         hash(i, j, k)
     else
@@ -32,8 +32,8 @@ def triple(n, s, choice_stub) {
 }
 
 def body(env, choice_stub) {
-    let n = env[0] in
-    let s = env[1] in
+    val n = env[0];
+    val s = env[1];
     triple(n, s, choice_stub)
 }
 
@@ -43,10 +43,10 @@ obj choice(env) {
     }
 
     hdl_s flip(_, k) {
-        let p1 = resume k true in
-        let p2 = resume_final k false in
-        let mod1 = p1 + p2 in
-        let mod2 = 1000000007 in
+        val p1 = resume k true;
+        val p2 = resume_final k false;
+        val mod1 = p1 + p2;
+        val mod2 = 1000000007;
         mod1 % mod2
     }
 }
@@ -58,19 +58,19 @@ def run(n, s) {
 }
 
 def hash(a,b,c) {
-    let plus1 = 53 * a in
-    let plus2 = 2809 * b in
-    let plus3 = 148877 * c in
-    let interm = plus1 + plus2 in
-    let mod1 = interm + plus3 in
-    let mod2 = 1000000007 in
+    val plus1 = 53 * a;
+    val plus2 = 2809 * b;
+    val plus3 = 148877 * c;
+    val interm = plus1 + plus2;
+    val mod1 = interm + plus3;
+    val mod2 = 1000000007;
     mod1 % mod2
 }
 
 def main() {
-    let n = ~readInt() in
-    let res = run(n, n) in
-    let _ = ~printInt(res) in
+    val n = ~readInt();
+    val res = run(n, n);
+    val _ = ~printInt(res);
     0
 }
 

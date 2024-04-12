@@ -9,80 +9,78 @@ effect Behead {
 }
 
 def loop_body_1(env, replace_stub) {
-    let it = env[0] in
-    let yield_stub = env[1] in
-    let behead_stub = env[2] in
-    let val = ~listHead(it) in
-    raise yield_stub.yield val, behead_stub, replace_stub
+    val it = env[0];
+    val yield_stub = env[1];
+    val behead_stub = env[2];
+    val v = ~listHead(it);
+    raise yield_stub.yield v, behead_stub, replace_stub
 }
 
 obj replace_loop(env) {
     def replace(x) {
-        let it = env[0] in
+        val it = env[0];
         ~listSetHead(it, x)
     }
 }
 
 def loop_body_2(env, behead_stub) {
-    let it_tail = env[0] in
-    let yield_stub = env[1] in
+    val it_tail = env[0];
+    val yield_stub = env[1];
     loop(it_tail, yield_stub, behead_stub)
 }
 
 obj loop_behead(env) {
     def behead(_) {
-        let it = env[0] in
-        let beheaded = env[2] in
+        val it = env[0];
+        val beheaded = env[2];
         beheaded[0] := 1
     }
 }
 
 def loop(it, yield_stub, behead_stub) {
-    let _ = 
-        handle <it, yield_stub, behead_stub>
+    val _ = handle <it, yield_stub, behead_stub>
             loop_body_1
-        with replace_loop: Replace in
-    let it_tail = ~listTail(it) in
-    let beheaded = newref <0> in
-    let cond = ~listIsEmpty(it_tail) in
-    let newtl = 
+        with replace_loop: Replace;
+    val it_tail = ~listTail(it);
+    val beheaded = newref <0>;
+    val cond = ~listIsEmpty(it_tail);
+    val newtl = 
         if cond then
             ~listEnd()
         else
             handle <it_tail, yield_stub, beheaded>
                 loop_body_2
-            with loop_behead: Behead
-    in
-    let tobehead = beheaded[0] in
-    let _ =
+            with loop_behead: Behead;
+    val tobehead = beheaded[0];
+    val _ =
         if tobehead then
-            let tailtail = ~listTail(newtl) in
+            val tailtail = ~listTail(newtl);
             ~listSetTail(it, tailtail)
         else
-            0
-    in it
+            0;
+    it
             
 }
 
 def body_main_2(env, yield_stub) {
-    let behead_stub = env[0] in
-    let l = env[1] in
+    val behead_stub = env[0];
+    val l = env[1];
     loop(l, yield_stub, behead_stub)
 }
 
 obj yield_main(env) {
     def yield(x, behead_stub, replace_stub) {
-        let cond = x < 0 in
+        val cond = x < 0;
         if cond then
             raise behead_stub.behead 0
         else
-            let x2 = x * 2 in
+            val x2 = x * 2;
             raise replace_stub.replace x2
     }
 }
 
 def body_main_1(env, behead_stub) {
-    let l = env[0] in
+    val l = env[0];
     handle <behead_stub, l>
         body_main_2
     with yield_main: Yield
@@ -90,48 +88,47 @@ def body_main_1(env, behead_stub) {
 
 obj behead_main(env) {
     def behead(_) {
-        let beheaded = env[1] in
+        val beheaded = env[1];
         beheaded[0] := 1
     }
 }
 
 def listSum(l, acc) {
-    let cond = ~listIsEmpty(l) in
+    val cond = ~listIsEmpty(l);
     if cond then
         acc
     else
-        let head = ~listHead(l) in
-        let tail = ~listTail(l) in
-        let newacc = acc + head in
+        val head = ~listHead(l);
+        val tail = ~listTail(l);
+        val newacc = acc + head;
         listSum(tail, newacc)
 }
 
 def run(n) {
-    let minusn = 0 - n in
-    let l = ~listRange(minusn, n) in
-    let beheaded = newref <0> in
-    let newtl = 
+    val minusn = 0 - n;
+    val l = ~listRange(minusn, n);
+    val beheaded = newref <0>;
+    val newtl = 
         handle <l, beheaded>
             body_main_1
-        with behead_main: Behead in
-    let tobehead = beheaded[0] in
-    let res =
+        with behead_main: Behead;
+    val tobehead = beheaded[0];
+    val res =
         if tobehead then
             ~listTail(newtl)
         else
-            newtl
-    in
+            newtl;
     listSum(res)
 }
 
 def step(i, acc, n_jobs) {
-    let cond = i == 0 in
+    val cond = i == 0;
     if cond then
         acc
     else
-        let i_dec = i - 1 in
-        let res = run(n_jobs) in
-        let acc2 = acc + res in
+        val i_dec = i - 1;
+        val res = run(n_jobs);
+        val acc2 = acc + res;
         step(i_dec, acc2, n_jobs)
 }
 
@@ -140,8 +137,8 @@ def repeat(n_jobs) {
 }
 
 def main() {
-    let arg1 = ~readInt() in
-    let arg2 = repeat(arg1) in
-    let _ = ~printInt(arg2) in
+    val arg1 = ~readInt();
+    val arg2 = repeat(arg1);
+    val _ = ~printInt(arg2);
     0
 }

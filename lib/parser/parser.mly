@@ -18,8 +18,6 @@
 %token LTS (* less than sign *)
 %token GTS
 %token EQ
-%token LET
-%token IN
 %token COLONEQ
 %token COLON
 %token RAISE
@@ -51,6 +49,8 @@
 %token RESUME
 %token RESUMEFINAL
 %token PERC
+%token VALDEF
+%token SEMICOLON
 
 %start <Syntax.value list> prog
 %%
@@ -100,7 +100,7 @@ term:
   | value { TValue $1 }
   | v1 = value op = arith v2 = value { TArith (v1, op, v2) }
   | v1 = value cmp = cmp v2 = value { TCmp (v1, cmp, v2) }
-  | LET VAR EQ t1 = term IN t2 = term { TLet ($2, t1, t2) }
+  | VALDEF VAR EQ t1 = term SEMICOLON t2 = term { TLet ($2, t1, t2) }
   | value LPAREN vs = separated_list(COMMA, value) RPAREN { TApp ($1, vs) }
   | IF v = value THEN t1 = term ELSE t2 = term { TIf (v, t1, t2) }
   | NEWREF heap_value { TNew $2 }
