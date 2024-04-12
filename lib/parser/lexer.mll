@@ -26,8 +26,6 @@ rule read =
   | ":" { COLON }
   | "(" { LPAREN }
   | ")" { RPAREN }
-  | "let" { LET }
-  | "in" { IN }
   | "=" { EQ }
   | "raise" { RAISE }
   | "handle" { HANDLE }
@@ -57,6 +55,8 @@ rule read =
   | "resume" { RESUME }
   | "resume_final" { RESUMEFINAL }
   | "%" { PERC }
+  | "val" { VALDEF }
+  | ";" { SEMICOLON }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | sig { SIG (Lexing.lexeme lexbuf) }
   | id { VAR (Lexing.lexeme lexbuf) }

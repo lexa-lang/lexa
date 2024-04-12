@@ -28,8 +28,8 @@
   return(({i64 it = (i64)(((i64*)env)[0]);
   ({i64 yield_stub = (i64)(((i64*)env)[1]);
   ({i64 behead_stub = (i64)(((i64*)env)[2]);
-  ({i64 val = (i64)(((i64)(listHead((node_t*)it))));
-  RAISE(yield_stub, 0, (val,behead_stub,replace_stub));});});});}));
+  ({i64 v = (i64)(((i64)(listHead((node_t*)it))));
+  RAISE(yield_stub, 0, (v,behead_stub,replace_stub));});});});}));
   }
   
    i64 replace(i64* env,i64 x) {

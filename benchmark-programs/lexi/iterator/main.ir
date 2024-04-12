@@ -3,40 +3,40 @@ effect Emit {
 }
 
 def range(l, u, emit_stub) {
-    let cond = l > u in
+    val cond = l > u;
     if cond then
         0
     else
-        let _ = raise emit_stub.emit l in
-        let arg = l + 1 in
+        val _ = raise emit_stub.emit l;
+        val arg = l + 1;
         range(arg, u, emit_stub)
 }
 
 obj emit(env) {
     def emit(e) {
-        let ss = env[1] in
-        let s = ss[0] in
-        let s_updated = s + e in
+        val ss = env[1];
+        val s = ss[0];
+        val s_updated = s + e;
         ss[0] := s_updated
     }
 }
 
 def body(env, emit_stub) {
-    let n = env[0] in
+    val n = env[0];
     range(0, n, emit_stub)
 }
 
 def run(n) {
-    let s = newref <0> in
-    let _ = handle <n, s>
+    val s = newref <0>;
+    val _ = handle <n, s>
         body
-    with emit: Emit in
+    with emit: Emit;
     s[0]
 }
 
 def main() {
-    let n = ~readInt() in
-    let res = run(n) in
-    let _ = ~printInt(res) in
+    val n = ~readInt();
+    val res = run(n);
+    val _ = ~printInt(res);
     0
 }

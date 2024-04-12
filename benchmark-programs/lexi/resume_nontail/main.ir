@@ -3,22 +3,22 @@ effect Operator {
 }
 
 def loop(i, s, operator_stub) {
-    let cond = i == 0 in
+    val cond = i == 0;
     if cond then
         s
     else
-        let _ = raise operator_stub.operator i in
-        let i_dec = i - 1 in
+        val _ = raise operator_stub.operator i;
+        val i_dec = i - 1;
         loop(i_dec, s, operator_stub)
 }
 
 obj operator(env) {
     hdl_1 operator(x, k) {
-        let y = resume_final k 0 in
-        let y503 = 503 * y in
-        let minus_res = x - y503 in
-        let plus_res = minus_res + 37 in
-        let abs_res = ~mathAbs(plus_res) in
+        val y = resume_final k 0;
+        val y503 = 503 * y;
+        val minus_res = x - y503;
+        val plus_res = minus_res + 37;
+        val abs_res = ~mathAbs(plus_res);
         abs_res % 1009
     }
 }
@@ -30,18 +30,18 @@ def run(n, s) {
 }
 
 def body(env, operator_stub) {
-    let n = env[0] in
-    let s = env[1] in
+    val n = env[0];
+    val s = env[1];
     loop(n, s, operator_stub)
 }
 
 def step(l, s, n) {
-    let cond = l == 0 in
+    val cond = l == 0;
     if cond then
         s
     else
-        let l_dec = l - 1 in
-        let run_res = run(n, s) in
+        val l_dec = l - 1;
+        val run_res = run(n, s);
         step(l_dec, run_res, n)
 }
 
@@ -50,8 +50,8 @@ def repeat(n) {
 }
 
 def main() {
-    let n = ~readInt() in
-    let result = repeat(n) in
-    let _ = ~printInt(result) in
+    val n = ~readInt();
+    val result = repeat(n);
+    val _ = ~printInt(result);
     0
 }

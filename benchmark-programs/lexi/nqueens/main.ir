@@ -4,37 +4,37 @@ effect Search {
 }
 
 def safe(queen, diag, xs) {
-    let is_empty = ~listIsEmpty(xs) in
+    val is_empty = ~listIsEmpty(xs);
     if is_empty then
         true
     else
-        let q = ~listHead(xs) in
-        let qs = ~listTail(xs) in
-        let cond1 = queen != q in
-        let t1 = q + diag in
-        let cond2 = queen != t1 in
-        let t2 = q - diag in
-        let cond3 = queen != t2 in
-        let cond12 = ~boolAnd(cond1, cond2) in
-        let cond123 = ~boolAnd(cond12, cond3) in
+        val q = ~listHead(xs);
+        val qs = ~listTail(xs);
+        val cond1 = queen != q;
+        val t1 = q + diag;
+        val cond2 = queen != t1;
+        val t2 = q - diag;
+        val cond3 = queen != t2;
+        val cond12 = ~boolAnd(cond1, cond2);
+        val cond123 = ~boolAnd(cond12, cond3);
         if cond123 then
-            let diag_inc = diag + 1 in
+            val diag_inc = diag + 1;
             safe(queen, diag_inc, qs)
         else
             false
 }
 
 def place(size, column, search_stub) {
-    let is_zero = column == 0 in
+    val is_zero = column == 0;
     if is_zero then
         ~listEnd()
     else
-        let column_dec = column - 1 in
-        let rest = place(size, column_dec, search_stub) in
-        let next = raise search_stub.pick size in
-        let is_safe = safe(next, 1, rest) in
+        val column_dec = column - 1;
+        val rest = place(size, column_dec, search_stub);
+        val next = raise search_stub.pick size;
+        val is_safe = safe(next, 1, rest);
         if is_safe then
-            let head = ~listNode(next, rest) in
+            val head = ~listNode(next, rest);
             head
         else
             raise search_stub.fail 0
@@ -47,20 +47,20 @@ def run(n) {
 }
 
 def body(env, search_stub) {
-    let n = env[0] in
-    let _ = place(n, n, search_stub) in
+    val n = env[0];
+    val _ = place(n, n, search_stub);
     1
 }
 
 def loop(i, a, size, k) {
-    let cond = i == size in
+    val cond = i == size;
     if cond then
-        let r = resume_final k i in
+        val r = resume_final k i;
         a + r
     else
-        let r = resume k i in
-        let arg1 = i + 1 in
-        let arg2 = a + r in
+        val r = resume k i;
+        val arg1 = i + 1;
+        val arg2 = a + r;
         loop(arg1, arg2, size, k)
 }
 
@@ -72,8 +72,8 @@ obj search(env) {
 }
 
 def main() {
-    let n = ~readInt() in
-    let run_res = run(n) in
-    let _ = ~printInt(run_res) in
+    val n = ~readInt();
+    val run_res = run(n);
+    val _ = ~printInt(run_res);
     0
 }

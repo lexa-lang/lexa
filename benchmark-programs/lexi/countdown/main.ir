@@ -4,25 +4,25 @@ effect State {
 }
 
 def countdown(state_stub) {
-    let i = raise state_stub.get 0 in
-    let cond = i == 0 in
+    val i = raise state_stub.get 0;
+    val cond = i == 0;
     if cond then
         i
     else
-        let arg = i - 1 in
-        let _ = raise state_stub.set arg in
+        val arg = i - 1;
+        val _ = raise state_stub.set arg;
         countdown(state_stub)
 }
 
 obj state(env) {
     def get(_) { 
-        let s = env[0] in
+        val s = env[0];
         s[0]
     }
 
     def set(i) { 
-        let s = env[0] in
-        let _ = s[0] := i in
+        val s = env[0];
+        val _ = s[0] := i;
         0
     }
 }
@@ -32,15 +32,15 @@ def body(env, state_stub) {
 }
 
 def run(n) {
-    let s = newref <n> in
+    val s = newref <n>;
     handle <s>
         body
     with state: State
 }
 
 def main() {
-    let arg1 = ~readInt() in
-    let arg2 = run(arg1) in
-    let _ = ~printInt(arg2) in
+    val arg1 = ~readInt();
+    val arg2 = run(arg1);
+    val _ = ~printInt(arg2);
     0
 }

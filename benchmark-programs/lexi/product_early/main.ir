@@ -4,27 +4,27 @@ effect Abort {
 }
 
 def product(xs, abort_stub) {
-    let cond = ~listIsEmpty(xs) in
+    val cond = ~listIsEmpty(xs);
     if cond then
         0
     else
-        let y = ~listHead(xs) in
-        let ys = ~listTail(xs) in
-            let cond = y == 0 in
+        val y = ~listHead(xs);
+        val ys = ~listTail(xs);
+            val cond = y == 0;
             if cond then
                 raise abort_stub.done 0
             else
-                let p = product(ys, abort_stub) in
+                val p = product(ys, abort_stub);
                 y * p
 }
 
 def enumerate(i) {
-    let cond = i < 0 in
+    val cond = i < 0;
     if cond then
         ~listEnd()
     else
-        let arg1 = i - 1 in
-        let arg2 = enumerate(arg1) in
+        val arg1 = i - 1;
+        val arg2 = enumerate(arg1);
         ~listNode(i, arg2)
 }
 
@@ -35,7 +35,7 @@ obj abort(env) {
 }
 
 def body(env, abort_stub) {
-    let arg1 = env[0] in
+    val arg1 = env[0];
     product(arg1, abort_stub)
 }
 
@@ -46,24 +46,24 @@ def runProduct(xs) {
 }
 
 def loop(xs, i, a) {
-    let cond = i == 0 in
+    val cond = i == 0;
     if cond then
         a
     else
-        let arg1 = i - 1 in
-        let arg2 = runProduct(xs) in
-        let arg3 = a + arg2 in
+        val arg1 = i - 1;
+        val arg2 = runProduct(xs);
+        val arg3 = a + arg2;
         loop(xs, arg1, arg3)
 }
 
 def run(n) {
-    let xs = enumerate(1000) in
+    val xs = enumerate(1000);
         loop(xs, n, 0)
 }
 
 def main() {
-    let arg1 = ~readInt() in
-    let arg2 = run(arg1) in
-    let _ = ~printInt(arg2) in
+    val arg1 = ~readInt();
+    val arg2 = run(arg1);
+    val _ = ~printInt(arg2);
     0
 }

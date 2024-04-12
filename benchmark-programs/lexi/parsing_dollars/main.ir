@@ -28,24 +28,24 @@ def is_dollar(c) {
 
 obj emit(env) {
     def emit(e) {
-        let s_ref = env[1] in
-        let s = s_ref[0] in
-        let s_inc = s + e in
+        val s_ref = env[1];
+        val s = s_ref[0];
+        val s_inc = s + e;
         s_ref[0] := s_inc
     }
 }
 
 def sum_body(env, emit_stub) {
-    let action = env[0] in
-    let n = env[2] in
+    val action = env[0];
+    val n = env[2];
     action(emit_stub, n)
 }
 
 def sum(action, n) {
-    let s = newref <0> in
-    let _ = handle <action, s, n>
+    val s = newref <0>;
+    val _ = handle <action, s, n>
         sum_body
-    with emit: Emit in
+    with emit: Emit;
     s[0]
 }
 
@@ -54,9 +54,9 @@ obj stop(env) {
 }
 
 def catch_body(env, stop_stub) {
-    let action = env[0] in
-    let emit_stub = env[1] in
-    let n = env[2] in
+    val action = env[0];
+    val emit_stub = env[1];
+    val n = env[2];
     action(stop_stub, emit_stub, n)
 }
 
@@ -68,54 +68,54 @@ def catch(action, emit_stub, n) {
 
 obj read(env) {
     def read() {
-        let i_ref = env[1] in
-        let j_ref = env[2] in
-        let i = i_ref[0] in
-        let j = j_ref[0] in
-        let n = env[3] in
-        let stop_stub = env[4] in
-        let cond = i > n in
+        val i_ref = env[1];
+        val j_ref = env[2];
+        val i = i_ref[0];
+        val j = j_ref[0];
+        val n = env[3];
+        val stop_stub = env[4];
+        val cond = i > n;
         if cond then
             raise stop_stub.stop 0
         else
-            let cond = j == 0 in
+            val cond = j == 0;
             if cond then
-                let i_inc = i + 1 in
-                let _ = i_ref[0] := i_inc in
-                let _ = j_ref[0] := i_inc in
+                val i_inc = i + 1;
+                val _ = i_ref[0] := i_inc;
+                val _ = j_ref[0] := i_inc;
                 newline()
             else
-                let j_dec = j - 1 in
-                let _ = j_ref[0] := j_dec in
+                val j_dec = j - 1;
+                val _ = j_ref[0] := j_dec;
                 dollar()
     }
 }
 
 def feed(n, action, stop_stub, emit_stub) {
-    let i = newref <0> in
-    let j = newref <0> in
+    val i = newref <0>;
+    val j = newref <0>;
     handle <action, i, j, n, stop_stub, emit_stub>
         feed_body
     with read: Read
 }
 
 def feed_body(env, read_stub) {
-    let action = env[0] in
-    let stop_stub = env[4] in
-    let emit_stub = env[5] in
+    val action = env[0];
+    val stop_stub = env[4];
+    val emit_stub = env[5];
     action(read_stub, emit_stub, stop_stub)
 }
 
 def parse(a, read_stub, emit_stub, stop_stub) {
-    let c = raise read_stub.read 0 in
-    let cond = is_dollar(c) in
+    val c = raise read_stub.read 0;
+    val cond = is_dollar(c);
     if cond then
-        let a_inc = a + 1 in
+        val a_inc = a + 1;
         parse(a_inc, read_stub, emit_stub, stop_stub)
     else
-        let cond = is_newline(c) in
+        val cond = is_newline(c);
         if cond then
-            let _ = raise emit_stub.emit a in
+            val _ = raise emit_stub.emit a;
             parse(0, read_stub, emit_stub, stop_stub)
         else
             raise stop_stub.stop 0
@@ -126,23 +126,23 @@ def feed_action(read_stub, emit_stub, stop_stub) {
 }
 
 def sum_action(emit_stub, n) {
-    let catch_action_i64 = catch_action in
+    val catch_action_i64 = catch_action;
     catch(catch_action_i64, emit_stub, n)
 }
 
 def catch_action(stop_stub, emit_stub, n) {
-    let feed_action_i64 = feed_action in
+    val feed_action_i64 = feed_action;
     feed(n, feed_action_i64, stop_stub, emit_stub)
 }
 
 def run(n) {
-    let sum_action_i64 = sum_action in
+    val sum_action_i64 = sum_action;
     sum(sum_action_i64, n)
 }
 
 def main() {
-    let n = ~readInt() in
-    let run_result = run(n) in
-    let _ = ~printInt(run_result) in
+    val n = ~readInt();
+    val run_result = run(n);
+    val _ = ~printInt(run_result);
     0
 }
