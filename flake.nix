@@ -92,6 +92,7 @@
               dune_3
               utop
               menhir
+              ppx_inline_test
           ]);
         };
       });

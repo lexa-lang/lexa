@@ -6,7 +6,7 @@ stages:          # List of stages for jobs, and their order of execution
 build-job:
   stage: build
   script:
-    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "opam init -a && eval \$(opam env) && opam install . --deps-only --working-dir --yes && echo OK"
+    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "echo OK"
 
 unit-test-job:
   stage: test
@@ -16,9 +16,9 @@ unit-test-job:
 compile-test-job:
   stage: test
   script:
-    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "eval \$(opam env) && dune runtest ./test/compile"
+    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "dune runtest ./test/compile"
 
 integration-test-job:
   stage: test
   script:
-    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "eval \$(opam env) && dune runtest ./test/integration"
+    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "dune runtest ./test/integration"
