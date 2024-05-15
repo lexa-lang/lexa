@@ -52,7 +52,7 @@ obj choice(env) {
 }
 
 def run(n, s) {
-    handle <n, s>
+    handle {n, s}
         body
     with choice: Choice
 }

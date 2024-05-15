@@ -42,8 +42,8 @@ def sum_body(env, emit_stub) {
 }
 
 def sum(action, n) {
-    val s = newref <0>;
-    val _ = handle <action, s, n>
+    val s = newref {0};
+    val _ = handle {action, s, n}
         sum_body
     with emit: Emit;
     s[0]
@@ -61,7 +61,7 @@ def catch_body(env, stop_stub) {
 }
 
 def catch(action, emit_stub, n) {
-    handle <action, emit_stub, n>
+    handle {action, emit_stub, n}
         catch_body
     with stop: Stop
 }
@@ -92,9 +92,9 @@ obj read(env) {
 }
 
 def feed(n, action, stop_stub, emit_stub) {
-    val i = newref <0>;
-    val j = newref <0>;
-    handle <action, i, j, n, stop_stub, emit_stub>
+    val i = newref {0};
+    val j = newref {0};
+    handle {action, i, j, n, stop_stub, emit_stub}
         feed_body
     with read: Read
 }

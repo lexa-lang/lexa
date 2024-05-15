@@ -59,7 +59,7 @@ def body(env, choice_stub) {
 }
 
 def paths(state, tree) {
-    handle <state, tree>
+    handle {state, tree}
         body
     with choice: Choice
 }
@@ -78,7 +78,7 @@ def loop(state, tree, i) {
 
 def run(n) {
     val tree = make(n);
-    val state = newref <0>;
+    val state = newref {0};
         loop(state, tree, 10)
 }
 

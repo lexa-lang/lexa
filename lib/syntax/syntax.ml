@@ -19,39 +19,42 @@ type hdl_anno =
   | HHdl1 (* Singleshot *)
   | HHdls (* Multishot*)
 
-type value = 
+type top_level =
+  | TLAbs of var * var list * expr
+  | TLEffSig of var * var list
+  | TLObj of var * var list * hdl list
+
+(* and value = 
   | VVar of var
   | VInt of int
   | VBool of bool
-  | VAbs of var * var list * term
+  | VAbs of var * var list * expr
   | VEffSig of var * var list
   | VObj of var * var list * hdl list
-  | VPrim of string
+  | VPrim of string *)
 
-and hdl = hdl_anno * var * var list * term (* handler *)
+and hdl = hdl_anno * var * var list * expr (* handler *)
 
-and heap_value = value list
+and heap_value = expr list
 
-and term =
-  | TValue of value
-  | TArith of value * arith * value
-  | TCmp  of value * cmp * value
-  | TLet of var * term * term
-  | TIf of value * term * term
-  | TApp of value * value list
-  | TNew of heap_value
-  | TGet of value * value
-  | TSet of value * value * value
-  | TRaise of var * var * value list
-  | TResume of var * value
-  | TResumeFinal of var * value
-  | THdl of var list * var * var * var (* handle *)
+and clo_env = var list
 
-and heap_item = location * value
-
-and heap =
-  heap_item list
-
-and location = string
-
-type toplevel = value list
+and expr =
+  | Var of var
+  | Int of int
+  | Bool of bool
+  | Prim of string
+  | EArith of expr * arith * expr
+  | ECmp of expr * cmp * expr 
+  | EApp of expr * expr list
+  | ENew of heap_value
+  | EGet of expr * expr
+  | ESet of expr * expr * expr
+  | ERaise of var * var * expr list
+  | EResume of var * expr
+  | EResumeFinal of var * expr
+  | EHdl of expr list * var * var * var (* handle *)
+  | EFun of var list * expr (* Function [fun f(x) = t] *)
+  | EClosure of var list * expr * clo_env
+  | ELet of var * expr * expr
+  | EIf of expr * expr * expr

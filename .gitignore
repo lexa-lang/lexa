@@ -54,3 +54,5 @@ results.json
 runtimes.txt
 plot.png
 .koka
+
+parser.conflicts

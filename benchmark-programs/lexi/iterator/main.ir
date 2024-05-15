@@ -3,21 +3,17 @@ effect Emit {
 }
 
 def range(l, u, emit_stub) {
-    val cond = l > u;
-    if cond then
+    if l > u then
         0
     else
         val _ = raise emit_stub.emit l;
-        val arg = l + 1;
-        range(arg, u, emit_stub)
+        range(l + 1, u, emit_stub)
 }
 
 obj emit(env) {
     def emit(e) {
-        val ss = env[1];
-        val s = ss[0];
-        val s_updated = s + e;
-        ss[0] := s_updated
+        val _ = env[1][0] := (env[1][0] + e);
+        0
     }
 }
 
@@ -27,16 +23,14 @@ def body(env, emit_stub) {
 }
 
 def run(n) {
-    val s = newref <0>;
-    val _ = handle <n, s>
+    val s = newref {0};
+    val _ = handle {n, s}
         body
     with emit: Emit;
     s[0]
 }
 
 def main() {
-    val n = ~readInt();
-    val res = run(n);
-    val _ = ~printInt(res);
+    val _ = ~printInt(run(~readInt()));
     0
 }

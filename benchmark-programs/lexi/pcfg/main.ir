@@ -76,12 +76,12 @@ obj marginalize(env) {
     hdl_s sampleCategorical(_, k) {
         val logits = make_logits();
         val n = ~listLen(logits);
-        val fold_env = newref <k, logits>;
+        val fold_env = newref {k, logits};
         foldl1(fold_env, 0, 0, n)
     }
 
     hdl_s choose(n, k) {
-        val fold_env = newref <k>;
+        val fold_env = newref {k};
         val n1 = n+1;
         foldl2(fold_env, 0, 0, n1)
     }
@@ -126,7 +126,7 @@ def main() {
     val logits = make_logits();
     val productions = make_productions();
     val out = 
-        handle <logits, productions>
+        handle {logits, productions}
             body
         with marginalize: Prob
 ;

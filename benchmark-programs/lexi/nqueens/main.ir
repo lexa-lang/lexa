@@ -41,7 +41,7 @@ def place(size, column, search_stub) {
 }
 
 def run(n) {
-    handle <n>
+    handle {n}
         body
     with search: Search
 }

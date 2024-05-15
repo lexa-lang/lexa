@@ -13,7 +13,7 @@ def loop_body_1(env, replace_stub) {
     val yield_stub = env[1];
     val behead_stub = env[2];
     val v = ~listHead(it);
-    raise yield_stub.yield v, behead_stub, replace_stub
+    raise yield_stub.yield v behead_stub replace_stub
 }
 
 obj replace_loop(env) {
@@ -38,17 +38,17 @@ obj loop_behead(env) {
 }
 
 def loop(it, yield_stub, behead_stub) {
-    val _ = handle <it, yield_stub, behead_stub>
+    val _ = handle {it, yield_stub, behead_stub}
             loop_body_1
         with replace_loop: Replace;
     val it_tail = ~listTail(it);
-    val beheaded = newref <0>;
+    val beheaded = newref {0};
     val cond = ~listIsEmpty(it_tail);
     val newtl = 
         if cond then
             ~listEnd()
         else
-            handle <it_tail, yield_stub, beheaded>
+            handle {it_tail, yield_stub, beheaded}
                 loop_body_2
             with loop_behead: Behead;
     val tobehead = beheaded[0];
@@ -81,7 +81,7 @@ obj yield_main(env) {
 
 def body_main_1(env, behead_stub) {
     val l = env[0];
-    handle <behead_stub, l>
+    handle {behead_stub, l}
         body_main_2
     with yield_main: Yield
 }
@@ -107,9 +107,9 @@ def listSum(l, acc) {
 def run(n) {
     val minusn = 0 - n;
     val l = ~listRange(minusn, n);
-    val beheaded = newref <0>;
+    val beheaded = newref {0};
     val newtl = 
-        handle <l, beheaded>
+        handle {l, beheaded}
             body_main_1
         with behead_main: Behead;
     val tobehead = beheaded[0];

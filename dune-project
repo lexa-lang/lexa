@@ -19,7 +19,10 @@
  (name sstal)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
+ (depends 
+  ocaml
+  dune 
+  ppx_inline_test)
  (allow_empty)
  (tags
   (topics "to describe" your project)))

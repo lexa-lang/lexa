@@ -2,4 +2,5 @@
  (deps 
   %{bin:sstal} 
   (glob_files_rec ../lexi/*.ir)
-  (glob_files_rec ../stacktrek/*.h)))
+  (glob_files_rec ../stacktrek/*.h)
+  (glob_files_rec ../lexi_test/*)))
