@@ -51,25 +51,40 @@
 %token PERC
 %token VALDEF
 %token SEMICOLON
+%token FUN
 
-%start <Syntax.value list> prog
+%start <Syntax.top_level list> prog
+%nonassoc SEMICOLON
+%nonassoc LSB
+%nonassoc ELSE
+%nonassoc NEQ CMPEQ LTS GTS
+%nonassoc COLONEQ
+%left ADD SUB
+%left MULT DIV PERC
 %%
 
 prog:
-  | list(value); EOF { $1 }
+  | list(top_level); EOF { $1 }
 
-arith:
-  | ADD { AAdd }
-  | SUB { ASub }
-  | MULT { AMult }
-  | DIV { ADiv }
-  | PERC { AMod }
+top_level:
+  | DEF name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN 
+      LCB e = expr RCB { TLAbs (name, params, e) }
+  | EFFECT name = SIG LCB l = list(effect_sig) RCB { TLEffSig (name, l) }
+  | OBJ name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN 
+      LCB l = list(hdl_def) RCB { TLObj (name, params, l) }
+      
+// arith:
+//   | ADD { AAdd }
+//   | SUB { ASub }
+//   | MULT { AMult }
+//   | DIV { ADiv }
+//   | PERC { AMod }
   
-cmp:
-  | CMPEQ { CEq }
-  | NEQ { CNeq }
-  | GTS { CGt }
-  | LTS { CLt }
+// cmp:
+//   | CMPEQ { CEq }
+//   | NEQ { CNeq }
+//   | GTS { CGt }
+//   | LTS { CLt }
 
 effect_sig:
   | DCL v = VAR { v }
@@ -81,38 +96,43 @@ hdl_anno:
   | HDLS { HHdls }
 
 hdl_def:
-  | a = hdl_anno name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB t = term RCB { (a, name, params, t) }
-
-value:
-  | VAR { VVar $1 }
-  | INT { VInt $1 }
-  | DEF name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB t = term RCB { VAbs (name, params, t) }
-  | TRUE { VBool true }
-  | FALSE { VBool false }
-  | EFFECT name = SIG LCB l = list(effect_sig) RCB { VEffSig (name, l) }
-  | OBJ name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB l = list(hdl_def) RCB { VObj (name, params, l) }
-  | PRIM { VPrim $1 }
+  | a = hdl_anno name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB e = expr RCB { (a, name, params, e) }
 
 heap_value:
-  | LTS l = separated_list(COMMA, value) GTS { l }
+  | LCB l = separated_list(COMMA, simple_expr) RCB { l }
 
-term:
-  | value { TValue $1 }
-  | v1 = value op = arith v2 = value { TArith (v1, op, v2) }
-  | v1 = value cmp = cmp v2 = value { TCmp (v1, cmp, v2) }
-  | VALDEF VAR EQ t1 = term SEMICOLON t2 = term { TLet ($2, t1, t2) }
-  | value LPAREN vs = separated_list(COMMA, value) RPAREN { TApp ($1, vs) }
-  | IF v = value THEN t1 = term ELSE t2 = term { TIf (v, t1, t2) }
-  | NEWREF heap_value { TNew $2 }
-  | v = value LSB v2 = value RSB { TGet (v, v2) }
-  | v1 = value LSB v2 = value RSB COLONEQ v3 = value { TSet (v1, v2, v3) }
-  | RAISE stub = VAR DOT hdl = VAR params = separated_list(COMMA, value) { TRaise (stub, hdl, params) }
-  // | ABORT v1 = value v2 = value { TAbort (v1, v2) }
-  | RESUME k = VAR v = value { TResume (k, v) }
-  | RESUMEFINAL k = VAR v = value { TResumeFinal (k, v) }
-  | HANDLE LTS env = separated_list(COMMA, VAR) GTS body = VAR WITH obj = VAR COLON sig_name = SIG { THdl (env, body, obj, sig_name) }
+app_expr:
+  | simple_expr { $1 }
+  | e1 = app_expr LPAREN args = separated_list(COMMA, expr) RPAREN { EApp (e1, args) }
 
-// handler:
-//   | LAMBDA env = VAR DOT LAMBDA x = VAR DOT LAMBDA k = VAR DOT t = term { HNormal (env, x, k, t) }
-//   | LAMBDA env = VAR DOT LAMBDA x = VAR DOT t = term { HAbortive (env, x, t) }
+expr:
+  | app_expr { $1 }
+  | e1 = expr ADD e2 = expr { EArith(e1, AAdd, e2) }
+	| e1 = expr SUB e2 = expr { EArith(e1, ASub, e2) }
+	| e1 = expr MULT e2 = expr { EArith(e1, AMult, e2) }
+	| e1 = expr DIV e2 = expr { EArith(e1, ADiv, e2) }
+	| e1 = expr PERC e2 = expr { EArith(e1, AMod, e2) }
+	
+	| e1 = expr CMPEQ e2 = expr { ECmp(e1, CEq, e2) }
+	| e1 = expr NEQ e2 = expr { ECmp(e1, CNeq, e2) }
+	| e1 = expr GTS e2 = expr { ECmp(e1, CGt, e2) }
+	| e1 = expr LTS e2 = expr { ECmp(e1, CLt, e2) }
+	
+  | NEWREF heap_value { ENew $2 }
+  | v = expr LSB v2 = expr RSB { EGet (v, v2) }
+  | v1 = expr LSB v2 = expr RSB COLONEQ v3 = expr { ESet (v1, v2, v3) }
+  | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr { ELet (x, t1, t2) }
+  | IF v = expr THEN t1 = expr ELSE t2 = expr { EIf (v, t1, t2) }
+  | RAISE stub = VAR DOT hdl = VAR params = list(simple_expr) { ERaise (stub, hdl, params) }
+  | RESUME k = VAR v = simple_expr { EResume (k, v) }
+  | RESUMEFINAL k = VAR v = simple_expr { EResumeFinal (k, v) }
+  | HANDLE LCB env = separated_list(COMMA, expr) RCB body = VAR WITH obj = VAR COLON sig_name = SIG { EHdl (env, body, obj, sig_name) }
+  | FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB t = expr RCB { EFun (params, t) }
 
+simple_expr:
+  | VAR { Var $1 }
+  | INT { Int $1 }
+  | TRUE { Bool true }
+  | FALSE { Bool false }
+  | PRIM { Prim $1 }
+  | LPAREN e = expr RPAREN { e }    

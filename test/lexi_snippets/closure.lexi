@@ -1,0 +1,10 @@
+def main() {
+    val local1 = newref {1};
+    val local2 = newref {2};
+    val res = local1[0];
+    val f1 = fun() {
+        0
+    };
+    val _ = ~printInt(res);
+    0
+}

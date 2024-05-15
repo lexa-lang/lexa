@@ -57,6 +57,7 @@ rule read =
   | "%" { PERC }
   | "val" { VALDEF }
   | ";" { SEMICOLON }
+  | "fun" { FUN }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | sig { SIG (Lexing.lexeme lexbuf) }
   | id { VAR (Lexing.lexeme lexbuf) }

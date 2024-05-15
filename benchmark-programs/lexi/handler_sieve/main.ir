@@ -29,7 +29,7 @@ def primes(prime_stub, i, n, a) {
     if cond then
         val cond1 = raise prime_stub.prime i;
         if cond1 then
-            handle <i, n, a, prime_stub>
+            handle {i, n, a, prime_stub}
                 primes_body
             with prime: Prime
         else
@@ -51,7 +51,7 @@ obj prime_true(env) {
 }
 
 def run(n) {
-    handle <n>
+    handle {n}
         body
     with prime_true: Prime
 }

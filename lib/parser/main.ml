@@ -57,7 +57,7 @@ let wrap_syntax_errors parser lex =
     | _ ->
       syntax_error ~loc:(location_of_lex lex) "syntax error"
 
-let parse (s : string) : toplevel =
+let parse (s : string) : top_level list =
   let lexbuf = Lexing.from_string s in
   let defs = Parser.prog Lexer.read lexbuf in
   defs

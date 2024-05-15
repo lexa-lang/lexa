@@ -3,28 +3,22 @@ effect Operator {
 }
 
 def loop(i, s, operator_stub) {
-    val cond = i == 0;
-    if cond then
+    if i == 0 then
         s
     else
         val _ = raise operator_stub.operator i;
-        val i_dec = i - 1;
-        loop(i_dec, s, operator_stub)
+        loop(i - 1, s, operator_stub)
 }
 
 obj operator(env) {
     hdl_1 operator(x, k) {
         val y = resume_final k 0;
-        val y503 = 503 * y;
-        val minus_res = x - y503;
-        val plus_res = minus_res + 37;
-        val abs_res = ~mathAbs(plus_res);
-        abs_res % 1009
+        ~mathAbs(x - (503 * y) + 37) % 1009
     }
 }
 
 def run(n, s) {
-    handle <n, s>
+    handle {n, s}
         body
     with operator: Operator
 }
@@ -36,13 +30,10 @@ def body(env, operator_stub) {
 }
 
 def step(l, s, n) {
-    val cond = l == 0;
-    if cond then
+    if l == 0 then
         s
     else
-        val l_dec = l - 1;
-        val run_res = run(n, s);
-        step(l_dec, run_res, n)
+        step(l - 1, run(n, s), n)
 }
 
 def repeat(n) {
@@ -50,8 +41,6 @@ def repeat(n) {
 }
 
 def main() {
-    val n = ~readInt();
-    val result = repeat(n);
-    val _ = ~printInt(result);
+    val _ = ~printInt(repeat(~readInt()));
     0
 }

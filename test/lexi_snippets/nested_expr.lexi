@@ -1,0 +1,10 @@
+def main() {
+    val x = (1 + 2) * (2 + 1);
+    val y = if x > 1 then
+        val z = x + 1;
+        (z + 1) * 2
+    else
+        x;
+    val _ = ~printInt(y);
+    0
+}

@@ -76,14 +76,14 @@ obj exn(env) {
 
 def driver(job_queue) {
     val _ = 
-        handle <job_queue>
+        handle {job_queue}
             body_driver
         with exn: Exn;
     0
 }
 
 def spawn(job_closure, job_queue) {
-    handle <job_closure, job_queue>
+    handle {job_closure, job_queue}
         body
     with process: Process
 }
@@ -106,17 +106,17 @@ obj tick(env) {
 
 def body_run(env, tick_stub) {
     val n_jobs = env[0];
-    val empty = newref <>;
-    val job_closure = newref <job, empty>;
-    val entry_env = newref <n_jobs, job_closure, tick_stub>;
-    val entry_closure = newref <entry, entry_env>;
+    val empty = newref {};
+    val job_closure = newref {job, empty};
+    val entry_env = newref {n_jobs, job_closure, tick_stub};
+    val entry_closure = newref {entry, entry_env};
     scheduler(entry_closure)
 }
 
 def run(n_jobs, init) {
-    val c = newref <init>;
+    val c = newref {init};
     val _ = 
-        handle <n_jobs, c>
+        handle {n_jobs, c}
             body_run
         with tick: Tick;
     val v = c[0];

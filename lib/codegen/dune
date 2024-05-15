@@ -1,3 +1,5 @@
 (library
  (name codegen)
- (libraries syntax))
+ (inline_tests)
+ (libraries syntax)
+ (preprocess (pps ppx_inline_test)))

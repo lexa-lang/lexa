@@ -40,7 +40,7 @@ def body(env, abort_stub) {
 }
 
 def runProduct(xs) {
-    handle <xs>
+    handle {xs}
         body
     with abort: Abort
 }

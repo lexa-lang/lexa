@@ -4,7 +4,7 @@ effect Scheduler {
 }
 
 def spawn(job_closure, suspend_closure, runnext_closure) {
-    val _ = handle <job_closure, suspend_closure, runnext_closure>
+    val _ = handle {job_closure, suspend_closure, runnext_closure}
         body
     with scheduler: Scheduler;
     val runnext_func = runnext_closure[0];
@@ -84,16 +84,16 @@ def body(env, sch_stub) {
 
 def startScheduler(init_closure) {
     val job_queue = ~queueMake();
-    val suspend_closure = newref <suspend, job_queue>;
-    val runnext_closure = newref <runnext, job_queue>;
+    val suspend_closure = newref {suspend, job_queue};
+    val runnext_closure = newref {runnext, job_queue};
     spawn(init_closure, suspend_closure, runnext_closure)
 }
 
 def run(n) {
-    val state = newref <0>;
-    val job_closure = newref <job, state>;
-    val entry_env = newref <n, job_closure>;
-    val entry_closure = newref <entry, entry_env>;
+    val state = newref {0};
+    val job_closure = newref {job, state};
+    val entry_env = newref {n, job_closure};
+    val entry_closure = newref {entry, entry_env};
         val _ = startScheduler(entry_closure);
         state[0]
 }
