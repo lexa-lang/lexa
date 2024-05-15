@@ -2,8 +2,7 @@
 ## Setup
 1. Install `nix` package manager. Note that many nix commands used requires explicit CLI argument `--extra-experimental-features "nix-command flakes"`, but for conciseness we will omit it in this document.
 2. Clone the repo
-3. Run `nix develop .` to get into the development environment. Running this command for the first time will take around 1 hour on a 4 core machine, as it will build a custom Clang.
-4. Run `opam init -a && eval $(opam env) && opam install . --deps-only --working-dir --yes` to set up opam.
+3. Run `nix develop .` to get into the development environment. Running this command for the first time will take around 1 hour on a 4 core machine, as it will build a custom Clang. Sometimes you may want to add `-i` flag to ensure that the environment is clean.
 
 ## Test
 We have three kinds of tests, each serving a different purpose. For `Compiler Test` and `Integration Test` we uses Cram Test framework; for `Unit Test` we use ppx_inline_test. Read more in [Writing and Running Tests — Dune documentation](https://dune.readthedocs.io/en/stable/tests.html#)
