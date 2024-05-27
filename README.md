@@ -1,8 +1,20 @@
 
-## Setup
-1. Install `nix` package manager. Note that many nix commands used requires explicit CLI argument `--extra-experimental-features "nix-command flakes"`, but for conciseness we will omit it in this document.
-2. Clone the repo
-3. Run `nix develop .` to get into the development environment(You need to run this everytime you are in a new shell). Running this command for the first time will take around 1 hour on a 4 core machine, as it will build a custom Clang. Sometimes you may want to add `-i` flag to ensure that the environment is clean.
+## Setup(Assuming you have a local devbox and have access to plg7a)
+### On Local Devbox
+1. Install VSCode and extentions [Remote - SSH
+](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh), [direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) and [OCaml Platform](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform)
+2. Setup VSCode SSH extension with plg7a following [instructions](https://code.visualstudio.com/docs/remote/ssh#_connect-to-a-remote-host)
+
+### On plg7a
+1. SSH into plg7a
+2. Install `direnv` using `nix-env -iA nixpkgs.direnv` and hook it into your shell following [instructions](https://direnv.net/docs/hook.html)
+3. Restart your shell
+4. Clone this repo and `cd` into it
+5. Enable direnv: `direnv allow .`
+
+### Check if everything is setup correctly
+1. Run `dune build` to build the project
+2. Open a .ml file and hover over a function or a variable, you should see its type
 
 ## Test
 We have three kinds of tests, each serving a different purpose. For `Compiler Test` and `Integration Test` we uses Cram Test framework; for `Unit Test` we use ppx_inline_test. Read more in [Writing and Running Tests — Dune documentation](https://dune.readthedocs.io/en/stable/tests.html#)

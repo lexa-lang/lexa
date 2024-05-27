@@ -87,6 +87,7 @@
             graphviz
           ] ++ 
           (with ocaml-ng.ocamlPackages_5_1; [
+              ocaml-lsp
               opam
               ocaml
               dune_3
