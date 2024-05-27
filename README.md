@@ -1,9 +1,11 @@
 
 ## Setup(Assuming you have a local devbox and have access to plg7a)
 ### On Local Devbox
-1. Install VSCode and extentions [Remote - SSH
-](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh), [direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) and [OCaml Platform](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform)
+1. Install VSCode and extention [Remote - SSH
+](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
 2. Setup VSCode SSH extension with plg7a following [instructions](https://code.visualstudio.com/docs/remote/ssh#_connect-to-a-remote-host)
+3. Connect to plg7a
+4. Install additional extensions on plg7a: [direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) and [OCaml Platform](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform)
 
 ### On plg7a
 1. SSH into plg7a
