@@ -8,19 +8,24 @@
   #include <defs.h>
   #include <datastructure.h>
   
-  static i64 repeat(i64);
-  static i64 step(i64,i64,i64);
-  static i64 run(i64);
-  static i64 listSum(i64,i64);
+  static i64 __repeat_lifted_5__(i64,i64);
+  static i64 __step_lifted_4__(i64,i64,i64,i64);
+  static i64 __run_lifted_3__(i64,i64);
+  static i64 __listSum_lifted_2__(i64,i64,i64);
    i64 behead(i64*,i64);
   static i64 body_main_1(i64,i64);
    i64 yield(i64*,i64,i64,i64);
   static i64 body_main_2(i64,i64);
-  static i64 loop(i64,i64,i64);
+  static i64 __loop_lifted_1__(i64,i64,i64,i64);
    i64 behead(i64*,i64);
   static i64 loop_body_2(i64,i64);
    i64 replace(i64*,i64);
   static i64 loop_body_1(i64,i64);
+  closure_t* repeat;
+  closure_t* step;
+  closure_t* run;
+  closure_t* listSum;
+  closure_t* loop;
   
   
   
@@ -40,7 +45,11 @@
   static i64 loop_body_2(i64 env,i64 behead_stub) {
   return(({i64 it_tail = (i64)(((i64*)env)[0]);
   ({i64 yield_stub = (i64)(((i64*)env)[1]);
-  (((i64(*)(i64, i64, i64))loop)(it_tail,yield_stub,behead_stub));});}));
+  (({closure_t* __clo__ = (closure_t*)loop;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64, i64, i64))__f__)(__env__,it_tail,yield_stub,behead_stub);
+  }));});}));
   }
   
    i64 behead(i64* env,i64 _) {
@@ -49,7 +58,7 @@
   (((i64*)beheaded)[0] = 1);});}));
   }
   
-  static i64 loop(i64 it,i64 yield_stub,i64 behead_stub) {
+  static i64 __loop_lifted_1__(i64 __env__,i64 it,i64 yield_stub,i64 behead_stub) {
   return(({i64 _ = (i64)(HANDLE(loop_body_1, ({TAIL, replace}), (it, yield_stub, behead_stub)));
   ({i64 it_tail = (i64)(((i64)(listTail((node_t*)it))));
   ({i64 beheaded = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
@@ -67,7 +76,11 @@
   static i64 body_main_2(i64 env,i64 yield_stub) {
   return(({i64 behead_stub = (i64)(((i64*)env)[0]);
   ({i64 l = (i64)(((i64*)env)[1]);
-  (((i64(*)(i64, i64, i64))loop)(l,yield_stub,behead_stub));});}));
+  (({closure_t* __clo__ = (closure_t*)loop;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64, i64, i64))__f__)(__env__,l,yield_stub,behead_stub);
+  }));});}));
   }
   
    i64 yield(i64* env,i64 x,i64 behead_stub,i64 replace_stub) {
@@ -86,15 +99,19 @@
   (((i64*)beheaded)[0] = 1);}));
   }
   
-  static i64 listSum(i64 l,i64 acc) {
+  static i64 __listSum_lifted_2__(i64 __env__,i64 l,i64 acc) {
   return(({i64 cond = (i64)(((i64)(listIsEmpty((node_t*)l))));
   (cond ? acc : ({i64 head = (i64)(((i64)(listHead((node_t*)l))));
   ({i64 tail = (i64)(((i64)(listTail((node_t*)l))));
   ({i64 newacc = (i64)(acc + head);
-  (((i64(*)(i64, i64))listSum)(tail,newacc));});});}));}));
+  (({closure_t* __clo__ = (closure_t*)listSum;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64, i64))__f__)(__env__,tail,newacc);
+  }));});});}));}));
   }
   
-  static i64 run(i64 n) {
+  static i64 __run_lifted_3__(i64 __env__,i64 n) {
   return(({i64 minusn = (i64)(0 - n);
   ({i64 l = (i64)(((i64)(listRange((int64_t)minusn, (int64_t)n))));
   ({i64 beheaded = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
@@ -104,28 +121,62 @@
   ({i64 newtl = (i64)(HANDLE(body_main_1, ({TAIL, behead}), (l, beheaded)));
   ({i64 tobehead = (i64)(((i64*)beheaded)[0]);
   ({i64 res = (i64)(tobehead ? (((i64)(listTail((node_t*)newtl)))) : newtl);
-  (((i64(*)(i64))listSum)(res));});});});});});}));
+  (({closure_t* __clo__ = (closure_t*)listSum;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64))__f__)(__env__,res);
+  }));});});});});});}));
   }
   
-  static i64 step(i64 i,i64 acc,i64 n_jobs) {
+  static i64 __step_lifted_4__(i64 __env__,i64 i,i64 acc,i64 n_jobs) {
   return(({i64 cond = (i64)(i == 0);
   (cond ? acc : ({i64 i_dec = (i64)(i - 1);
-  ({i64 res = (i64)(((i64(*)(i64))run)(n_jobs));
+  ({i64 res = (i64)(({closure_t* __clo__ = (closure_t*)run;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64))__f__)(__env__,n_jobs);
+  }));
   ({i64 acc2 = (i64)(acc + res);
-  (((i64(*)(i64, i64, i64))step)(i_dec,acc2,n_jobs));});});}));}));
+  (({closure_t* __clo__ = (closure_t*)step;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64, i64, i64))__f__)(__env__,i_dec,acc2,n_jobs);
+  }));});});}));}));
   }
   
-  static i64 repeat(i64 n_jobs) {
-  return((((i64(*)(i64, i64, i64))step)(1000,0,n_jobs)));
+  static i64 __repeat_lifted_5__(i64 __env__,i64 n_jobs) {
+  return((({closure_t* __clo__ = (closure_t*)step;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64, i64, i64))__f__)(__env__,1000,0,n_jobs);
+  })));
   }
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
+  repeat = malloc(sizeof(closure_t));
+  repeat->func_pointer = (i64)__repeat_lifted_5__;
+  repeat->env = (i64)NULL;
+  step = malloc(sizeof(closure_t));
+  step->func_pointer = (i64)__step_lifted_4__;
+  step->env = (i64)NULL;
+  run = malloc(sizeof(closure_t));
+  run->func_pointer = (i64)__run_lifted_3__;
+  run->env = (i64)NULL;
+  listSum = malloc(sizeof(closure_t));
+  listSum->func_pointer = (i64)__listSum_lifted_2__;
+  listSum->env = (i64)NULL;
+  loop = malloc(sizeof(closure_t));
+  loop->func_pointer = (i64)__loop_lifted_1__;
+  loop->env = (i64)NULL;
+  
   i64 __res__ = ({i64 arg1 = (i64)(((i64)(readInt())));
-  ({i64 arg2 = (i64)(((i64(*)(i64))repeat)(arg1));
+  ({i64 arg2 = (i64)(({closure_t* __clo__ = (closure_t*)repeat;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64))__f__)(__env__,arg1);
+  }));
   ({i64 _ = (i64)(((i64)(printInt((int64_t)arg2))));
   0;});});});
   destroy_stack_pool();
-  return((int)__res__);
-  }
-  
+  return((int)__res__);}

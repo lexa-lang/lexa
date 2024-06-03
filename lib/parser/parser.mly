@@ -55,12 +55,12 @@
 
 %start <Syntax.top_level list> prog
 %nonassoc SEMICOLON
-%nonassoc LSB
 %nonassoc ELSE
 %nonassoc NEQ CMPEQ LTS GTS
 %nonassoc COLONEQ
 %left ADD SUB
 %left MULT DIV PERC
+%nonassoc LSB
 %%
 
 prog:
@@ -103,31 +103,31 @@ heap_value:
 
 app_expr:
   | simple_expr { $1 }
-  | e1 = app_expr LPAREN args = separated_list(COMMA, expr) RPAREN { EApp (e1, args) }
+  | e1 = app_expr LPAREN args = separated_list(COMMA, expr) RPAREN { App (e1, args) }
 
 expr:
   | app_expr { $1 }
-  | e1 = expr ADD e2 = expr { EArith(e1, AAdd, e2) }
-	| e1 = expr SUB e2 = expr { EArith(e1, ASub, e2) }
-	| e1 = expr MULT e2 = expr { EArith(e1, AMult, e2) }
-	| e1 = expr DIV e2 = expr { EArith(e1, ADiv, e2) }
-	| e1 = expr PERC e2 = expr { EArith(e1, AMod, e2) }
+  | e1 = expr ADD e2 = expr { Arith(e1, AAdd, e2) }
+	| e1 = expr SUB e2 = expr { Arith(e1, ASub, e2) }
+	| e1 = expr MULT e2 = expr { Arith(e1, AMult, e2) }
+	| e1 = expr DIV e2 = expr { Arith(e1, ADiv, e2) }
+	| e1 = expr PERC e2 = expr { Arith(e1, AMod, e2) }
 	
-	| e1 = expr CMPEQ e2 = expr { ECmp(e1, CEq, e2) }
-	| e1 = expr NEQ e2 = expr { ECmp(e1, CNeq, e2) }
-	| e1 = expr GTS e2 = expr { ECmp(e1, CGt, e2) }
-	| e1 = expr LTS e2 = expr { ECmp(e1, CLt, e2) }
+	| e1 = expr CMPEQ e2 = expr { Cmp(e1, CEq, e2) }
+	| e1 = expr NEQ e2 = expr { Cmp(e1, CNeq, e2) }
+	| e1 = expr GTS e2 = expr { Cmp(e1, CGt, e2) }
+	| e1 = expr LTS e2 = expr { Cmp(e1, CLt, e2) }
 	
-  | NEWREF heap_value { ENew $2 }
-  | v = expr LSB v2 = expr RSB { EGet (v, v2) }
-  | v1 = expr LSB v2 = expr RSB COLONEQ v3 = expr { ESet (v1, v2, v3) }
-  | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr { ELet (x, t1, t2) }
-  | IF v = expr THEN t1 = expr ELSE t2 = expr { EIf (v, t1, t2) }
-  | RAISE stub = VAR DOT hdl = VAR params = list(simple_expr) { ERaise (stub, hdl, params) }
-  | RESUME k = VAR v = simple_expr { EResume (k, v) }
-  | RESUMEFINAL k = VAR v = simple_expr { EResumeFinal (k, v) }
-  | HANDLE LCB env = separated_list(COMMA, expr) RCB body = VAR WITH obj = VAR COLON sig_name = SIG { EHdl (env, body, obj, sig_name) }
-  | FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB t = expr RCB { EFun (params, t) }
+  | NEWREF heap_value { New $2 }
+  | v = expr LSB v2 = expr RSB { Get (v, v2) }
+  | v1 = expr LSB v2 = expr RSB COLONEQ v3 = expr { Set (v1, v2, v3) }
+  | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr { Let (x, t1, t2) }
+  | IF v = expr THEN t1 = expr ELSE t2 = expr { If (v, t1, t2) }
+  | RAISE stub = VAR DOT hdl = VAR params = list(simple_expr) { Raise (stub, hdl, params) }
+  | RESUME k = VAR v = simple_expr { Resume (k, v) }
+  | RESUMEFINAL k = VAR v = simple_expr { ResumeFinal (k, v) }
+  | HANDLE LCB env = separated_list(COMMA, VAR) RCB body = VAR WITH obj = VAR COLON sig_name = SIG { Hdl (env, body, obj, sig_name) }
+  | VALDEF x = VAR EQ FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB SEMICOLON e2 = expr { Letrec (x, params, body, e2) }
 
 simple_expr:
   | VAR { Var $1 }
