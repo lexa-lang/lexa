@@ -1,0 +1,13 @@
+def f(x) {
+    x + 1
+}
+
+def main() {
+    val i = ~readInt();
+    val y = 2;
+    val g = fun(x) {
+        x + y
+    };
+    val _ = ~printInt((if i == 0 then f else g)(i));
+    0
+}

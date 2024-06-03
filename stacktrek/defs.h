@@ -341,3 +341,9 @@ i64 mathAbs(i64 a) {
 
 #define readInt() (argc == 2) ? atoi(argv[1]) : (printf("Usage: %s <int>\n", argv[0]), exit(EXIT_FAILURE), 0)
 #define printInt(x) printf("%ld\n", x)
+
+typedef struct {
+  i64 func_pointer;
+  i64 env;
+  i64 num_fv;
+} closure_t;

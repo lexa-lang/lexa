@@ -1,0 +1,14 @@
+def make_adder(a) {
+    val res = fun(b) {
+        a + b
+    };
+    res
+}
+
+def main() {
+    val adder5 = make_adder(5);
+    val adder10 = make_adder(10);
+    val _ = ~printInt(adder5(7));
+    val _ = ~printInt(adder10(7));
+    0
+}

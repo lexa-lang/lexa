@@ -1,0 +1,16 @@
+def f(x) {
+    val z = 1;
+    val g = fun(x) {
+        val y = 2;
+        val h = fun(x) {
+            x + y + z
+        };
+        h(x)
+    };
+    g(x)
+}
+
+def main() {
+    val _ = ~printInt(f(3));
+    0
+}
