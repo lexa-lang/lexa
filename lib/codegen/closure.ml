@@ -1,32 +1,5 @@
+open Syntax__Closure
 open Syntax__Common
-
-type closure = { entry : var; fv : var list }
-
-type t = (* expressions AFTER closure conversion *)
-  | Var of var
-  | Int of int
-  | Bool of bool
-  | Prim of string
-  | Arith of t * arith * t
-  | Cmp of t * cmp * t 
-  | New of t list
-  | Get of t * t
-  | Set of t * t * t
-  | Raise of var * var * t list
-  | Resume of var * t
-  | ResumeFinal of var * t
-  | Hdl of var list * var * var * var
-  | MkClosure of var * closure * t
-  | AppClosure of t * t list
-  | Let of var * t * t
-  | If of t * t * t
-
-type hdl = hdl_anno * var * var list * t
-
-type top_level =
-  | TLAbs of var * var list * t
-  | TLEffSig of var * var list
-  | TLObj of var * var list * hdl list
 
 let extra_toplevels = ref []
 
@@ -49,21 +22,21 @@ let remove_dup xs =
 
 let rec free_var (e : Syntax.expr) = 
   remove_dup (match e with
-  | Var x -> [x]
-  | Int _ | Bool _ | Prim _ -> []
-  | Arith (e1, _, e2) -> free_var e1 @ free_var e2
-  | Cmp (e1, _, e2) -> free_var e1 @ free_var e2
-  | Let (x, e1, e2) -> set_substract (free_var e1 @ free_var e2) [x]
-  | If (e1, e2, e3) -> free_var e1 @ free_var e2 @ free_var e3
-  | App (e, args) -> free_var e @ (List.concat_map (fun x -> free_var x) args)
-  | New hv -> List.concat_map (fun x -> free_var x) hv
-  | Get (e1, e2) -> free_var e1 @ free_var e2
-  | Set (e1, e2, e3) -> free_var e1 @ free_var e2 @ free_var e3
-  | Raise (stub, _, args) -> stub :: List.concat_map (fun x -> free_var x) args
-  | Resume (k, e) | ResumeFinal (k, e) -> k :: free_var e
+  | Syntax.Var x -> [x]
+  | Syntax.Int _ | Syntax.Bool _ | Syntax.Prim _ -> []
+  | Syntax.Arith (e1, _, e2) -> free_var e1 @ free_var e2
+  | Syntax.Cmp (e1, _, e2) -> free_var e1 @ free_var e2
+  | Syntax.Let (x, e1, e2) -> set_substract (free_var e1 @ free_var e2) [x]
+  | Syntax.If (e1, e2, e3) -> free_var e1 @ free_var e2 @ free_var e3
+  | Syntax.App (e, args) -> free_var e @ (List.concat_map (fun x -> free_var x) args)
+  | Syntax.New hv -> List.concat_map (fun x -> free_var x) hv
+  | Syntax.Get (e1, e2) -> free_var e1 @ free_var e2
+  | Syntax.Set (e1, e2, e3) -> free_var e1 @ free_var e2 @ free_var e3
+  | Syntax.Raise (stub, _, args) -> stub :: List.concat_map (fun x -> free_var x) args
+  | Syntax.Resume (k, e) | Syntax.ResumeFinal (k, e) -> k :: free_var e
   | Hdl (xs, _, _, _) ->
     xs
-  | Letrec (name, params, body, e) ->
+  | Syntax.Letrec (name, params, body, e) ->
      (set_substract (free_var body) (name :: params)) @ (set_substract (free_var e) [name]))
     
   
@@ -105,28 +78,28 @@ let rec convert_expr ( e : Syntax.expr ) =
 
 let rec handle_bodies_tl (tl : Syntax.top_level) : var list =
   match tl with
-  | TLAbs (_, _, body) -> handle_bodies_e body
-  | TLEffSig (_, _) -> []
-  | TLObj (_, _, l) -> 
+  | Syntax.TLAbs (_, _, body) -> handle_bodies_e body
+  | Syntax.TLEffSig (_, _) -> []
+  | Syntax.TLObj (_, _, l) -> 
     List.concat_map (fun (_, _, _, body) -> handle_bodies_e body) l
 
 (* Identify all the handle bodies, as they do not have the additional
     environment parameter *)
 and handle_bodies_e (e : Syntax.expr) : var list =
   match e with
-  | Arith (e1, _, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-  | Cmp (e1, _, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-  | Let (_, e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-  | If (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
-  | App (e, args) -> handle_bodies_e e @ (List.concat_map (fun x -> handle_bodies_e x) args)
-  | New hv -> List.concat_map (fun x -> handle_bodies_e x) hv
-  | Get (e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-  | Set (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
-  | Raise (stub, _, args) -> stub :: List.concat_map (fun x -> handle_bodies_e x) args
-  | Resume (k, e) | ResumeFinal (k, e) -> k :: handle_bodies_e e
-  | Letrec (_, _, body, e) -> 
+  | Syntax.Arith (e1, _, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
+  | Syntax.Cmp (e1, _, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
+  | Syntax.Let (_, e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
+  | Syntax.If (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
+  | Syntax.App (e, args) -> handle_bodies_e e @ (List.concat_map (fun x -> handle_bodies_e x) args)
+  | Syntax.New hv -> List.concat_map (fun x -> handle_bodies_e x) hv
+  | Syntax.Get (e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
+  | Syntax.Set (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
+  | Syntax.Raise (stub, _, args) -> stub :: List.concat_map (fun x -> handle_bodies_e x) args
+  | Syntax.Resume (k, e) | ResumeFinal (k, e) -> k :: handle_bodies_e e
+  | Syntax.Letrec (_, _, body, e) -> 
     handle_bodies_e body @ handle_bodies_e e
-  | Hdl (_, body, _, _) -> [body]
+  | Syntax.Hdl (_, body, _, _) -> [body]
   | _ -> []
 
 let closure_convert_toplevels (tls : Syntax.top_level list) =

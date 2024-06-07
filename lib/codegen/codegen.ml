@@ -1,4 +1,4 @@
-open Closure
+open Syntax__Closure
 open Syntax__Common
 open Printf
 open Primitive
@@ -81,7 +81,7 @@ type c_dec =
   | CDec of c_annotation * c_keyword * c_type * var * c_type list
 
 type c_def = 
-  | CDef of c_annotation * c_keyword * c_type * var * (c_type * var) list * t
+  | CDef of c_annotation * c_keyword * c_type * var * (c_type * var) list * Syntax__Closure.t
 
 let c_decs : (var * c_dec) list ref = ref []
 
@@ -126,7 +126,7 @@ and gen_params params =
 and gen_args l =
   "(" ^ String.concat "," (List.map (fun x -> gen_expr x) l) ^ ")"
 
-and gen_expr (e : Closure.t) =
+and gen_expr (e : Syntax__Closure.t) =
   let s = (match e with
     | Var x -> x
     | Int i -> string_of_int i
@@ -218,7 +218,7 @@ __c__->num_fv = (i64)%d;
         | Prim _ -> 
           let name = gen_expr e in (* name is prim with leading ~ stripped *)
           (* The name here should have ~ stripped *)
-          let cast_args (name : string) (args : t list) : string list =
+          let cast_args (name : string) (args : Syntax__Closure.t list) : string list =
             match List.assoc_opt name prim_env with
             | None -> raise (UndefinedPrimitive name)
             | Some param_types -> 
