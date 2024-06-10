@@ -177,11 +177,12 @@ and gen_expr (e : Syntax__Closure.t) =
         sprintf "((i64*)%s)[%s]" (gen_expr e1) (gen_expr e2)
     | Set (e1, e2, e3) ->
         sprintf "((i64*)%s)[%s] = %s" (gen_expr e1) (gen_expr e2) (gen_expr e3) 
-    | Hdl (env_list, body_var, _, effsig) ->
+    | Hdl (env_list, body_var, obj_name, effsig) ->
         let hdl_list = lookup_eff_sig_dcls effsig (get_eff_sig_env !env) in
         let hdl_str = "(" ^ (String.concat ", " (List.map 
-          (fun hdl_name -> 
-            let hdl_type = lookup_hdl_type hdl_name (get_eff_type_env !env) in
+          (fun name -> 
+            let hdl_type = lookup_hdl_type name (get_eff_type_env !env) in
+            let hdl_name = obj_name ^ "_" ^ name in
               (sprintf "{%s, %s}" hdl_type hdl_name)) hdl_list)) ^ ")" in
         let env_str = "(" ^ String.concat ", " env_list ^ ")" in
         sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
@@ -316,7 +317,7 @@ return((int)__res__);}|}
       gen_c_def cdef
       (* sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_expr body) *)
   | TLEffSig _ -> ""
-  | TLObj (_, obj_params, hdls) -> 
+  | TLObj (obj_name, obj_params, hdls) -> 
     let gen_hdl (hdl_anno, name, hdl_params, body) = 
       let concated_params = (List.map (fun x -> (CTI64P, x)) obj_params) 
         @ (List.map (fun x -> (CTI64, x)) hdl_params) in
@@ -324,9 +325,10 @@ return((int)__res__);}|}
       | HDef -> CANone
       | HExc -> CANone
       | _ -> CAFastSwitch) in
-      let c_def = CDef (annotation, CKNone, CTI64, name, concated_params, body) in
-      let c_dec = CDec (annotation, CKNone, CTI64, name, (List.map (fun (a, _) -> a) concated_params)) in
-      c_decs := (name, c_dec) :: !c_decs;
+      let hdl_name = obj_name ^ "_" ^ name in
+      let c_def = CDef (annotation, CKNone, CTI64, hdl_name, concated_params, body) in
+      let c_dec = CDec (annotation, CKNone, CTI64, hdl_name, (List.map (fun (a, _) -> a) concated_params)) in
+      c_decs := (hdl_name, c_dec) :: !c_decs;
       gen_c_def c_def
     in
     String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
