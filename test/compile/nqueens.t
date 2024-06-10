@@ -9,8 +9,8 @@
   #include <datastructure.h>
   
   FAST_SWITCH_DECORATOR
-   i64 pick(i64*,i64,i64);
-   i64 fail(i64*,i64);
+   i64 search_pick(i64*,i64,i64);
+   i64 search_fail(i64*,i64);
   static i64 __loop_lifted_4__(i64,i64,i64,i64,i64);
   static i64 body(i64,i64);
   static i64 __run_lifted_3__(i64,i64);
@@ -59,7 +59,7 @@
   }
   
   static i64 __run_lifted_3__(i64 __env__,i64 n) {
-  return((HANDLE(body, ({MULTISHOT, pick}, {ABORT, fail}), (n))));
+  return((HANDLE(body, ({MULTISHOT, search_pick}, {ABORT, search_fail}), (n))));
   }
   
   static i64 body(i64 env,i64 search_stub) {
@@ -85,12 +85,12 @@
   }));});});}));}));
   }
   
-   i64 fail(i64* env,i64 _) {
+   i64 search_fail(i64* env,i64 _) {
   return(0);
   }
   
   FAST_SWITCH_DECORATOR
-   i64 pick(i64* env,i64 size,i64 k) {
+   i64 search_pick(i64* env,i64 size,i64 k) {
   return((({closure_t* __clo__ = (closure_t*)loop;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);

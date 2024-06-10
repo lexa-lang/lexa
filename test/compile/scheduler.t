@@ -12,17 +12,17 @@
   static i64 __step_lifted_9__(i64,i64,i64,i64);
   static i64 __run_lifted_8__(i64,i64,i64);
   static i64 body_run(i64,i64);
-   i64 tick(i64*,i64);
+   i64 tick_tick(i64*,i64);
   static i64 __scheduler_lifted_7__(i64,i64);
   static i64 __spawn_lifted_6__(i64,i64,i64);
   static i64 __driver_lifted_5__(i64,i64);
-   i64 throw(i64*,i64);
+   i64 exn_throw(i64*,i64);
   static i64 body_driver(i64,i64);
   static i64 body(i64,i64);
   FAST_SWITCH_DECORATOR
-   i64 fork(i64*,i64,i64);
+   i64 process_fork(i64*,i64,i64);
   FAST_SWITCH_DECORATOR
-   i64 yield(i64*,i64,i64);
+   i64 process_yield(i64*,i64,i64);
   static i64 __jobs_lifted_4__(i64,i64,i64,i64,i64);
   static i64 __entry_lifted_3__(i64,i64,i64);
   static i64 __job_lifted_2__(i64,i64,i64);
@@ -73,13 +73,13 @@
   }
   
   FAST_SWITCH_DECORATOR
-   i64 yield(i64* env,i64 _,i64 k) {
+   i64 process_yield(i64* env,i64 _,i64 k) {
   return(({i64 job_queue = (i64)(((i64*)env)[1]);
   (((i64)(queueEnq((queue_t*)job_queue, (int64_t)k))));}));
   }
   
   FAST_SWITCH_DECORATOR
-   i64 fork(i64* env,i64 newjob_closure,i64 k) {
+   i64 process_fork(i64* env,i64 newjob_closure,i64 k) {
   return(({i64 job_queue = (i64)(((i64*)env)[1]);
   ({i64 _ = (i64)(((i64)(queueEnq((queue_t*)job_queue, (int64_t)k))));
   (({closure_t* __clo__ = (closure_t*)spawn;
@@ -115,17 +115,17 @@
   }));});});}));
   }
   
-   i64 throw(i64* env,i64 _) {
+   i64 exn_throw(i64* env,i64 _) {
   return(0);
   }
   
   static i64 __driver_lifted_5__(i64 __env__,i64 job_queue) {
-  return(({i64 _ = (i64)(HANDLE(body_driver, ({ABORT, throw}), (job_queue)));
+  return(({i64 _ = (i64)(HANDLE(body_driver, ({ABORT, exn_throw}), (job_queue)));
   0;}));
   }
   
   static i64 __spawn_lifted_6__(i64 __env__,i64 job_closure,i64 job_queue) {
-  return((HANDLE(body, ({SINGLESHOT, yield}, {SINGLESHOT, fork}), (job_closure, job_queue))));
+  return((HANDLE(body, ({SINGLESHOT, process_yield}, {SINGLESHOT, process_fork}), (job_closure, job_queue))));
   }
   
   static i64 __scheduler_lifted_7__(i64 __env__,i64 init_closure) {
@@ -142,7 +142,7 @@
   }));});}));
   }
   
-   i64 tick(i64* env,i64 _) {
+   i64 tick_tick(i64* env,i64 _) {
   return(({i64 c = (i64)(((i64*)env)[1]);
   ({i64 v1 = (i64)(((i64*)c)[0]);
   ({i64 v2 = (i64)(v1 + 1);
@@ -184,7 +184,7 @@
   ((i64*)temp)[0] = (i64)init;
   temp;
   }));
-  ({i64 _ = (i64)(HANDLE(body_run, ({TAIL, tick}), (n_jobs, c)));
+  ({i64 _ = (i64)(HANDLE(body_run, ({TAIL, tick_tick}), (n_jobs, c)));
   ({i64 v = (i64)(((i64*)c)[0]);
   v;});});}));
   }

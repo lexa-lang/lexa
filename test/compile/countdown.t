@@ -10,8 +10,8 @@
   
   static i64 __run_lifted_2__(i64,i64);
   static i64 body(i64,i64);
-   i64 set(i64*,i64);
-   i64 get(i64*,i64);
+   i64 state_set(i64*,i64);
+   i64 state_get(i64*,i64);
   static i64 __countdown_lifted_1__(i64,i64);
   closure_t* run;
   closure_t* countdown;
@@ -26,11 +26,11 @@
   }));}));}));
   }
   
-   i64 get(i64* env,i64 _) {
+   i64 state_get(i64* env,i64 _) {
   return((((i64*)(((i64*)env)[0]))[0]));
   }
   
-   i64 set(i64* env,i64 i) {
+   i64 state_set(i64* env,i64 i) {
   return(({i64 _ = (i64)(((i64*)(((i64*)env)[0]))[0] = i);
   0;}));
   }
@@ -48,7 +48,7 @@
   ((i64*)temp)[0] = (i64)n;
   temp;
   }));
-  (HANDLE(body, ({TAIL, get}, {TAIL, set}), (s)));}));
+  (HANDLE(body, ({TAIL, state_get}, {TAIL, state_set}), (s)));}));
   }
   
   int main(int argc, char *argv[]) {
