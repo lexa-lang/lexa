@@ -52,6 +52,8 @@
 %token VALDEF
 %token SEMICOLON
 %token FUN
+%token REC
+%token AND
 
 %start <Syntax.top_level list> prog
 %nonassoc SEMICOLON
@@ -101,6 +103,10 @@ hdl_def:
 heap_value:
   | LCB l = separated_list(COMMA, simple_expr) RCB { l }
 
+recfun:
+  | name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB e = expr RCB 
+    { ({name = name; params = params; body = e} : Syntax.fundef) }
+
 app_expr:
   | simple_expr { $1 }
   | e1 = app_expr LPAREN args = separated_list(COMMA, expr) RPAREN { App (e1, args) }
@@ -127,7 +133,9 @@ expr:
   | RESUME k = VAR v = simple_expr { Resume (k, v) }
   | RESUMEFINAL k = VAR v = simple_expr { ResumeFinal (k, v) }
   | HANDLE LCB env = separated_list(COMMA, VAR) RCB body = VAR WITH obj = VAR COLON sig_name = SIG { Hdl (env, body, obj, sig_name) }
-  | VALDEF x = VAR EQ FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB SEMICOLON e2 = expr { Letrec (x, params, body, e2) }
+  | FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB { Fun (params, body) }
+  | REC DEF fs = separated_list(AND, recfun) SEMICOLON e = expr { Recdef (fs, e) }
+  // | VALDEF x = VAR EQ FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB SEMICOLON e2 = expr { Recdef (x, params, body, e2) }
 
 simple_expr:
   | VAR { Var $1 }
