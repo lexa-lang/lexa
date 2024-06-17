@@ -15,10 +15,11 @@
   static i64 __countdown_lifted_1__(i64,i64);
   closure_t* run;
   closure_t* countdown;
+  enum State {get,set};
   
   static i64 __countdown_lifted_1__(i64 __env__,i64 state_stub) {
-  return(({i64 i = (i64)(RAISE(state_stub, 0, (0)));
-  ((i == 0) ? i : ({i64 _ = (i64)(RAISE(state_stub, 1, (i-1)));
+  return(({i64 i = (i64)(RAISE(state_stub, get, (0)));
+  ((i == 0) ? i : ({i64 _ = (i64)(RAISE(state_stub, set, (i-1)));
   (({closure_t* __clo__ = (closure_t*)countdown;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);

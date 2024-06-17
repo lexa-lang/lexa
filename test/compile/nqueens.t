@@ -20,6 +20,7 @@
   closure_t* run;
   closure_t* place;
   closure_t* safe;
+  enum Search {pick,fail};
   
   static i64 __safe_lifted_1__(i64 __env__,i64 queen,i64 diag,i64 xs) {
   return(({i64 is_empty = (i64)(((i64)(listIsEmpty((node_t*)xs))));
@@ -48,14 +49,14 @@
   i64 __env__ = (i64)(__clo__->env);
   ((i64(*)(i64, i64, i64, i64))__f__)(__env__,size,column_dec,search_stub);
   }));
-  ({i64 next = (i64)(RAISE(search_stub, 0, (size)));
+  ({i64 next = (i64)(RAISE(search_stub, pick, (size)));
   ({i64 is_safe = (i64)(({closure_t* __clo__ = (closure_t*)safe;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);
   ((i64(*)(i64, i64, i64, i64))__f__)(__env__,next,1,rest);
   }));
   (is_safe ? ({i64 head = (i64)(((i64)(listNode((int64_t)next, (node_t*)rest))));
-  head;}) : (RAISE(search_stub, 1, (0))));});});});}));}));
+  head;}) : (RAISE(search_stub, fail, (0))));});});});}));}));
   }
   
   static i64 __run_lifted_3__(i64 __env__,i64 n) {

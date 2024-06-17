@@ -26,15 +26,18 @@
   closure_t* run;
   closure_t* listSum;
   closure_t* loop;
+  enum Yield {yield};
   
+  enum Replace {replace};
   
+  enum Behead {behead};
   
   static i64 loop_body_1(i64 env,i64 replace_stub) {
   return(({i64 it = (i64)(((i64*)env)[0]);
   ({i64 yield_stub = (i64)(((i64*)env)[1]);
   ({i64 behead_stub = (i64)(((i64*)env)[2]);
   ({i64 v = (i64)(((i64)(listHead((node_t*)it))));
-  (RAISE(yield_stub, 0, (v,behead_stub,replace_stub)));});});});}));
+  (RAISE(yield_stub, yield, (v,behead_stub,replace_stub)));});});});}));
   }
   
    i64 replace_loop_replace(i64* env,i64 x) {
@@ -85,8 +88,8 @@
   
    i64 yield_main_yield(i64* env,i64 x,i64 behead_stub,i64 replace_stub) {
   return(({i64 cond = (i64)(x < 0);
-  (cond ? (RAISE(behead_stub, 0, (0))) : ({i64 x2 = (i64)(x * 2);
-  (RAISE(replace_stub, 0, (x2)));}));}));
+  (cond ? (RAISE(behead_stub, behead, (0))) : ({i64 x2 = (i64)(x * 2);
+  (RAISE(replace_stub, replace, (x2)));}));}));
   }
   
   static i64 body_main_1(i64 env,i64 behead_stub) {
