@@ -34,12 +34,27 @@ let rec free_var (e : Syntax.expr) =
   | Syntax.Set (e1, e2, e3) -> free_var e1 @ free_var e2 @ free_var e3
   | Syntax.Raise (stub, _, args) -> stub :: List.concat_map (fun x -> free_var x) args
   | Syntax.Resume (k, e) | Syntax.ResumeFinal (k, e) -> k :: free_var e
-  | Hdl (xs, _, _, _) ->
+  | Syntax.Hdl (xs, _, _, _) ->
     xs
-  | Syntax.Letrec (name, params, body, e) ->
-     (set_substract (free_var body) (name :: params)) @ (set_substract (free_var e) [name]))
-    
-  
+  | Syntax.Fun (params, body) ->
+    (set_substract (free_var body) params)
+  | Syntax.Recdef (fundefs, e) ->
+    let names = List.map (fun (f : Syntax.fundef) -> f.name) fundefs in
+    (* TODO: Does each function need its individual free variable? *)
+    let fvs = List.concat_map  
+      (fun ({params; body; _} : Syntax.fundef) -> (set_substract (free_var body) (names @ params)))
+      fundefs in
+    fvs @ (set_substract (free_var e) names))
+
+(* Open the environment at the start of a function body *)
+let open_env (fv : var list) (body : t) : t = 
+  let rec f fv index =
+    (match fv with
+    | [] -> body
+    | x :: xs -> 
+      Let (x, Get (Var "__env__", Int index), f xs (index + 1))) in
+  f fv 0
+
 let rec convert_expr ( e : Syntax.expr ) =
   match e with
   | Syntax.Var x -> Var x
@@ -57,23 +72,46 @@ let rec convert_expr ( e : Syntax.expr ) =
   | Syntax.Hdl (env_vars, stub, hdl_name, body) -> Hdl (env_vars, stub, hdl_name, body)
   | Syntax.Let (x, e1, e2) -> Let (x, convert_expr e1, convert_expr e2)
   | Syntax.If (e1, e2, e3) -> If (convert_expr e1, convert_expr e2, convert_expr e3)
-  | Syntax.Letrec (x, params, body, e) ->
+  | Syntax.Fun (params, body) ->
     let body' = convert_expr body in
-    let func_fvs = set_substract (free_var body) (x :: params) in
-    let e' = convert_expr e in
-    let params' = "__env__" :: params in
-    (* open up env *)
-    let rec open_env fv index = 
-      (match fv with
-      | [] -> body'
-      | x :: xs -> 
-        Let (x, Get (Var "__env__", Int index), open_env xs (index + 1)))
-    in
-    let body_fv_opened = open_env func_fvs 0 in
-    let fresh_name = gen_lifted_name x in
-    let lifted_func = TLAbs (fresh_name, params', body_fv_opened) in
+    let func_fvs = set_substract (free_var body) params in
+    let fresh_name = gen_lifted_name "fun" in
+    let body_fv_opened = open_env func_fvs body' in
+    let lifted_func = TLAbs (fresh_name, "__env__" :: params, body_fv_opened) in
     extra_toplevels := lifted_func :: !extra_toplevels;
-    MkClosure (x, {entry = fresh_name; fv = func_fvs}, e')
+    Closure {entry = fresh_name; fv = func_fvs}
+  | Syntax.Recdef (funs, e) ->
+    let clo_map = List.map (fun ({name; _} : Syntax.fundef) ->
+      let fresh_name = gen_lifted_name name in
+      let names = List.map (fun (f : Syntax.fundef) -> f.name) funs in
+      let fvs = List.concat_map  
+        (fun ({params; body; _} : Syntax.fundef) -> ((set_substract (free_var body) (names @ params)) |> remove_dup))
+      funs in
+      (name, {entry = fresh_name; fv = fvs})
+      ) funs in
+    (* Binds all functions in recdef at the beginning of body *)
+    let rec bind_closures (clo_map : (var * closure) list) body : t =
+      (match clo_map with
+      | [] -> body
+      | (name, clo) :: clo_map' -> 
+        Let (name, Closure clo, bind_closures clo_map' body)
+      )
+    in
+    let rec convert funs =
+      (match funs with
+      | [] -> convert_expr e
+      | ({name = name; params = params; body = body} : Syntax.fundef) :: funs' ->
+        let clo = List.assoc name clo_map in
+        let {entry; fv} = clo in
+        let body' = convert_expr body in
+        let body' = bind_closures clo_map body' in
+        let body' = open_env fv body' in
+        let params' = "__env__" :: params in
+        let lifted_func = TLAbs (entry, params', body') in
+        extra_toplevels := lifted_func :: !extra_toplevels;
+        Let (name, Closure clo, (convert funs')))
+    in
+    convert funs
   | Syntax.App (e, es) -> AppClosure(convert_expr e, List.map convert_expr es)
 
 let rec handle_bodies_tl (tl : Syntax.top_level) : var list =
@@ -97,8 +135,10 @@ and handle_bodies_e (e : Syntax.expr) : var list =
   | Syntax.Set (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
   | Syntax.Raise (stub, _, args) -> stub :: List.concat_map (fun x -> handle_bodies_e x) args
   | Syntax.Resume (k, e) | ResumeFinal (k, e) -> k :: handle_bodies_e e
-  | Syntax.Letrec (_, _, body, e) -> 
-    handle_bodies_e body @ handle_bodies_e e
+  | Syntax.Fun (_, e) ->
+    handle_bodies_e e
+  | Syntax.Recdef (fls, e) -> 
+    (List.concat_map (fun ({body; _} : Syntax.fundef) -> handle_bodies_e body) fls) @ handle_bodies_e e
   | Syntax.Hdl (_, body, _, _) -> [body]
   | _ -> []
 

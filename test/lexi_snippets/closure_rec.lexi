@@ -1,0 +1,17 @@
+def f(x) {
+    rec def p(x, i) {
+        if x == 0 then 
+            val _ = ~printInt(i);
+            ~printInt(x)
+        else
+            val _ = ~printInt(i);
+            val _ = ~printInt(x);
+            p(x - 1, i + 1)
+    };
+    p(x, 0)
+}
+
+def main() {
+    val _ = f(~readInt());
+    0
+}

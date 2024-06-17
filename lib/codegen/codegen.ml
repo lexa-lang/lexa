@@ -191,7 +191,7 @@ and gen_expr (e : Syntax__Closure.t) =
         sprintf "RAISE(%s, %d, %s)" stub hdl_idx (gen_args args)
     | Resume (k, e) -> sprintf "THROW(%s, %s)" k (gen_expr e)
     | ResumeFinal (k, e) -> sprintf "FINAL_THROW(%s, %s)" k (gen_expr e)
-    | MkClosure (name, { entry = entry_name; fv = free_vars }, e) ->
+    | Closure ({ entry = entry_name; fv = free_vars }) ->
       let fv_creation : string =
         if List.is_empty free_vars then
           "__c__->env = (i64)NULL;"
@@ -213,7 +213,7 @@ __c__->num_fv = (i64)%d;
 (i64)__c__;})|}
         entry_name (List.length free_vars) fv_creation copy_fv
       in
-      sprintf "{i64 %s = %s;\n%s;}" name closure_creation (gen_expr e)
+      closure_creation
     | AppClosure (e, args) ->
       (match e with
         | Prim _ -> 

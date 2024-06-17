@@ -1,0 +1,15 @@
+def is_even(n) {
+    rec def is_even(n) {
+        if (n == 0) then 1
+        else is_odd(n - 1)
+    } and is_odd(n) {
+        if (n == 0) then 0
+        else is_even(n - 1)
+    };
+    is_even(n)
+}
+
+def main() {
+    val _ = ~printInt(is_even(~readInt()));
+    0
+}

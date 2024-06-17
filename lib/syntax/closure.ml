@@ -16,7 +16,7 @@ type t = (* expressions AFTER closure conversion *)
   | Resume of var * t
   | ResumeFinal of var * t
   | Hdl of var list * var * var * var
-  | MkClosure of var * closure * t
+  | Closure of closure
   | AppClosure of t * t list
   | Let of var * t * t
   | If of t * t * t

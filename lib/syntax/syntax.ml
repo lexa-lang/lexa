@@ -5,6 +5,10 @@ type top_level =
   | TLEffSig of var * var list
   | TLObj of var * var list * hdl list
 
+and fundef = { name : var;
+               params : var list;
+               body : expr }
+
 and hdl = hdl_anno * var * var list * expr (* handler *)
 
 and expr =
@@ -22,6 +26,7 @@ and expr =
   | Resume of var * expr
   | ResumeFinal of var * expr
   | Hdl of var list * var * var * var (* handle *)
-  | Letrec of var * var list * expr * expr (* val x = fun(x, y) {body}; e2*)
+  | Recdef of fundef list * expr
+  | Fun of var list * expr
   | Let of var * expr * expr
   | If of expr * expr * expr
