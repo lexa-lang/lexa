@@ -37,16 +37,19 @@
   closure_t* entry;
   closure_t* job;
   closure_t* queueDeqExn;
+  enum Process {yield,fork};
   
+  enum Tick {tick};
   
+  enum Exn {throw};
   
   static i64 __queueDeqExn_lifted_1__(i64 __env__,i64 q,i64 exn_stub) {
   return(({i64 cond = (i64)(((i64)(queueIsEmpty((queue_t*)q))));
-  (cond ? (RAISE(exn_stub, 0, (0))) : (((i64)(queueDeq((queue_t*)q)))));}));
+  (cond ? (RAISE(exn_stub, throw, (0))) : (((i64)(queueDeq((queue_t*)q)))));}));
   }
   
   static i64 __job_lifted_2__(i64 __env__,i64 env,i64 sch_stub) {
-  return((RAISE(sch_stub, 0, (0))));
+  return((RAISE(sch_stub, yield, (0))));
   }
   
   static i64 __entry_lifted_3__(i64 __env__,i64 env,i64 sch_stub) {
@@ -62,8 +65,8 @@
   
   static i64 __jobs_lifted_4__(i64 __env__,i64 i,i64 job_closure,i64 sch_stub,i64 tick_stub) {
   return(({i64 cond = (i64)(i == 0);
-  (cond ? 0 : ({i64 _ = (i64)(RAISE(sch_stub, 1, (job_closure)));
-  ({i64 a = (i64)(RAISE(tick_stub, 0, (0)));
+  (cond ? 0 : ({i64 _ = (i64)(RAISE(sch_stub, fork, (job_closure)));
+  ({i64 a = (i64)(RAISE(tick_stub, tick, (0)));
   ({i64 i0 = (i64)(i - 1);
   (({closure_t* __clo__ = (closure_t*)jobs;
   i64 __f__ = (i64)(__clo__->func_pointer);

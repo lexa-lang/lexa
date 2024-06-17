@@ -32,14 +32,6 @@ let lookup_hdl_type (hdl_var : var) (env : eff_type_env) : string =
       | HHdl1 -> "SINGLESHOT"
       | HHdls -> "MULTISHOT")
 
-let lookup_hdl_index (hdl_var : var) (env : eff_sig_env) : int =
-  match (List.find_opt (fun (_, dcls) -> List.mem hdl_var dcls) env) with
-  | None -> raise (UndefinedHandler hdl_var)
-  | Some (_, dcls) ->
-    (match (List.find_index (fun x -> hdl_var = x) dcls) with
-      | None -> raise (UndefinedHandler "unreachable")
-      | Some i -> i)
-
 let lookup_eff_sig_dcls (sig_name : var) (sig_env : eff_sig_env) : string list =
   match (List.find_opt (fun (s, _) -> s = sig_name) sig_env) with
     | None -> raise (UndefinedSignature sig_name)
@@ -187,8 +179,7 @@ and gen_expr (e : Syntax__Closure.t) =
         let env_str = "(" ^ String.concat ", " env_list ^ ")" in
         sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
     | Raise (stub, hdl, args) ->
-        let hdl_idx = lookup_hdl_index hdl (get_eff_sig_env !env) in
-        sprintf "RAISE(%s, %d, %s)" stub hdl_idx (gen_args args)
+        sprintf "RAISE(%s, %s, %s)" stub hdl (gen_args args)
     | Resume (k, e) -> sprintf "THROW(%s, %s)" k (gen_expr e)
     | ResumeFinal (k, e) -> sprintf "FINAL_THROW(%s, %s)" k (gen_expr e)
     | Closure ({ entry = entry_name; fv = free_vars }) ->
@@ -316,7 +307,8 @@ return((int)__res__);}|}
         CDef (CANone, CKStatic, CTI64, name, (List.map (fun p -> (CTI64, p)) params), body) in
       gen_c_def cdef
       (* sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_expr body) *)
-  | TLEffSig _ -> ""
+  | TLEffSig (sig_name, sig_methods) ->
+    sprintf "enum %s {%s};\n" sig_name (String.concat "," sig_methods)
   | TLObj (obj_name, obj_params, hdls) -> 
     let gen_hdl (hdl_anno, name, hdl_params, body) = 
       let concated_params = (List.map (fun x -> (CTI64P, x)) obj_params) 
