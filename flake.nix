@@ -56,6 +56,7 @@
             mlton
             chez
             nodejs_21
+            racket
             self.packages.${system}.effektOOPSLA23
             self.packages.${system}.effekt_0_2_2
             self.packages.${system}.effekt_latest
