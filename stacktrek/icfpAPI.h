@@ -24,10 +24,11 @@ int lambdaManGetHeight() {
   return HEIGHT;
 }
 
-char lambdaManGetToken(int x, int y) {
-  if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+char lambdaManGetToken(int row, int col) {
+  
+  if (row < 0 || row >= WIDTH || col < 0 || col >= HEIGHT) {
     abort();
   }
 
-  return grid[y][x];
+  return grid[row][col];
 }
