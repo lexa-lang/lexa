@@ -326,7 +326,7 @@ return((int)__res__);}|}
     String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
 
 let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (string * string) list)) =
-  let header = "#include <stdint.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>\n#include <defs.h>\n#include <datastructure.h>\n"
+  let header = "#include <stdint.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>\n#include <defs.h>\n#include <datastructure.h>\n#include <icfpAPI.h>\n"
   in
   let eff_sig_env = sig_pass toplevels in
   let eff_type_env = eff_type_pass toplevels in
