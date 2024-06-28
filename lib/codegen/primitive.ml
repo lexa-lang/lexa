@@ -11,6 +11,10 @@ exception UndefinedPrimitive of string
 exception InvalidPrimitiveCall of string
 
 let prim_env = [
+  ("lambdaManInit", []);
+  ("lambdaManGetWidth", []);
+  ("lambdaManGetHeight", []);
+  ("lambdaManGetToken", [PTI64; PTI64]);
   ("listNode", [PTI64; PTNodeP]);
   ("listEnd", []);
   ("listIsEmpty", [PTNodeP]);
