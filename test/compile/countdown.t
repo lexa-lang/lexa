@@ -7,6 +7,7 @@
   #include <string.h>
   #include <defs.h>
   #include <datastructure.h>
+  #include <icfpAPI.h>
   
   static i64 __run_lifted_2__(i64,i64);
   static i64 body(i64,i64);
