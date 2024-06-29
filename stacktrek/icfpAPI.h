@@ -3,7 +3,7 @@
 #define HEIGHT 3
 #define WIDTH 9
 
-char grid[HEIGHT][WIDTH] = {
+char *map[] = {
     "###.#...",
     "...L..##",
     ".#######"
@@ -24,11 +24,11 @@ int lambdaManGetHeight() {
   return HEIGHT;
 }
 
-char lambdaManGetToken(int row, int col) {
+char lambdaManGetField(int row, int col) {
   
-  if (row < 0 || row >= WIDTH || col < 0 || col >= HEIGHT) {
+  if (row < 0 || row >= HEIGHT || col < 0 || col >= WIDTH) {
     abort();
   }
 
-  return grid[row][col];
+  return map[row][col];
 }
