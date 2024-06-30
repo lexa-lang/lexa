@@ -3,10 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int done() {
-    exit(1);
-}
-
 int error(const char* msg) {
     fprintf(stderr, "Error: %s\n", msg);
     exit(1);

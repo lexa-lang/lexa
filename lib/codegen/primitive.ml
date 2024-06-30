@@ -13,7 +13,6 @@ exception UndefinedPrimitive of string
 exception InvalidPrimitiveCall of string
 
 let prim_env = [
-  ("done", []);
   ("error", [PTStringP]);
   ("lambdaManInit", []); (* TODO: remove lambdamans *)
   ("lambdaManGetWidth", []);
