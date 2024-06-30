@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 #define HEIGHT 3
-#define WIDTH 9
+#define WIDTH 8
 
 char *map[] = {
     "###.#...",

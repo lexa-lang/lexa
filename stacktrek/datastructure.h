@@ -38,6 +38,20 @@ typedef struct array_t {
     int64_t capacity;
 } array_t;
 
+#define readInt() (argc == 2) ? atoi(argv[1]) : (printf("Usage: %s <int>\n", argv[0]), exit(EXIT_FAILURE), 0)
+
+DEBUG_ATTRIBUTE
+int64_t printInt(int64_t x) {
+  printf("%ld\n", x);
+  return 0;
+}
+
+DEBUG_ATTRIBUTE
+int64_t printChar(int64_t x) {
+  printf("%c\n", (char)x);
+  return 0;
+}
+
 
 DEBUG_ATTRIBUTE
 node_t* listNode(int64_t value, node_t* next) {
@@ -310,6 +324,11 @@ int64_t boolAnd(int64_t a, int64_t b) {
 }
 
 DEBUG_ATTRIBUTE
+int64_t boolOr(int64_t a, int64_t b) {
+  return a || b;
+}
+
+DEBUG_ATTRIBUTE
 array_t* arrayMake(int64_t size) {
   array_t* a = (array_t*)xmalloc(sizeof(array_t));
   a->data = (int64_t*)xmalloc(size * sizeof(int64_t));
@@ -379,6 +398,15 @@ DEBUG_ATTRIBUTE
 int64_t arrayPrint(array_t* a) {
   for (int64_t i = 0; i < a->size; i++) {
     printf("%ld ", a->data[i]);
+  }
+  printf("\n");
+  return 0;
+}
+
+DEBUG_ATTRIBUTE
+int64_t arrayPrintChars(array_t* a) {
+  for (int64_t i = 0; i < a->size; i++) {
+    printf("%c", (char)a->data[i]);
   }
   printf("\n");
   return 0;

@@ -24,11 +24,6 @@ def allocatePinMap(nrow, ncol) {
     map
 }
 
-def isPin(row, col, pinMap) {
-    val rowData = ~arrayAt(pinMap, row);
-    ~arrayAt(rowData, col)
-}
-
 def allocateTrace() {
     ~arrayMake(0)
 }
@@ -36,15 +31,15 @@ def allocateTrace() {
 obj tracer(env) {
     def pin(row, col) {
         val pinMap = env[4];
-        val row = ~arrayAt(pinMap, row);
-        val _ = ~arraySet(row, col, 1);
+        val rowData = ~arrayAt(pinMap, row);
+        val _ = ~arraySet(rowData, col, 1);
         0
     }
 
     def isPinned(row, col) {
         val pinMap = env[4];
         val rowData = ~arrayAt(pinMap, row);
-        ~arrayAt(rowData, col)
+        ~boolOr(~arrayAt(rowData, col), ~lambdaManGetField(row, col) == 35)
     }
 
     def record(action) {
@@ -63,37 +58,53 @@ obj choice(env) {
         val tracer_stub = env[4];
         val newrow = row - 1;
         val newcol = col;
-        val _ = (if ~boolAnd(newrow > -1, raise tracer_stub.isPinned newrow newcol == 0) then
-            val _ = raise tracer_stub.record(85);
-            val _ = resume k 85;
-            val _ = raise tracer_stub.record(68);
+        val _ = (if newrow > -1 then
+            val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                val _ = raise tracer_stub.record(85);
+                val _ = resume k 85;
+                val _ = raise tracer_stub.record(68);
+                0
+            else 
+                0);
             0
         else
             0);
         val newrow = row;
         val newcol = col + 1;
-        val _ = (if ~boolAnd(newcol < ncol, raise tracer_stub.isPinned newrow newcol == 0) then
-            val _ = raise tracer_stub.record(82);
-            val _ = resume k 82;
-            val _ = raise tracer_stub.record(76);
+        val _ = (if newcol < ncol then
+            val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                val _ = raise tracer_stub.record(82);
+                val _ = resume k 82;
+                val _ = raise tracer_stub.record(76);
+                0
+            else 
+                0);
             0
         else
             0);
         val newrow = row + 1;
         val newcol = col;
-        val _ = (if ~boolAnd(newrow < nrow, raise tracer_stub.isPinned newrow newcol == 0) then
-            val _ = raise tracer_stub.record(68);
-            val _ = resume k 68;
-            val _ = raise tracer_stub.record(85);
+        val _ = (if newrow < nrow then
+            val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                val _ = raise tracer_stub.record(68);
+                val _ = resume k 68;
+                val _ = raise tracer_stub.record(85);
+                0
+            else 
+                0);
             0
         else
             0);
         val newrow = row;
         val newcol = col - 1;
-        val _ = (if ~boolAnd(newcol > -1, raise tracer_stub.isPinned newrow newcol == 0) then
-            val _ = raise tracer_stub.record(76);
-            val _ = resume k 76;
-            val _ = raise tracer_stub.record(82);
+        val _ = (if newcol > -1 then
+            val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                val _ = raise tracer_stub.record(76);
+                val _ = resume k 76;
+                val _ = raise tracer_stub.record(82);
+                0
+            else 
+                0);
             0
         else
             0);
@@ -153,8 +164,6 @@ def solveLambdaMan(nrow, ncol) {
     val startrow = newref {0};
     val startcol = newref {0};
     val _ = findStart(0, 0, nrow, ncol, startrow, startcol);
-    val _ = ~printInt(startrow[0]);
-    val _ = ~printInt(startcol[0]);
     val pinMap = allocatePinMap(nrow, ncol);
     val trace = allocateTrace();
     val startrow0 = startrow[0];
@@ -162,6 +171,7 @@ def solveLambdaMan(nrow, ncol) {
     val _ = (handle {startrow0, startcol0, nrow, ncol, pinMap, trace}
         body1
     with tracer: Tracer);
+    val _ = ~arrayPrintChars(trace);
     0
 }
 

@@ -15,7 +15,7 @@ exception InvalidPrimitiveCall of string
 let prim_env = [
   ("done", []);
   ("error", [PTStringP]);
-  ("lambdaManInit", []);
+  ("lambdaManInit", []); (* TODO: remove lambdamans *)
   ("lambdaManGetWidth", []);
   ("lambdaManGetHeight", []);
   ("lambdaManGetField", [PTI64; PTI64]);
@@ -45,6 +45,7 @@ let prim_env = [
   ("queueLen", [PTQueueP]);
   ("readInt", []);
   ("printInt", [PTI64]);
+  ("printChar", [PTI64]);
   ("stringMake", [PTI64; PTI64]);
   ("stringSubStr", [PTStringP; PTI64; PTI64]);
   ("stringCharAt", [PTStringP; PTI64]);
@@ -55,6 +56,7 @@ let prim_env = [
   ("floatPrint", [PTI64]);
   ("mathAbs", [PTI64]);
   ("boolAnd", [PTI64; PTI64]);
+  ("boolOr", [PTI64; PTI64]);
   ("arrayMake", [PTI64]);
   ("arrayMakeInit", [PTI64; PTI64]);
   ("arrayLen", [PTArrayP]);
@@ -63,6 +65,7 @@ let prim_env = [
   ("arrayPush", [PTArrayP; PTI64]);
   ("arrayPop", [PTArrayP]);
   ("arrayPrint", [PTArrayP]);
+  ("arrayPrintChars", [PTArrayP]);
   ("pairMake", [PTI32; PTI32]);
   ("pairFst", [PTI64]);
   ("pairSnd", [PTI64]);
