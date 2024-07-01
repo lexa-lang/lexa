@@ -4,28 +4,22 @@ effect Abort {
 }
 
 def product(xs, abort_stub) {
-    val cond = ~listIsEmpty(xs);
-    if cond then
+    if ~listIsEmpty(xs) then
         0
     else
         val y = ~listHead(xs);
         val ys = ~listTail(xs);
-            val cond = y == 0;
-            if cond then
+            if y == 0 then
                 raise abort_stub.done 0
             else
-                val p = product(ys, abort_stub);
-                y * p
+                y * product(ys, abort_stub)
 }
 
 def enumerate(i) {
-    val cond = i < 0;
-    if cond then
+    if i < 0 then
         ~listEnd()
     else
-        val arg1 = i - 1;
-        val arg2 = enumerate(arg1);
-        ~listNode(i, arg2)
+        ~listNode(i, enumerate(i - 1))
 }
 
 obj abort(env) {
@@ -46,19 +40,14 @@ def runProduct(xs) {
 }
 
 def loop(xs, i, a) {
-    val cond = i == 0;
-    if cond then
+    if i == 0 then
         a
     else
-        val arg1 = i - 1;
-        val arg2 = runProduct(xs);
-        val arg3 = a + arg2;
-        loop(xs, arg1, arg3)
+        loop(xs, i - 1, a + runProduct(xs))
 }
 
 def run(n) {
-    val xs = enumerate(1000);
-        loop(xs, n, 0)
+    loop(enumerate(1000), n, 0)
 }
 
 def main() {

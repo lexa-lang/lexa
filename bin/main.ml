@@ -7,10 +7,12 @@ let inputFile = ref ""
 let outputFile = ref ""
 
 let flagRun = ref false
+let flagFormat = ref false
 
 let speclist = [
   ("-o", Set_string outputFile, "Set the output file name");
   ("-r", Set flagRun, "run the file");
+  ("--format", Set flagFormat, "format the output");
 ]
 
 let clang_format code =
@@ -30,7 +32,7 @@ let () =
   let toplevels_closure = Codegen__Closure.closure_convert_toplevels toplevels_syntax in
 
   let compiledStr = gen_top_level_s toplevels_closure in
-  let formatedStr = clang_format compiledStr in
+  let compiledStr = if !flagFormat then clang_format compiledStr else compiledStr in
   let oc = open_out (!outputFile) in
-  Printf.fprintf oc "%s\n" formatedStr;
+  Printf.fprintf oc "%s\n" compiledStr;
   ();

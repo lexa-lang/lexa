@@ -29,9 +29,7 @@ def is_dollar(c) {
 obj emit(env) {
     def emit(e) {
         val s_ref = env[1];
-        val s = s_ref[0];
-        val s_inc = s + e;
-        s_ref[0] := s_inc
+        s_ref[0] := s_ref[0] + e
     }
 }
 
@@ -74,19 +72,15 @@ obj read(env) {
         val j = j_ref[0];
         val n = env[3];
         val stop_stub = env[4];
-        val cond = i > n;
-        if cond then
+        if i > n then
             raise stop_stub.stop 0
         else
-            val cond = j == 0;
-            if cond then
-                val i_inc = i + 1;
-                val _ = i_ref[0] := i_inc;
-                val _ = j_ref[0] := i_inc;
+            if j == 0 then
+                val _ = i_ref[0] := i + 1;
+                val _ = j_ref[0] := i + 1;
                 newline()
             else
-                val j_dec = j - 1;
-                val _ = j_ref[0] := j_dec;
+                val _ = j_ref[0] := j - 1;
                 dollar()
     }
 }
@@ -108,13 +102,10 @@ def feed_body(env, read_stub) {
 
 def parse(a, read_stub, emit_stub, stop_stub) {
     val c = raise read_stub.read 0;
-    val cond = is_dollar(c);
-    if cond then
-        val a_inc = a + 1;
-        parse(a_inc, read_stub, emit_stub, stop_stub)
+    if is_dollar(c) then
+        parse(a + 1, read_stub, emit_stub, stop_stub)
     else
-        val cond = is_newline(c);
-        if cond then
+        if is_newline(c) then
             val _ = raise emit_stub.emit a;
             parse(0, read_stub, emit_stub, stop_stub)
         else
