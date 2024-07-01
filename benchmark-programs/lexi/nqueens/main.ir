@@ -10,14 +10,9 @@ def safe(queen, diag, xs) {
     else
         val q = ~listHead(xs);
         val qs = ~listTail(xs);
-        val cond1 = queen != q;
         val t1 = q + diag;
-        val cond2 = queen != t1;
         val t2 = q - diag;
-        val cond3 = queen != t2;
-        val cond12 = ~boolAnd(cond1, cond2);
-        val cond123 = ~boolAnd(cond12, cond3);
-        if cond123 then
+        if ~boolAnd(~boolAnd(queen != q, queen != t1), queen != t2) then
             val diag_inc = diag + 1;
             safe(queen, diag_inc, qs)
         else
