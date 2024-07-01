@@ -1,4 +1,0 @@
-def main() {
-    val _ = ~printInt(~lambdaManGetWidth());
-    0
-}

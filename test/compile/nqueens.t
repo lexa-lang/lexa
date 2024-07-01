@@ -7,7 +7,6 @@
   #include <string.h>
   #include <defs.h>
   #include <datastructure.h>
-  #include <icfpAPI.h>
   
   FAST_SWITCH_DECORATOR
    i64 search_pick(i64*,i64,i64);

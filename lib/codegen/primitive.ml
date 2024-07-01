@@ -1,9 +1,11 @@
 type prim_type =
+  | PTI32 (* int32_t *)
   | PTI64 (* int64_t *)
   | PTNodeP (* node_t* *)
   | PTTreeP (* tree_t* *)
   | PTQueueP (* queue_t* *)
   | PTStringP (* char* *)
+  | PTArrayP (* array_t* *)
 
 type prim_env = (string * prim_type list) list
 
@@ -11,10 +13,11 @@ exception UndefinedPrimitive of string
 exception InvalidPrimitiveCall of string
 
 let prim_env = [
-  ("lambdaManInit", []);
+  ("error", [PTStringP]);
+  ("lambdaManInit", []); (* TODO: remove lambdamans *)
   ("lambdaManGetWidth", []);
   ("lambdaManGetHeight", []);
-  ("lambdaManGetToken", [PTI64; PTI64]);
+  ("lambdaManGetField", [PTI64; PTI64]);
   ("listNode", [PTI64; PTNodeP]);
   ("listEnd", []);
   ("listIsEmpty", [PTNodeP]);
@@ -41,6 +44,7 @@ let prim_env = [
   ("queueLen", [PTQueueP]);
   ("readInt", []);
   ("printInt", [PTI64]);
+  ("printChar", [PTI64]);
   ("stringMake", [PTI64; PTI64]);
   ("stringSubStr", [PTStringP; PTI64; PTI64]);
   ("stringCharAt", [PTStringP; PTI64]);
@@ -50,12 +54,27 @@ let prim_env = [
   ("floatMul", [PTI64; PTI64]);
   ("floatPrint", [PTI64]);
   ("mathAbs", [PTI64]);
-  ("boolAnd", [PTI64; PTI64])
+  ("boolAnd", [PTI64; PTI64]);
+  ("boolOr", [PTI64; PTI64]);
+  ("arrayMake", [PTI64]);
+  ("arrayMakeInit", [PTI64; PTI64]);
+  ("arrayLen", [PTArrayP]);
+  ("arrayAt", [PTArrayP; PTI64]);
+  ("arraySet", [PTArrayP; PTI64; PTI64]);
+  ("arrayPush", [PTArrayP; PTI64]);
+  ("arrayPop", [PTArrayP]);
+  ("arrayPrint", [PTArrayP]);
+  ("arrayPrintChars", [PTArrayP]);
+  ("pairMake", [PTI32; PTI32]);
+  ("pairFst", [PTI64]);
+  ("pairSnd", [PTI64]);
 ]
 
 let gen_prim_type = function
+| PTI32 -> "(int32_t)"
 | PTI64 -> "(int64_t)"
 | PTNodeP -> "(node_t*)"
 | PTTreeP -> "(tree_t*)"
 | PTQueueP -> "(queue_t*)"
 | PTStringP -> "(char*)"
+| PTArrayP -> "(array_t*)"
