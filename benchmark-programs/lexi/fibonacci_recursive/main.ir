@@ -1,13 +1,7 @@
 def fib(n) {
-    val cond = n == 0; 
-    if cond then 0 else
-        val cond = n == 1;
-        if cond then 1 else
-            val a = n - 1;
-            val b = n - 2;
-            val v1 = fib(a);
-            val v2 = fib(b);
-            v1 + v2
+    if n == 0 then 0 else
+        if n == 1 then 1 else
+            fib(n - 1) + fib(n - 2)
 }
 
 def main() {

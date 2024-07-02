@@ -12,8 +12,7 @@ effect Exn {
 }
 
 def queueDeqExn(q, exn_stub) {
-    val cond = ~queueIsEmpty(q);
-    if cond then
+    if ~queueIsEmpty(q) then
         raise exn_stub.throw 0
     else
         ~queueDeq(q)
@@ -31,14 +30,12 @@ def entry(env, sch_stub) {
 }
 
 def jobs(i, job_closure, sch_stub, tick_stub) {
-    val cond = i == 0;
-    if cond then
+    if i == 0 then
         0
     else
         val _ = raise sch_stub.fork job_closure;
-        val a = raise tick_stub.tick 0;
-        val i0 = i - 1;
-            jobs(i0, job_closure, sch_stub, tick_stub)
+        val _ = raise tick_stub.tick 0;
+        jobs(i - 1, job_closure, sch_stub, tick_stub)
 }
 
 obj process(env) {
@@ -97,9 +94,7 @@ def scheduler(init_closure) {
 obj tick(env) {
     def tick(_) {
         val c = env[1];
-        val v1 = c[0];
-        val v2 = v1 + 1;
-        val _ = c[0] := v2;
+        val _ = c[0] := c[0] + 1;
         0
     }
 }
@@ -119,18 +114,14 @@ def run(n_jobs, init) {
         handle {n_jobs, c}
             body_run
         with tick: Tick;
-    val v = c[0];
-    v
+    c[0]
 }
 
 def step(i, acc, n_jobs) {
-    val cond = i == 0;
-    if cond then
+    if i == 0 then
         acc
     else
-        val i_dec = i - 1;
-        val acc2 = run(n_jobs, acc);
-        step(i_dec, acc2, n_jobs)
+        step(i - 1, run(n_jobs, acc), n_jobs)
 }
 
 def repeat(n_jobs) {

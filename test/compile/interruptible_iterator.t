@@ -68,12 +68,11 @@
   ((i64*)temp)[0] = (i64)0;
   temp;
   }));
-  ({i64 cond = (i64)(((i64)(listIsEmpty((node_t*)it_tail))));
-  ({i64 newtl = (i64)(cond ? (((i64)(listEnd()))) : (HANDLE(loop_body_2, ({TAIL, loop_behead_behead}), (it_tail, yield_stub, beheaded))));
+  ({i64 newtl = (i64)((((i64)(listIsEmpty((node_t*)it_tail)))) ? (((i64)(listEnd()))) : (HANDLE(loop_body_2, ({TAIL, loop_behead_behead}), (it_tail, yield_stub, beheaded))));
   ({i64 tobehead = (i64)(((i64*)beheaded)[0]);
   ({i64 _ = (i64)(tobehead ? ({i64 tailtail = (i64)(((i64)(listTail((node_t*)newtl))));
   (((i64)(listSetTail((node_t*)it, (node_t*)tailtail))));}) : 0);
-  it;});});});});});});}));
+  it;});});});});});}));
   }
   
   static i64 body_main_2(i64 env,i64 yield_stub) {
@@ -87,9 +86,7 @@
   }
   
    i64 yield_main_yield(i64* env,i64 x,i64 behead_stub,i64 replace_stub) {
-  return(({i64 cond = (i64)(x < 0);
-  (cond ? (RAISE(behead_stub, behead, (0))) : ({i64 x2 = (i64)(x * 2);
-  (RAISE(replace_stub, replace, (x2)));}));}));
+  return(((x < 0) ? (RAISE(behead_stub, behead, (0))) : (RAISE(replace_stub, replace, ((x * 2))))));
   }
   
   static i64 body_main_1(i64 env,i64 behead_stub) {
@@ -103,20 +100,15 @@
   }
   
   static i64 __listSum_lifted_2__(i64 __env__,i64 l,i64 acc) {
-  return(({i64 cond = (i64)(((i64)(listIsEmpty((node_t*)l))));
-  (cond ? acc : ({i64 head = (i64)(((i64)(listHead((node_t*)l))));
-  ({i64 tail = (i64)(((i64)(listTail((node_t*)l))));
-  ({i64 newacc = (i64)(acc + head);
-  (({closure_t* __clo__ = (closure_t*)listSum;
+  return(((((i64)(listIsEmpty((node_t*)l)))) ? acc : (({closure_t* __clo__ = (closure_t*)listSum;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);
-  ((i64(*)(i64, i64, i64))__f__)(__env__,tail,newacc);
-  }));});});}));}));
+  ((i64(*)(i64, i64, i64))__f__)(__env__,(((i64)(listTail((node_t*)l)))),(acc + (((i64)(listHead((node_t*)l))))));
+  }))));
   }
   
   static i64 __run_lifted_3__(i64 __env__,i64 n) {
-  return(({i64 minusn = (i64)(0 - n);
-  ({i64 l = (i64)(((i64)(listRange((int64_t)minusn, (int64_t)n))));
+  return(({i64 l = (i64)(((i64)(listRange((int64_t)(0 - n), (int64_t)n))));
   ({i64 beheaded = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
   ((i64*)temp)[0] = (i64)0;
   temp;
@@ -128,23 +120,19 @@
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);
   ((i64(*)(i64, i64))__f__)(__env__,res);
-  }));});});});});});}));
+  }));});});});});}));
   }
   
   static i64 __step_lifted_4__(i64 __env__,i64 i,i64 acc,i64 n_jobs) {
-  return(({i64 cond = (i64)(i == 0);
-  (cond ? acc : ({i64 i_dec = (i64)(i - 1);
-  ({i64 res = (i64)(({closure_t* __clo__ = (closure_t*)run;
+  return(((i == 0) ? acc : (({closure_t* __clo__ = (closure_t*)step;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64, i64, i64))__f__)(__env__,(i - 1),(acc + (({closure_t* __clo__ = (closure_t*)run;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);
   ((i64(*)(i64, i64))__f__)(__env__,n_jobs);
-  }));
-  ({i64 acc2 = (i64)(acc + res);
-  (({closure_t* __clo__ = (closure_t*)step;
-  i64 __f__ = (i64)(__clo__->func_pointer);
-  i64 __env__ = (i64)(__clo__->env);
-  ((i64(*)(i64, i64, i64, i64))__f__)(__env__,i_dec,acc2,n_jobs);
-  }));});});}));}));
+  }))),n_jobs);
+  }))));
   }
   
   static i64 __repeat_lifted_5__(i64 __env__,i64 n_jobs) {

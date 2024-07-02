@@ -44,8 +44,7 @@
   enum Exn {throw};
   
   static i64 __queueDeqExn_lifted_1__(i64 __env__,i64 q,i64 exn_stub) {
-  return(({i64 cond = (i64)(((i64)(queueIsEmpty((queue_t*)q))));
-  (cond ? (RAISE(exn_stub, throw, (0))) : (((i64)(queueDeq((queue_t*)q)))));}));
+  return(((((i64)(queueIsEmpty((queue_t*)q)))) ? (RAISE(exn_stub, throw, (0))) : (((i64)(queueDeq((queue_t*)q))))));
   }
   
   static i64 __job_lifted_2__(i64 __env__,i64 env,i64 sch_stub) {
@@ -64,15 +63,13 @@
   }
   
   static i64 __jobs_lifted_4__(i64 __env__,i64 i,i64 job_closure,i64 sch_stub,i64 tick_stub) {
-  return(({i64 cond = (i64)(i == 0);
-  (cond ? 0 : ({i64 _ = (i64)(RAISE(sch_stub, fork, (job_closure)));
-  ({i64 a = (i64)(RAISE(tick_stub, tick, (0)));
-  ({i64 i0 = (i64)(i - 1);
+  return(((i == 0) ? 0 : ({i64 _ = (i64)(RAISE(sch_stub, fork, (job_closure)));
+  ({i64 _ = (i64)(RAISE(tick_stub, tick, (0)));
   (({closure_t* __clo__ = (closure_t*)jobs;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);
-  ((i64(*)(i64, i64, i64, i64, i64))__f__)(__env__,i0,job_closure,sch_stub,tick_stub);
-  }));});});}));}));
+  ((i64(*)(i64, i64, i64, i64, i64))__f__)(__env__,(i - 1),job_closure,sch_stub,tick_stub);
+  }));});})));
   }
   
   FAST_SWITCH_DECORATOR
@@ -147,10 +144,8 @@
   
    i64 tick_tick(i64* env,i64 _) {
   return(({i64 c = (i64)(((i64*)env)[1]);
-  ({i64 v1 = (i64)(((i64*)c)[0]);
-  ({i64 v2 = (i64)(v1 + 1);
-  ({i64 _ = (i64)(((i64*)c)[0] = v2);
-  0;});});});}));
+  ({i64 _ = (i64)(((i64*)c)[0] = ((((i64*)c)[0]) + 1));
+  0;});}));
   }
   
   static i64 body_run(i64 env,i64 tick_stub) {
@@ -188,23 +183,19 @@
   temp;
   }));
   ({i64 _ = (i64)(HANDLE(body_run, ({TAIL, tick_tick}), (n_jobs, c)));
-  ({i64 v = (i64)(((i64*)c)[0]);
-  v;});});}));
+  (((i64*)c)[0]);});}));
   }
   
   static i64 __step_lifted_9__(i64 __env__,i64 i,i64 acc,i64 n_jobs) {
-  return(({i64 cond = (i64)(i == 0);
-  (cond ? acc : ({i64 i_dec = (i64)(i - 1);
-  ({i64 acc2 = (i64)(({closure_t* __clo__ = (closure_t*)run;
+  return(((i == 0) ? acc : (({closure_t* __clo__ = (closure_t*)step;
+  i64 __f__ = (i64)(__clo__->func_pointer);
+  i64 __env__ = (i64)(__clo__->env);
+  ((i64(*)(i64, i64, i64, i64))__f__)(__env__,(i - 1),(({closure_t* __clo__ = (closure_t*)run;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);
   ((i64(*)(i64, i64, i64))__f__)(__env__,n_jobs,acc);
-  }));
-  (({closure_t* __clo__ = (closure_t*)step;
-  i64 __f__ = (i64)(__clo__->func_pointer);
-  i64 __env__ = (i64)(__clo__->env);
-  ((i64(*)(i64, i64, i64, i64))__f__)(__env__,i_dec,acc2,n_jobs);
-  }));});}));}));
+  })),n_jobs);
+  }))));
   }
   
   static i64 __repeat_lifted_10__(i64 __env__,i64 n_jobs) {

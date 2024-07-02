@@ -10,32 +10,20 @@ def safe(queen, diag, xs) {
     else
         val q = ~listHead(xs);
         val qs = ~listTail(xs);
-        val cond1 = queen != q;
-        val t1 = q + diag;
-        val cond2 = queen != t1;
-        val t2 = q - diag;
-        val cond3 = queen != t2;
-        val cond12 = ~boolAnd(cond1, cond2);
-        val cond123 = ~boolAnd(cond12, cond3);
-        if cond123 then
-            val diag_inc = diag + 1;
-            safe(queen, diag_inc, qs)
+        if ~boolAnd(~boolAnd(queen != q, queen != q + diag), queen != q - diag) then
+            safe(queen, diag + 1, qs)
         else
             false
 }
 
 def place(size, column, search_stub) {
-    val is_zero = column == 0;
-    if is_zero then
+    if column == 0 then
         ~listEnd()
     else
-        val column_dec = column - 1;
-        val rest = place(size, column_dec, search_stub);
+        val rest = place(size, column - 1, search_stub);
         val next = raise search_stub.pick size;
-        val is_safe = safe(next, 1, rest);
-        if is_safe then
-            val head = ~listNode(next, rest);
-            head
+        if safe(next, 1, rest) then
+            ~listNode(next, rest)
         else
             raise search_stub.fail 0
 }
@@ -53,15 +41,10 @@ def body(env, search_stub) {
 }
 
 def loop(i, a, size, k) {
-    val cond = i == size;
-    if cond then
-        val r = resume_final k i;
-        a + r
+    if i == size then
+        a + resume_final k i
     else
-        val r = resume k i;
-        val arg1 = i + 1;
-        val arg2 = a + r;
-        loop(arg1, arg2, size, k)
+        loop(i + 1, a + resume k i, size, k)
 }
 
 obj search(env) {
