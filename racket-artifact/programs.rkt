@@ -19,7 +19,7 @@
 ;;    }
 ;; }
 
-;; produces 43 --> val is 42, is placed on the stack
+;; produces 43 in $1 --> val is 42, is placed on the stack
 (define program1
     '((fun body (env askL)
         (let ([val (tailraise askL 0)])
@@ -66,7 +66,7 @@
             (let ([x (handle= body abort ask under s)])
                 x)))
     ))
-;; returns 42 --> aborts the handler with ask, returning 42, storing that in x, returning x.
+;; returns 42 in $1 --> aborts the handler with ask, returning 42, storing that in x, returning x.
 
 ;; // An general handler: that resumes resumption twice
 ;; // the whole program should evaluate to 44
@@ -92,6 +92,8 @@
 ;;     } in
 ;;     s[0]
 ;; }
+
+;; produces 43 in $1
 (define program3
     '((fun body (env incL)
         (let ([_ (raise incL 0)])
