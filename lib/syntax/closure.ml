@@ -18,6 +18,7 @@ type t = (* expressions AFTER closure conversion *)
   | Hdl of var list * var * var * var
   | Closure of closure
   | AppClosure of t * t list
+  | App of t * t list
   | Let of var * t * t
   | If of t * t * t
 

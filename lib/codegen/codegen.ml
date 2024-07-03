@@ -131,11 +131,12 @@ and gen_expr (e : Syntax__Closure.t) =
       sprintf "%s %s %s" (gen_expr e1) (gen_cmp op) (gen_expr e2)
     | Let (x, e1, e2) ->
         sprintf "{i64 %s = (i64)%s;\n%s;}" x (gen_expr e1) (gen_expr e2)
-    (* | App (e1, args) ->
+    | App (e1, args) ->
         (match e1 with
         | Prim _ -> 
           let name = gen_expr e1 in (* name is prim with leading ~ stripped *)
           (* The name here should have ~ stripped *)
+          (* TODO: Remove duplicate code here and in AppClosure *)
           let cast_args (name : string) (args : t list) : string list =
             match List.assoc_opt name prim_env with
             | None -> raise (UndefinedPrimitive name)
@@ -155,7 +156,7 @@ and gen_expr (e : Syntax__Closure.t) =
             s :: list_repeat (n - 1) s in
           let cast_func_str =
             sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length args) "i64")) in
-          sprintf "((%s)%s)%s" cast_func_str (gen_expr e1) (gen_args args)) *)
+          sprintf "((%s)%s)%s" cast_func_str (gen_expr e1) (gen_args args))
     | If (v, e1, e2) ->
         sprintf "%s ? %s : %s" (gen_expr v) (gen_expr e1) (gen_expr e2)
     | New value_list ->
@@ -198,11 +199,10 @@ and gen_expr (e : Syntax__Closure.t) =
         sprintf 
 {|({closure_t* __c__ = malloc(sizeof(closure_t));
 __c__->func_pointer = (i64)%s;
-__c__->num_fv = (i64)%d;
 %s
 %s
 (i64)__c__;})|}
-        entry_name (List.length free_vars) fv_creation copy_fv
+        entry_name fv_creation copy_fv
       in
       closure_creation
     | AppClosure (e, args) ->
@@ -333,7 +333,7 @@ let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (strin
   let fun_type_env = fun_type_pass toplevels in
   let toplevel_func_env = toplevel_closures in
   env := {eff_sig = eff_sig_env; eff_type = eff_type_env; fun_type = fun_type_env; toplevel_closure = toplevel_func_env};
-  let declare_closures = String.concat "\n" (List.map (fun (x, _) -> sprintf "closure_t* %s;" x) toplevel_func_env) in
+  let declare_closures = String.concat "\n" (List.map (fun (x, _) -> sprintf "static closure_t* %s;" x) toplevel_func_env) in
   let prog = (String.concat "\n" 
     (List.map 
       (fun x -> gen_top_level x)
