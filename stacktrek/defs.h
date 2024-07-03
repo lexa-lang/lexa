@@ -269,24 +269,8 @@ static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(i64* env, i64 i
     (long (FAST_SWITCH_DECORATOR*)(i64*, i64, i64, void*, void**) )run_1_arg_handler_in_place
 };
 
-// // TODO: using stack_switching1 cause segfault in nqueen
-// __attribute__((always_inline))
-// i64 stack_switching1(meta_t* stub, i64 index, i64 arg) {
-//     i64 env = (i64)stub->env;
-//     i64 func = (i64)stub->defs[index].func;
-//     if (stub->defs[index].mode == TAIL) {
-//         return run_1_arg_handler_in_place(stub, index, arg);
-//     } else if (stub->defs[index].mode == ABORT) {
-//         return switch_free_and_run_handler(stub, index, arg);
-//     } else if (stub->defs[index].mode == SINGLESHOT) {
-//         return save_switch_and_run_handler(stub, index, arg);
-//     } else if (stub->defs[index].mode == MULTISHOT) {
-//         return double_save_switch_and_run_handler(stub, index, arg);
-//     }
-// }
-
 // this is slightly faster than the above function
-i64 stack_switching2(meta_t* stub, i64 index, i64 arg) {
+i64 stack_switching(meta_t* stub, i64 index, i64 arg) {
     return stack_switching_functions[stub->defs[index].mode]((i64*)stub->env, index, arg, (void*)stub->defs[index].func, (void**)stub->sp_exchanger);
 }
 
@@ -316,7 +300,7 @@ i64 stack_switching2(meta_t* stub, i64 index, i64 arg) {
         } \
     } else { \
         if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-        out = stack_switching2(stub, index, args[0]); \
+        out = stack_switching(stub, index, args[0]); \
     } \
     _Pragma("clang diagnostic pop") \
     out; \
