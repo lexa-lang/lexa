@@ -44,9 +44,9 @@ typedef struct {
 
 FAST_SWITCH_DECORATOR
 __attribute__((noinline))
-i64 double_save_switch_and_run_handler(meta_t* stub, i64 index, i64 arg) {
+i64 double_save_switch_and_run_handler(i64* env, i64 index, i64 arg, void* func, void** exc) {
     resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
-    k->ctx_sp = stub->sp_exchanger;
+    k->ctx_sp = exc;
     __asm__ (
         "popq %%rax\n\t" // Pop the dummy slot that is used to align the stack. It is inserted by the compiler, and is needed because of the malloc call. We pop it off because we want to expose the return address
         "movq 8(%%rdx), %%r8\n\t" // Get the exchanger from the resumption
@@ -55,24 +55,24 @@ i64 double_save_switch_and_run_handler(meta_t* stub, i64 index, i64 arg) {
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to the resumption
         "movq %%rax, %%rsp\n\t" // Switch to the context stack
         "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
-        :: "D"(stub->env), "S"(arg), "d"(k), "c"(stub->defs[index].func)
+        :: "D"(env), "S"(arg), "d"(k), "c"(func)
     );
 }
 
 FAST_SWITCH_DECORATOR
 __attribute__((noinline))
-i64 save_switch_and_run_handler(meta_t* stub, i64 index, i64 arg) {
+i64 save_switch_and_run_handler(i64* env, i64 index, i64 arg, void* func, void** exc) {
     __asm__ (
         "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
         "movq %%rax, %%rsp\n\t" // Switch to the context stack
         "jmpq *%%rcx\n\t" // Call the handler, the first three arguments are already in the right registers
-        :: "D"(stub->env), "S"(arg), "d"(stub->sp_exchanger), "c"(stub->defs[index].func)
+        :: "D"(env), "S"(arg), "d"(exc), "c"(func)
     );
 }
 
-i64 switch_free_and_run_handler(meta_t* stub, i64 index, i64 arg) {
-    void* target_sp = *stub->sp_exchanger;
+i64 switch_free_and_run_handler(i64* env, i64 index, i64 arg, void* func, void** exc) {
+    void* target_sp = *(void**)exc;
     void* curr_sp;
     __asm__ (
         "movq %%rsp, %0\n\t"
@@ -82,12 +82,12 @@ i64 switch_free_and_run_handler(meta_t* stub, i64 index, i64 arg) {
     __asm__ (
         "movq %2, %%rsp\n\t"
         "jmpq *%3\n\t"
-        :: "D"(stub->env), "S"(arg), "r"(target_sp), "r"(stub->defs[index].func)
+        :: "D"(env), "S"(arg), "r"(target_sp), "r"(func)
     ); 
 }
 
-i64 run_1_arg_handler_in_place(meta_t* stub, i64 index, i64 arg) {
-    return ((i64(*)(i64*, i64))stub->defs[index].func)(stub->env, arg);
+i64 run_1_arg_handler_in_place(i64* env, i64 index, i64 arg, void* func, void** exc) {
+    return ((i64(*)(i64*, i64))func)(env, arg);
 }
 
 __attribute__((noinline, naked))
@@ -262,30 +262,16 @@ i64 save_and_restore(i64 arg, void** exc, void* rsp_sp) {
     out; \
     })
 
-static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(meta_t* stub, i64 index, i64 arg) = {
-    (long (FAST_SWITCH_DECORATOR*)(meta_t *, long, long) )switch_free_and_run_handler,
+static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(i64* env, i64 index, i64 arg, void* func, void** exc) = {
+    (long (FAST_SWITCH_DECORATOR*)(i64*, i64, i64, void*, void**) )switch_free_and_run_handler,
     save_switch_and_run_handler,
     double_save_switch_and_run_handler,
-    (long (FAST_SWITCH_DECORATOR*)(meta_t *, long, long) )run_1_arg_handler_in_place
+    (long (FAST_SWITCH_DECORATOR*)(i64*, i64, i64, void*, void**) )run_1_arg_handler_in_place
 };
 
-// TODO: using stack_switching1 cause segfault in nqueen
-__attribute__((always_inline))
-i64 stack_switching1(meta_t* stub, i64 index, i64 arg) {
-    if (stub->defs[index].mode == TAIL) {
-        return run_1_arg_handler_in_place(stub, index, arg);
-    } else if (stub->defs[index].mode == ABORT) {
-        return switch_free_and_run_handler(stub, index, arg);
-    } else if (stub->defs[index].mode == SINGLESHOT) {
-        return save_switch_and_run_handler(stub, index, arg);
-    } else if (stub->defs[index].mode == MULTISHOT) {
-        return double_save_switch_and_run_handler(stub, index, arg);
-    }
-}
-
 // this is slightly faster than the above function
-i64 stack_switching2(meta_t* stub, i64 index, i64 arg) {
-    return stack_switching_functions[stub->defs[index].mode](stub, index, arg);
+i64 stack_switching(meta_t* stub, i64 index, i64 arg) {
+    return stack_switching_functions[stub->defs[index].mode]((i64*)stub->env, index, arg, (void*)stub->defs[index].func, (void**)stub->sp_exchanger);
 }
 
 // TODO:
@@ -314,7 +300,7 @@ i64 stack_switching2(meta_t* stub, i64 index, i64 arg) {
         } \
     } else { \
         if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-        out = stack_switching2(stub, index, args[0]); \
+        out = stack_switching(stub, index, args[0]); \
     } \
     _Pragma("clang diagnostic pop") \
     out; \
