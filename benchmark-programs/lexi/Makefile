@@ -33,7 +33,7 @@ test: build
 	echo "Running programs..."
 	cd countdown ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd fibonacci_recursive ; ./main 5 > actual ; echo 5 > expected ; diff expected actual
-	# cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
+	cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd iterator ; ./main 5 > actual ; echo 15 > expected ; diff expected actual
 	cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
@@ -48,7 +48,7 @@ test-c-only: build-c-only
 	echo "Running programs..."
 	cd countdown ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd fibonacci_recursive ; ./main 5 > actual ; echo 5 > expected ; diff expected actual
-	# cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
+	cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd iterator ; ./main 5 > actual ; echo 15 > expected ; diff expected actual
 	cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
