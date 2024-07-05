@@ -7,12 +7,6 @@ import argparse
 def print_message(message):
     print(f"{'='*len(message)}\n{message}\n{'='*len(message)}")
 
-input_range = range(10, 21, 10)
-warmup_runs = 3
-max_runs = 1000
-
-
-
 benchmark_programs = ["countdown", "fibonacci_recursive", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "scheduler", "interruptible_iterator"]
 
 def parse_output(output_file):
