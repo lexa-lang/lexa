@@ -17,6 +17,9 @@ mkSbtDerivation.${system} {
     GIT_CONFIG_KEY_0 = "url.https://github.com/.insteadOf";
     GIT_CONFIG_VALUE_0 = "git@github.com:";
     });
+
+    patches = [ ./substitude_char_in_effekt.patch ];
+    
     overrideDepsAttrs = final: prev: {
     preBuild = ''
         export LANG=C.UTF-8
