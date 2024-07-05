@@ -1,79 +1,64 @@
-#!/usr/bin/env python3
-
-import subprocess
 import matplotlib.pyplot as plt
-import json
+import subprocess
+import re
 import argparse
-import numpy as np
 
 
-def run_command_with_hyperfine(command, n_values, plot_file):
-    runtimes = []
+def print_message(message):
+    print(f"{'='*len(message)}\n{message}\n{'='*len(message)}")
 
-    for n in n_values:
-        cmd = f"hyperfine -w 3 --export-json results.json '{command} {n}'"
-        subprocess.run(cmd, shell=True)
-        
-        with open("results.json", "r") as results_file:
-            results = json.load(results_file)
-            mean_runtime = results['results'][0]['mean']
-            runtimes.append(mean_runtime)
-        # save runtimes in every iteration to avoid interruptions
-        with open("runtimes.txt", "w") as f:
-            for n, runtime in zip(n_values, runtimes):
-                f.write(f"{n} {runtime}\n")
+input_range = range(10, 21, 10)
+warmup_runs = 3
+max_runs = 1000
 
-    # zip n_values and runtimes to a list of pairs
-    return list(zip(n_values, runtimes))
 
-def plot_runtime(runtime_pairs, plot_file, degree):
-    n_values, runtimes = zip(*runtime_pairs)
-    plt.plot(n_values, runtimes, marker='o', label='Runtime')
 
-    if degree:
-        # Ajustement quadratique
-        coeffs = np.polyfit(n_values, runtimes, degree)
-        poly_eqn = np.poly1d(coeffs)
+benchmark_programs = ["countdown", "fibonacci_recursive", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "scheduler", "interruptible_iterator"]
 
-        # Générer des points x pour une courbe lisse
-        x_continuous = np.linspace(min(n_values), max(n_values), 100)
-        y_fitted = poly_eqn(x_continuous)
+def parse_output(output_file):
+    pairs = []
+    f = open(output_file, 'r')
+    for line in f.readlines()[1:]:
+        command = line.split(",")[0]
+        for name in benchmark_programs:
+            if name in command:
+                break
+        mean_time = float(line.split(",")[1])
+        pairs.append((name, mean_time))
+    return pairs
 
-        # polynomial_formula = " + ".join(f"{float(coeff):.2f} * n^{i}" for i, coeff in enumerate(coeffs[::-1]))
-        # polynomial_formula = f"${polynomial_formula}$"
-        polynomial_formula = ""
+platforms = ["lexi", "effekt", "ocaml"]
 
-        # Tracer la courbe ajustée de manière continue
-        plt.plot(x_continuous, y_fitted, linestyle='--', label=f'Best fit curve with degree {degree} {polynomial_formula}')
+def test(platform):
+    print_message(f"Testing {platform}...")
+    make_command = f"cd ./benchmark-programs/{platform}/ && make test"
+    subprocess.run(make_command, shell=True)
+    print_message("Success.")
 
-    plt.legend()
-    plt.xlabel('n')
-    plt.ylabel('Runtime (seconds)')
-    plt.title('Runtime vs n')
-    plt.grid(True)
-    plt.savefig(plot_file)
+def bench(platform):
+    print_message(f"Benchmarking {platform}...")
+    make_command = f"cd ./benchmark-programs/{platform}/ && make bench"
+    pairs = parse_output(f"./benchmark-programs/{platform}/output.csv")
+    with open(f"{platform}_runtimes.txt", "w") as f:
+        for name, mean_time in pairs:
+            f.write(f"{name} {mean_time}\n")
+    print_message("Results saved to {platform}_runtimes.txt")
 
 def main():
-    parser = argparse.ArgumentParser(description="Run a command with varying input n, record runtime with hyperfine, and plot runtime vs n.")
-    parser.add_argument("command", nargs='?', type=str, help="Command to run")
-    parser.add_argument("--min_n", type=int, default=0, help="Minimum value of n (inclusive)")
-    parser.add_argument("--max_n", type=int, default=100, help="Maximum value of n (inclusive)")
-    parser.add_argument("--interval", type=int, default=20, help="Interval between consecutive n values")
-    parser.add_argument("--plot_file", type=str, default="plot.png" ,help="Optional output file name for the plot")
-    parser.add_argument("--time_file", type=str, default=None, help="Optional input file name for the runtimes")
-    parser.add_argument("--degree", type=int, default=None, help="Degree of polynomial for fitting")
-
+    parser = argparse.ArgumentParser(description="Process the --kicktire argument")
+    parser.add_argument('--kick-tire', action='store_true', help='Enable the kicktire option')
+    
     args = parser.parse_args()
     
-    if args.time_file:
-        with open(args.time_file, "r") as f:
-            runtime_pairs = [tuple(map(float, line.strip().split())) for line in f]
-        plot_runtime(runtime_pairs, args.plot_file, args.degree)
+    if args.kick_tire:
+        print_message("Kicktire mode enabled.")
+        for platform in platforms:
+            test(platform)
     else:
-        n_values = list(range(args.min_n, args.max_n + 1, args.interval))
-        runtime_pairs = run_command_with_hyperfine(args.command, n_values, args.plot_file)
-        plot_runtime(runtime_pairs, args.plot_file, args.degree)
-    
+        for platform in platforms:
+            bench(platform)
+
+    print_message("Done.")
 
 if __name__ == "__main__":
     main()
