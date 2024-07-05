@@ -42,7 +42,7 @@ test: build
 	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd handler_sieve ; ./main 10 > actual ; echo 17 > expected ; diff expected actual
 	cd scheduler ; ./main 10 > actual ; echo 10000 > expected ; diff expected actual
-	cd interruptible_iterator ; ./main 10 > actual ; echo 90000 > expected ; diff expected actual
+	cd interruptible_iterator ; ./main 10 > actual ; echo 110000 > expected ; diff expected actual
 
 test-c-only: build-c-only
 	echo "Running programs..."
