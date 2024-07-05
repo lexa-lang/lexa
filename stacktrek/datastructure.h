@@ -63,7 +63,7 @@ node_t* listNode(int64_t value, node_t* next) {
 
 DEBUG_ATTRIBUTE
 node_t* listRange(int64_t start, int64_t end) {
-  if (start >= end) {
+  if (start > end) {
     return NULL;
   } else {
     return listNode(start, listRange(start + 1, end));
