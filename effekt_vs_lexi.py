@@ -59,7 +59,6 @@ def bench_and_plot_effekt():
         print_message("Running and benchmarking Effekt's Scheduler")
         subprocess.run(effekt_scheduler_command, check=True, text=True, shell=True)
         print_message("Running and benchmarking Effekt's Scheduler without Tick")
-        print_message(effekt_scheduler_notick_command)
         subprocess.run(effekt_scheduler_notick_command, check=True, text=True, shell=True)
     except subprocess.CalledProcessError as e:
         print_message(e.stderr)
