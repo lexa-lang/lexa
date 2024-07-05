@@ -2,7 +2,7 @@
 , alex, array, base, bytestring, cond, containers, directory, extra
 , filepath, hpack, hspec, hspec-core, isocline, json, lib, mtl
 , parsec, process, regex-compat, text, time, FloatingHex, aeson
-, async, co-log-core, hashable, lens, lsp, network, network-simple, text-rope }:
+, async, co-log-core, hashable, lens, lsp_2_4_0_0, network, network-simple, text-rope }:
 
 let
   version = "3.1.1";
@@ -41,7 +41,7 @@ mkDerivation rec {
   executableHaskellDepends = [
     array base bytestring cond containers directory isocline mtl
     parsec process text time kklib FloatingHex aeson async
-    co-log-core hashable lens lsp network network-simple text-rope
+    co-log-core hashable lens lsp_2_4_0_0 network network-simple text-rope
   ];
   executableToolDepends = [ alex makeWrapper ];
   postInstall = ''
