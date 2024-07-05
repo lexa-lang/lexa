@@ -61,7 +61,8 @@
   static i64 __jobs_lifted_4__(i64 __env__,i64 i,i64 job_closure,i64 sch_stub,i64 tick_stub) {
   return(((i == 0) ? 0 : ({i64 _ = (i64)(RAISE(sch_stub, fork, (job_closure)));
   ({i64 _ = (i64)(RAISE(tick_stub, tick, (0)));
-  (((i64(*)(i64, i64, i64, i64, i64))__jobs_lifted_4__)(0,(i - 1),job_closure,sch_stub,tick_stub));});})));
+  (({__attribute__((musttail))
+   return ((i64(*)(i64, i64, i64, i64, i64))__jobs_lifted_4__)(0,(i - 1),job_closure,sch_stub,tick_stub); 0;}));});})));
   }
   
   FAST_SWITCH_DECORATOR
@@ -155,7 +156,8 @@
   }
   
   static i64 __step_lifted_12__(i64 __env__,i64 i,i64 acc,i64 n_jobs) {
-  return(((i == 0) ? acc : (((i64(*)(i64, i64, i64, i64))__step_lifted_12__)(0,(i - 1),(((i64(*)(i64, i64, i64))__run_lifted_11__)(0,n_jobs,acc)),n_jobs))));
+  return(((i == 0) ? acc : (({__attribute__((musttail))
+   return ((i64(*)(i64, i64, i64, i64))__step_lifted_12__)(0,(i - 1),(((i64(*)(i64, i64, i64))__run_lifted_11__)(0,n_jobs,acc)),n_jobs); 0;}))));
   }
   
   static i64 __repeat_lifted_13__(i64 __env__,i64 n_jobs) {

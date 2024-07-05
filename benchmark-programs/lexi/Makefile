@@ -4,6 +4,7 @@ bench: build
 	hyperfine --warmup 3 --export-csv results.csv \
 		'countdown/main 200000000' \
 		'fibonacci_recursive/main 42' \
+		'product_early/main 100000' \
 		'iterator/main 40000000' \
 		'nqueens/main 12' \
 		'tree_explore/main 16' \
@@ -17,6 +18,7 @@ bench-c-only: build-c-only
 	hyperfine --warmup 3 --export-csv results.csv \
 		'countdown/main 200000000' \
 		'fibonacci_recursive/main 42' \
+		'product_early/main 100000' \
 		'iterator/main 40000000' \
 		'nqueens/main 12' \
 		'tree_explore/main 16' \
@@ -29,7 +31,7 @@ test: build
 	echo "Running programs..."
 	cd countdown ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd fibonacci_recursive ; ./main 5 > actual ; echo 5 > expected ; diff expected actual
-	# cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
+	cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd iterator ; ./main 5 > actual ; echo 15 > expected ; diff expected actual
 	cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
@@ -44,7 +46,7 @@ test-c-only: build-c-only
 	echo "Running programs..."
 	cd countdown ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd fibonacci_recursive ; ./main 5 > actual ; echo 5 > expected ; diff expected actual
-	# cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
+	cd product_early ; ./main 5 > actual ; echo 0 > expected ; diff expected actual
 	cd iterator ; ./main 5 > actual ; echo 15 > expected ; diff expected actual
 	cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual

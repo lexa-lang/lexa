@@ -26,7 +26,8 @@
   return(({i64 is_empty = (i64)(((i64)(listIsEmpty((node_t*)xs))));
   (is_empty ? 1 : ({i64 q = (i64)(((i64)(listHead((node_t*)xs))));
   ({i64 qs = (i64)(((i64)(listTail((node_t*)xs))));
-  ((((i64)(boolAnd((int64_t)(((i64)(boolAnd((int64_t)(queen != q), (int64_t)(queen != (q + diag)))))), (int64_t)(queen != (q - diag)))))) ? (((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)(0,queen,(diag + 1),qs)) : 0);});}));}));
+  ((((i64)(boolAnd((int64_t)(((i64)(boolAnd((int64_t)(queen != q), (int64_t)(queen != (q + diag)))))), (int64_t)(queen != (q - diag)))))) ? (({__attribute__((musttail))
+   return ((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)(0,queen,(diag + 1),qs); 0;})) : 0);});}));}));
   }
   
   static i64 __place_lifted_2__(i64 __env__,i64 size,i64 column,i64 search_stub) {
@@ -46,7 +47,8 @@
   }
   
   static i64 __loop_lifted_5__(i64 __env__,i64 i,i64 a,i64 size,i64 k) {
-  return(((i == size) ? (a + (FINAL_THROW(k, i))) : (((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_5__)(0,(i + 1),(a + (THROW(k, i))),size,k))));
+  return(((i == size) ? (a + (FINAL_THROW(k, i))) : (({__attribute__((musttail))
+   return ((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_5__)(0,(i + 1),(a + (THROW(k, i))),size,k); 0;}))));
   }
   
    i64 search_fail(i64* env,i64 _) {

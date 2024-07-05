@@ -20,7 +20,8 @@
   static i64 __countdown_lifted_1__(i64 __env__,i64 state_stub) {
   return(({i64 i = (i64)(RAISE(state_stub, get, (0)));
   ((i == 0) ? i : ({i64 _ = (i64)(RAISE(state_stub, set, (i-1)));
-  (((i64(*)(i64, i64))__countdown_lifted_1__)(0,state_stub));}));}));
+  (({__attribute__((musttail))
+   return ((i64(*)(i64, i64))__countdown_lifted_1__)(0,state_stub); 0;}));}));}));
   }
   
    i64 state_get(i64* env,i64 _) {
