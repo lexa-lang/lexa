@@ -32,6 +32,12 @@
             self.packages.${system}.clang_18_preserve_none
           ];
           buildInputs = [
+            gnumake
+            gdb
+            vim
+            emacs
+            busybox
+
             mlton
             chez
             nodejs-slim_21
