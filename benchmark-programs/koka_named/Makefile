@@ -8,7 +8,9 @@ bench: build
 		'tree_explore/main 16' \
 		'triples/main 300' \
 		'resume_nontail/main 10000' \
-		'parsing_dollars/main 20000'
+		'parsing_dollars/main 20000' \
+		'handler_sieve/main 60000' \
+		"interruptible_iterator/main 3000"
 
 test: build
 	echo "Running programs..."
@@ -19,8 +21,11 @@ test: build
 	cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
 	cd triples ; ./main 10 > actual ; echo 779312 > expected ; diff expected actual
-	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
+	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
+	cd handler_sieve ; ./main 10 > actual ; echo 17 > expected ; diff expected actual
+	cd interruptible_iterator ; ./main 10 > actual ; echo 110000 > expected ; diff expected actual
+	
 
 build:
 	echo "Building programs..."
@@ -31,8 +36,11 @@ build:
 	cd nqueens ; koka -O3 -v0 -o main main.kk ; chmod +x main
 	cd tree_explore ; koka -O3 -v0 -o main main.kk ; chmod +x main
 	cd triples ; koka -O3 -v0 -o main main.kk ; chmod +x main
-	cd parsing_dollars ; koka -O3 -v0 -o main main.kk ; chmod +x main
 	cd resume_nontail ; koka -O3 -v0 -o main main.kk ; chmod +x main
+	cd parsing_dollars ; koka -O3 -v0 -o main main.kk ; chmod +x main
+	cd handler_sieve ; koka -O3 -v0 -o main main.kk ; chmod +x main
+	cd interruptible_iterator ; koka -O3 -v0 -o main main.kk ; chmod +x main
+	
 
 clean:
 	-rm -r */.koka/
