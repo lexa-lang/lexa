@@ -22,23 +22,6 @@
           inherit system;
         };
 
-        clang_dev = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
-          pname = "llvm-project";
-          version = "dev";
-
-          src = builtins.path { path = "/home/congm/src/llvm-project/build"; };
-          dontStrip = true;
-
-          installPhase = ''
-            mkdir -p $out/bin
-            cp bin/clang $out/bin
-            cp bin/opt $out/bin
-            cp bin/llc $out/bin
-            cp -r lib $out/lib
-          '';
-
-          passthru.isClang = true;
-        });
         
       in {
         packages.koka = pkgs-unstable.haskellPackages.callPackage ./nix/koka.nix { };
@@ -48,8 +31,6 @@
         packages.effekt_latest = pkgs.callPackage ./nix/effekt_latest.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
         devShell = with pkgs; mkShell {
           nativeBuildInputs = [
-            # clang_main
-            # clang_dev
             self.packages.${system}.clang_18_preserve_none
           ];
           buildInputs = [
