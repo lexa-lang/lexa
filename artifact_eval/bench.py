@@ -21,18 +21,18 @@ def parse_output(output_file):
         pairs.append((name, mean_time))
     return pairs
 
-platforms = ["lexi", "effekt", "ocaml"]
+platforms = ["lexi", "effekt", "koka", "koka_named", "ocaml"]
 
 def test(platform):
     print_message(f"Testing {platform}...")
-    make_command = f"cd ./benchmark-programs/{platform}/ && make test"
+    make_command = f"cd ../benchmark-programs/{platform}/ && make test"
     subprocess.run(make_command, shell=True)
     print_message("Success.")
 
 def bench(platform):
     print_message(f"Benchmarking {platform}...")
-    make_command = f"cd ./benchmark-programs/{platform}/ && make bench"
-    pairs = parse_output(f"./benchmark-programs/{platform}/output.csv")
+    make_command = f"cd ../benchmark-programs/{platform}/ && make bench"
+    pairs = parse_output(f"../benchmark-programs/{platform}/output.csv")
     with open(f"{platform}_runtimes.txt", "w") as f:
         for name, mean_time in pairs:
             f.write(f"{name} {mean_time}\n")

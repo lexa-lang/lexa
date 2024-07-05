@@ -40,13 +40,13 @@ def plot(file_with_tick, file_without_tick, title, plot_file):
     print_message(f"\"{title}\" saved to {plot_file}")
 
 def bench_and_plot_effekt():
-    effekt_scheduler_build = "cd ./benchmark-programs/effekt/scheduler && effekt022.sh --backend js --compile main.effekt"
-    effekt_scheduler_run = "'node --eval \"require('\\''./benchmark-programs/effekt/scheduler/out/main.js'\\'').main()\" -- _ {}'"
+    effekt_scheduler_build = "cd ../benchmark-programs/effekt/scheduler && effekt022.sh --backend js --compile main.effekt"
+    effekt_scheduler_run = "'node --eval \"require('\\''../benchmark-programs/effekt/scheduler/out/main.js'\\'').main()\" -- _ {}'"
     effekt_result_file = "result_effekt_scheduler.csv"
     effekt_scheduler_command = f"hyperfine --warmup {warmup_runs} -M {max_runs} --export-csv {effekt_result_file} " + " ".join([effekt_scheduler_run.format(i) for i in input_range])
 
-    effekt_scheduler_notick_build = "cd ./benchmark-programs/effekt/scheduler_notick && effekt022.sh --backend js --compile main.effekt"
-    effekt_scheduler_notick_run = "'node --eval \"require('\\''./benchmark-programs/effekt/scheduler_notick/out/main.js'\\'').main()\" -- _ {}'"
+    effekt_scheduler_notick_build = "cd ../benchmark-programs/effekt/scheduler_notick && effekt022.sh --backend js --compile main.effekt"
+    effekt_scheduler_notick_run = "'node --eval \"require('\\''../benchmark-programs/effekt/scheduler_notick/out/main.js'\\'').main()\" -- _ {}'"
     effekt_result_notick_file = "result_effekt_scheduler_notick.csv"
     effekt_scheduler_notick_command = f"hyperfine --warmup {warmup_runs} -M {max_runs} --export-csv {effekt_result_notick_file} " + " ".join([effekt_scheduler_notick_run.format(i) for i in input_range])
 
@@ -67,13 +67,13 @@ def bench_and_plot_effekt():
     plot(effekt_result_file, effekt_result_notick_file, "Effekt's Scheduler with and without Tick", "effekt-plot.png")
 
 def bench_and_plot_lexi():
-    lexi_scheduler_build = "cd ./benchmark-programs/lexi/scheduler && dune exec -- sstal main.ir -o main.c && clang-format -i main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
-    lexi_scheduler_run = "'./benchmark-programs/lexi/scheduler/main {}'"
+    lexi_scheduler_build = "cd ../benchmark-programs/lexi/scheduler && dune exec -- sstal main.ir -o main.c && clang-format -i main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
+    lexi_scheduler_run = "'../benchmark-programs/lexi/scheduler/main {}'"
     lexi_result_file = "result_lexi_scheduler.csv"
     lexi_scheduler_command = f"hyperfine --warmup {warmup_runs} -M {max_runs} --export-csv {lexi_result_file} " + " ".join([lexi_scheduler_run.format(i) for i in input_range])
 
-    lexi_scheduler_notick_build = "cd ./benchmark-programs/lexi/scheduler_notick && dune exec -- sstal main.ir -o main.c && clang-format -i main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
-    lexi_scheduler_notick_run = "'./benchmark-programs/lexi/scheduler_notick/main {}'"
+    lexi_scheduler_notick_build = "cd ../benchmark-programs/lexi/scheduler_notick && dune exec -- sstal main.ir -o main.c && clang-format -i main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
+    lexi_scheduler_notick_run = "'../benchmark-programs/lexi/scheduler_notick/main {}'"
     lexi_result_notick_file = "result_lexi_scheduler_notick.csv"
     lexi_scheduler_notick_command = f"hyperfine --warmup {warmup_runs} -M {max_runs} --export-csv {lexi_result_notick_file} " + " ".join([lexi_scheduler_notick_run.format(i) for i in input_range])
 
