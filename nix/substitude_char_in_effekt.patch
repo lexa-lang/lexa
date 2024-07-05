@@ -1,0 +1,12 @@
+diff --git a/package.json b/package.json
+index c72215a4..3b8539af 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "effekt",
+-  "author": "Jonathan Brachthäuser",
++  "author": "Jonathan Brachthauser",
+   "version": "0.2.2",
+   "repository": {
+     "type": "git",
