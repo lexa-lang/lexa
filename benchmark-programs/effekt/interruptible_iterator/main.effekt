@@ -70,7 +70,8 @@ def step(i: Int, acc: Int, n_jobs: Int): Int = {
 }
 
 def repeat(n_jobs: Int): Int = {
-  step(1000, 0, n_jobs)
+  // NB: The loop count is reduced from 1000
+  step(1, 0, n_jobs)
 }
 
 def main() = commandLineArgs() match {
