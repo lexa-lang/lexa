@@ -92,7 +92,8 @@
   }
   
   static i64 __listSum_lifted_6__(i64 __env__,i64 l,i64 acc) {
-  return(((((i64)(listIsEmpty((node_t*)l)))) ? acc : (((i64(*)(i64, i64, i64))__listSum_lifted_6__)(0,(((i64)(listTail((node_t*)l)))),(acc + (((i64)(listHead((node_t*)l)))))))));
+  return(((((i64)(listIsEmpty((node_t*)l)))) ? acc : (({__attribute__((musttail))
+   return ((i64(*)(i64, i64, i64))__listSum_lifted_6__)(0,(((i64)(listTail((node_t*)l)))),(acc + (((i64)(listHead((node_t*)l)))))); 0;}))));
   }
   
   static i64 __run_lifted_7__(i64 __env__,i64 n) {
@@ -108,7 +109,8 @@
   }
   
   static i64 __step_lifted_8__(i64 __env__,i64 i,i64 acc,i64 n_jobs) {
-  return(((i == 0) ? acc : (((i64(*)(i64, i64, i64, i64))__step_lifted_8__)(0,(i - 1),(acc + (((i64(*)(i64, i64))__run_lifted_7__)(0,n_jobs))),n_jobs))));
+  return(((i == 0) ? acc : (({__attribute__((musttail))
+   return ((i64(*)(i64, i64, i64, i64))__step_lifted_8__)(0,(i - 1),(acc + (((i64(*)(i64, i64))__run_lifted_7__)(0,n_jobs))),n_jobs); 0;}))));
   }
   
   static i64 __repeat_lifted_9__(i64 __env__,i64 n_jobs) {

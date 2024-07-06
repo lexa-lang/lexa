@@ -1,0 +1,22 @@
+def main() {
+    val x = ~readInt();
+    val r1 = fact_nontail(x);
+    val r2 = fact_tail(x, 1);
+    val _ = ~printInt(r1);
+    val _ = ~printInt(r2);
+    0
+}
+
+def fact_nontail(x) {
+    if x < 2 then
+        1
+    else
+        x * fact_nontail(x - 1)
+}
+
+def fact_tail(x, acc) {
+    if x < 2 then
+        acc
+    else
+        fact_tail(x - 1, x * acc)
+}

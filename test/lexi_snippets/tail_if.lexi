@@ -1,0 +1,15 @@
+def main() {
+    val _ = ~printInt(bar(42));
+    val _ = ~printInt(foo(42));
+    0
+}
+
+def bar(i) {
+    if i < 2 then i else
+    if i % 2 then bar(i / 2) else 1 + bar (3 * i + 1)
+}
+
+def foo(i) {
+    if i < 2 then i else
+    if i % 2 then foo(i / 2) else foo (3 * i + 1)  
+}
