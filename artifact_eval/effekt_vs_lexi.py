@@ -7,7 +7,9 @@ import argparse
 def print_message(message):
     print(f"{'='*len(message)}\n{message}\n{'='*len(message)}")
 
-input_range = range(10, 21, 10)
+input_range = range(500, 5001, 500)
+# Comment the line below to reproduce the plot in the paper. 
+input_range = range(50, 501, 50)
 warmup_runs = 3
 max_runs = 1000
 
