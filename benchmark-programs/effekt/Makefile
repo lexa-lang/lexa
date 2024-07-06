@@ -1,4 +1,4 @@
-bench: build
+bench:
 	hyperfine --warmup 3 --export-csv results.csv \
 		'countdown/main 200000000' \
 		'fibonacci_recursive/main 42' \
@@ -9,9 +9,9 @@ bench: build
 		'tree_explore/main 16' \
 		'triples/main 300' \
 		'parsing_dollars/main 20000' \
-		'handler_sieve/main 60000' \
-		'scheduler/main 3000' \
-		"interruptible_iterator/main 3000"
+		'scheme --script handler_sieve/out/main.ss 60000' \
+		'node --eval "require('\''./scheduler/out/main.js'\'').main()" -- _ 3000' \
+		'node --eval "require('\''./interruptible_iterator/out/main.js'\'').main()" -- _ 3000'
 
 test: build
 	echo "Running programs..."
