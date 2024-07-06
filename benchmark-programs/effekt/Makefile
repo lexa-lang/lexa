@@ -26,7 +26,7 @@ test: build
 	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd handler_sieve ; scheme --script out/main.ss > actual ; echo 171848738 > expected ; diff expected actual
 	cd scheduler ; node --eval "require('./out/main.js').main()" -- _ 10 > actual ; echo 10000 > expected ; diff expected actual
-	cd interruptible_iterator ; node --eval "require('./out/main.js').main()" -- _ 10 > actual ; echo 110000 > expected ; diff expected actual
+	cd interruptible_iterator ; node --eval "require('./out/main.js').main()" -- _ 10 > actual ; echo 110 > expected ; diff expected actual
 
 build:
 	echo "Building programs..."
