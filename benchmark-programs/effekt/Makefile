@@ -5,9 +5,9 @@ bench:
 		'product_early/main 100000' \
 		'iterator/main 40000000' \
 		'nqueens/main 12' \
-		'resume_nontail/main 10000' \
 		'tree_explore/main 16' \
 		'triples/main 300' \
+		'resume_nontail/main 10000' \
 		'parsing_dollars/main 20000' \
 		'scheme --script handler_sieve/out/main.ss 60000' \
 		'node --eval "require('\''./scheduler/out/main.js'\'').main()" -- _ 3000' \
