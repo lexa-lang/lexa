@@ -1,0 +1,136 @@
+effect Process {
+    dcl yield
+    dcl fork
+}
+
+effect Tick {
+    dcl tick
+}
+
+effect Exn {
+    dcl throw
+}
+
+def queueDeqExn(q, exn_stub) {
+    if ~queueIsEmpty(q) then
+        raise exn_stub.throw 0
+    else
+        ~queueDeq(q)
+}
+
+def job(env, sch_stub) {
+    raise sch_stub.yield 0
+}
+
+def entry(env, sch_stub) {
+    val n_jobs = env[0];
+    val job_closure = env[1];
+    val tick_stub = env[2];
+    jobs(n_jobs, job_closure, sch_stub, tick_stub)
+}
+
+def jobs(i, job_closure, sch_stub, tick_stub) {
+    if i == 0 then
+        0
+    else
+        val _ = raise sch_stub.fork job_closure;
+        val _ = raise tick_stub.tick 0;
+        jobs(i - 1, job_closure, sch_stub, tick_stub)
+}
+
+obj process(env) {
+    hdl_1 yield(_, k) {
+        val job_queue = env[1];
+        ~queueEnq(job_queue, k)
+    }
+
+    hdl_1 fork(newjob_closure, k) {
+        val job_queue = env[1];
+        val _ = ~queueEnq(job_queue, k);
+        spawn(newjob_closure, job_queue)
+    }
+}
+
+def body(env, sch_stub) {
+    val job_closure = env[0];
+    val job_func = job_closure[0];
+    val job_env = job_closure[1];
+    job_func(job_env, sch_stub)
+}
+
+def body_driver(env, exn_stub) {
+    val job_queue = env[0];
+    val k = queueDeqExn(job_queue, exn_stub);
+    val _ = resume_final k 0;
+    driver(job_queue)
+}
+
+obj exn(env) {
+    exc throw(_) {
+        0
+    }
+}
+
+def driver(job_queue) {
+    val _ = 
+        handle {job_queue}
+            body_driver
+        with exn: Exn;
+    0
+}
+
+def spawn(job_closure, job_queue) {
+    handle {job_closure, job_queue}
+        body
+    with process: Process
+}
+
+def scheduler(init_closure) {
+    val job_queue = ~queueMake ();
+    val _ = spawn(init_closure, job_queue);
+    driver(job_queue)
+}
+
+obj tick(env) {
+    def tick(_) {
+        val c = env[1];
+        val _ = c[0] := c[0] + 1;
+        0
+    }
+}
+
+def body_run(env, tick_stub) {
+    val n_jobs = env[0];
+    val empty = newref {};
+    val job_closure = newref {job, empty};
+    val entry_env = newref {n_jobs, job_closure, tick_stub};
+    val entry_closure = newref {entry, entry_env};
+    scheduler(entry_closure)
+}
+
+def run(n_jobs, init) {
+    val c = newref {init};
+    val _ = 
+        handle {n_jobs, c}
+            body_run
+        with tick: Tick;
+    c[0]
+}
+
+def step(i, acc, n_jobs) {
+    if i == 0 then
+        acc
+    else
+        step(i - 1, run(n_jobs, acc), n_jobs)
+}
+
+def repeat(n_jobs) {
+    step(1000, 0, n_jobs)
+}
+
+def main() {
+    val arg1 = ~readInt();
+    val arg2 = repeat(arg1);
+    val _ = ~printInt(arg2);
+    0
+}

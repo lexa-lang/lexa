@@ -33,7 +33,7 @@ def run(n: Int) = {
 }
 
 def main() = {
-  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 10000 };
+  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 60000 };
   val r = run(n);
   println(r)
 }
