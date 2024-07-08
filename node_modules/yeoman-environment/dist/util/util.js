@@ -1,0 +1,34 @@
+import { execaSync } from 'execa';
+export const execaOutput = (cmg, args, options) => {
+    try {
+        const result = execaSync(cmg, args, options);
+        if (!result.failed) {
+            return result.stdout;
+        }
+    }
+    catch { }
+    return undefined;
+};
+/**
+ * Two-step argument splitting function that first splits arguments in quotes,
+ * and then splits up the remaining arguments if they are not part of a quote.
+ */
+export function splitArgsFromString(argsString) {
+    if (Array.isArray(argsString)) {
+        return argsString;
+    }
+    let result = [];
+    if (!argsString) {
+        return result;
+    }
+    const quoteSeparatedArgs = argsString.split(/("[^"]*")/).filter(Boolean);
+    for (const arg of quoteSeparatedArgs) {
+        if (arg.includes('"')) {
+            result.push(arg.replaceAll('"', ''));
+        }
+        else {
+            result = result.concat(arg.trim().split(' '));
+        }
+    }
+    return result;
+}

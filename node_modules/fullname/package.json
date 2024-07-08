@@ -1,0 +1,51 @@
+{
+	"name": "fullname",
+	"version": "4.0.1",
+	"description": "Get the fullname of the current user",
+	"license": "MIT",
+	"repository": "sindresorhus/fullname",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "sindresorhus.com"
+	},
+	"engines": {
+		"node": ">=8"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts"
+	],
+	"keywords": [
+		"name",
+		"fullname",
+		"realname",
+		"full name",
+		"surname",
+		"full",
+		"real",
+		"given",
+		"user",
+		"gecos",
+		"pwuid",
+		"uid"
+	],
+	"dependencies": {
+		"execa": "^1.0.0",
+		"filter-obj": "^2.0.0",
+		"mem": "^5.1.0",
+		"p-any": "^2.1.0",
+		"passwd-user": "^3.0.0",
+		"rc": "^1.2.8"
+	},
+	"devDependencies": {
+		"ava": "^2.1.0",
+		"import-fresh": "^3.0.0",
+		"mock-require": "^3.0.3",
+		"tsd": "^0.7.3",
+		"xo": "^0.24.0"
+	}
+}

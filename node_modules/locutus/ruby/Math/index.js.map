@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/ruby/Math/index.js"],"names":["module","exports","acos","require"],"mappings":";;AAAAA,OAAOC,OAAP,CAAeC,IAAf,GAAsBC,QAAQ,QAAR,CAAtB","file":"index.js","sourcesContent":["module.exports.acos = require('./acos')\n"]}

@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/ruby/index.js"],"names":["module","exports","Math","require"],"mappings":";;AAAAA,OAAOC,OAAP,CAAeC,IAAf,GAAsBC,QAAQ,QAAR,CAAtB","file":"index.js","sourcesContent":["module.exports.Math = require('./Math')\n"]}

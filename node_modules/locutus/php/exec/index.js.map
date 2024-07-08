@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/php/exec/index.js"],"names":["module","exports","escapeshellarg","require"],"mappings":";;AAAAA,OAAOC,OAAP,CAAeC,cAAf,GAAgCC,QAAQ,kBAAR,CAAhC","file":"index.js","sourcesContent":["module.exports.escapeshellarg = require('./escapeshellarg')\n"]}

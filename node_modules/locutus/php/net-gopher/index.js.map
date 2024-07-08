@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/php/net-gopher/index.js"],"names":["module","exports","gopher_parsedir","require"],"mappings":";;AAAAA,OAAOC,OAAP,CAAeC,eAAf,GAAiCC,QAAQ,mBAAR,CAAjC","file":"index.js","sourcesContent":["module.exports.gopher_parsedir = require('./gopher_parsedir')\n"]}

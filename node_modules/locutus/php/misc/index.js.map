@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/php/misc/index.js"],"names":["module","exports","pack","require","uniqid"],"mappings":";;AAAAA,OAAOC,OAAP,CAAeC,IAAf,GAAsBC,QAAQ,QAAR,CAAtB;AACAH,OAAOC,OAAP,CAAeG,MAAf,GAAwBD,QAAQ,UAAR,CAAxB","file":"index.js","sourcesContent":["module.exports.pack = require('./pack')\nmodule.exports.uniqid = require('./uniqid')\n"]}

@@ -1,0 +1,7 @@
+'use strict';
+
+module.exports.preg_match = require('./preg_match');
+module.exports.preg_quote = require('./preg_quote');
+module.exports.preg_replace = require('./preg_replace');
+module.exports.sql_regcase = require('./sql_regcase');
+//# sourceMappingURL=index.js.map

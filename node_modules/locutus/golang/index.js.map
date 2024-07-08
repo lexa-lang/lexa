@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/golang/index.js"],"names":["module","exports","strings","require"],"mappings":";;AAAAA,OAAOC,OAAP,CAAeC,OAAf,GAAyBC,QAAQ,WAAR,CAAzB","file":"index.js","sourcesContent":["module.exports.strings = require('./strings')\n"]}

@@ -1,0 +1,37 @@
+{
+  "name": "lexi-vscode-extension",
+  "displayName": "lexi-vscode-extension",
+  "description": "this is an extension for lexi on vscode",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [{
+      "command": "lexi-vscode-extension.helloWorld",
+      "title": "Hello World"
+    },{
+        "command": "lexi-vscode-extension.compileFile",
+        "title": "Compile File"
+    }]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.91.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "20.x",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5",
+    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-electron": "^2.4.0"
+  }
+}
