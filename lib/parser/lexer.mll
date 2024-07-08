@@ -1,5 +1,7 @@
 {
   open Parser
+  open Lexing
+  exception SyntaxError of string
 }
 
 let white = [' ' '\t']+
@@ -13,7 +15,8 @@ let sig = ['A'-'Z'] id
 
 rule read =
   parse
-  "//" [^'\n']* '\n' { Lexing.new_line lexbuf; read lexbuf }
+  | "//" { read_single_line_comment lexbuf }
+  | "/*" { read_multi_line_comment lexbuf }
   | white { read lexbuf }
   | '\n' { Lexing.new_line lexbuf; read lexbuf }
   | "<" { LTS }
@@ -67,3 +70,13 @@ rule read =
   | eof { EOF }
   | _ as c { failwith (Printf.sprintf "unexpected character: %C" c) }
   
+and read_single_line_comment = parse
+  | "\n" { new_line lexbuf; read lexbuf }
+  | eof { EOF }
+  | _ { read_single_line_comment lexbuf }
+
+and read_multi_line_comment = parse
+  | "*/" { read lexbuf }
+  | "\n" { new_line lexbuf; read_multi_line_comment lexbuf }
+  | eof { raise (SyntaxError ("Lexer - Unexpected EOF - please terminate your comment.")) }
+  | _ { read_multi_line_comment lexbuf }

@@ -1,0 +1,23 @@
+def make_adder(a) {
+    // some comments
+    val res = fun(b) {
+        a + b
+    };
+    res
+}
+
+// blah blah
+// /* stuff */
+
+/* multi
+line
+comments
+*/
+
+def main() {
+    val adder5 = make_adder(5); // more comments
+    val adder10 = make_adder(10); /* more comments */
+    val _ = ~printInt(adder5(7));
+    val _ = ~printInt(adder10(7));
+    0
+}
