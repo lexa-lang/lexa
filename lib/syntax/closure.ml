@@ -1,6 +1,6 @@
 open Common
 
-type closure = { entry : var; fv : var list }
+type closure = { entry : var; fv : Varset.t }
 
 type t = (* expressions AFTER closure conversion *)
   | Var of var
