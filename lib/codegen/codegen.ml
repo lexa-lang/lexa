@@ -3,6 +3,8 @@ open Syntax__Common
 open Printf
 open Primitive
 
+module Varset = Syntax__Varset
+
 type handler_type = hdl_anno
 type eff_sig_env = (var * string list) list
 type eff_type_env = (var * handler_type) list
@@ -197,15 +199,15 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
     | ResumeFinal (k, e) -> sprintf "FINAL_THROW(%s, %s)" k (gen_expr e)
     | Closure ({ entry = entry_name; fv = free_vars }) ->
       let fv_creation : string =
-        if List.is_empty free_vars then
+        if Varset.is_empty free_vars then
           "__c__->env = (i64)NULL;"
         else
-          sprintf "__c__->env = (i64)malloc(%d * sizeof(i64));" (List.length free_vars)
+          sprintf "__c__->env = (i64)malloc(%d * sizeof(i64));" (Varset.cardinal free_vars)
       in
       let copy_fv : string =
         String.concat "\n" (List.mapi 
           (fun i x -> sprintf "((i64*)(__c__->env))[%d] = %s;" i x)
-          free_vars)
+          (Varset.to_list free_vars))
       in
       let closure_creation : string =
         sprintf 
