@@ -52,6 +52,6 @@ def run(n) {
 def main() {
     val arg1 = ~readInt();
     val arg2 = run(arg1);
-    val _ = ~printInt(arg2);
+    ~printInt(arg2);
     0
 }

@@ -8,8 +8,8 @@ def countdown(state_stub) {
     if i == 0 then
         i
     else
-        val _ = raise state_stub.set(i-1);
-        countdown(state_stub)
+        (raise state_stub.set(i-1);
+        countdown(state_stub))
 }
 
 obj state(env) {
@@ -18,7 +18,7 @@ obj state(env) {
     }
 
     def set(i) {
-        val _ = env[0][0] := i;
+        env[0][0] := i;
         0
     }
 }
@@ -35,6 +35,6 @@ def run(n) {
 }
 
 def main() {
-    val _ = ~printInt(run(~readInt()));
+    ~printInt(run(~readInt()));
     0
 }

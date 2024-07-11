@@ -42,7 +42,7 @@
   
   static i64 body(i64 env,i64 search_stub) {
   return(({i64 n = (i64)(((i64*)env)[0]);
-  ({i64 _ = (i64)(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)(0,n,n,search_stub));
+  ({(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)(0,n,n,search_stub));
   1;});}));
   }
   
@@ -77,7 +77,7 @@
   
   i64 __res__ = ({i64 n = (i64)(((i64)(readInt())));
   ({i64 run_res = (i64)(((i64(*)(i64, i64))__run_lifted_3__)(0,n));
-  ({i64 _ = (i64)(((i64)(printInt((int64_t)run_res))));
+  ({(((i64)(printInt((int64_t)run_res))));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}

@@ -6,8 +6,8 @@ def loop(i, s, operator_stub) {
     if i == 0 then
         s
     else
-        val _ = raise operator_stub.operator i;
-        loop(i - 1, s, operator_stub)
+        (raise operator_stub.operator i;
+        loop(i - 1, s, operator_stub))
 }
 
 obj operator(env) {
@@ -41,6 +41,6 @@ def repeat(n) {
 }
 
 def main() {
-    val _ = ~printInt(repeat(~readInt()));
+    ~printInt(repeat(~readInt()));
     0
 }

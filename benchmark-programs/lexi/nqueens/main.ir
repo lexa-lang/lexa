@@ -36,7 +36,7 @@ def run(n) {
 
 def body(env, search_stub) {
     val n = env[0];
-    val _ = place(n, n, search_stub);
+    place(n, n, search_stub);
     1
 }
 
@@ -57,6 +57,6 @@ obj search(env) {
 def main() {
     val n = ~readInt();
     val run_res = run(n);
-    val _ = ~printInt(run_res);
+    ~printInt(run_res);
     0
 }

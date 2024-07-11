@@ -251,6 +251,8 @@ i64 __env__ = (i64)(__clo__->env);
 ((%s)__f__)%s;
 })|}
           (gen_expr e) cast_func_str (gen_args (Var "__env__" :: args)))
+    | Stmt (e1, e2) ->
+      sprintf "{%s;\n%s;}" (gen_expr e1) (gen_expr e2 ~is_tail:is_tail)
   )
   in
   (match e with

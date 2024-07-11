@@ -30,3 +30,4 @@ and expr =
   | Fun of var list * expr
   | Let of var * expr * expr
   | If of expr * expr * expr
+  | Stmt of expr * expr

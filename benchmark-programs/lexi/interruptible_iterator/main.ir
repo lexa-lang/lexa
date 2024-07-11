@@ -38,7 +38,7 @@ obj loop_behead(env) {
 }
 
 def loop(it, yield_stub, behead_stub) {
-    val _ = handle {it, yield_stub, behead_stub}
+    handle {it, yield_stub, behead_stub}
             loop_body_1
         with replace_loop: Replace;
     val it_tail = ~listTail(it);
@@ -127,6 +127,6 @@ def repeat(n_jobs) {
 def main() {
     val arg1 = ~readInt();
     val arg2 = repeat(arg1);
-    val _ = ~printInt(arg2);
+    ~printInt(arg2);
     0
 }
