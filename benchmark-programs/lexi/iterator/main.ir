@@ -6,13 +6,13 @@ def range(l, u, emit_stub) {
     if l > u then
         0
     else
-        val _ = raise emit_stub.emit l;
-        range(l + 1, u, emit_stub)
+        (raise emit_stub.emit l;
+        range(l + 1, u, emit_stub))
 }
 
 obj emit(env) {
     def emit(e) {
-        val _ = env[1][0] := (env[1][0] + e);
+        env[1][0] := (env[1][0] + e);
         0
     }
 }
@@ -24,13 +24,13 @@ def body(env, emit_stub) {
 
 def run(n) {
     val s = newref {0};
-    val _ = handle {n, s}
+    handle {n, s}
         body
     with emit: Emit;
     s[0]
 }
 
 def main() {
-    val _ = ~printInt(run(~readInt()));
+    ~printInt(run(~readInt()));
     0
 }

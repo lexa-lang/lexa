@@ -52,7 +52,7 @@ def hash(a,b,c) {
 def main() {
     val n = ~readInt();
     val res = run(n, n);
-    val _ = ~printInt(res);
+    ~printInt(res);
     0
 }
 

@@ -58,7 +58,7 @@
   }
   
   static i64 __loop_lifted_3__(i64 __env__,i64 it,i64 yield_stub,i64 behead_stub) {
-  return(({i64 _ = (i64)(HANDLE(loop_body_1, ({TAIL, replace_loop_replace}), (it, yield_stub, behead_stub)));
+  return(({(HANDLE(loop_body_1, ({TAIL, replace_loop_replace}), (it, yield_stub, behead_stub)));
   ({i64 it_tail = (i64)(((i64)(listTail((node_t*)it))));
   ({i64 beheaded = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
   ((i64*)temp)[0] = (i64)0;
@@ -137,7 +137,7 @@
   
   i64 __res__ = ({i64 arg1 = (i64)(((i64)(readInt())));
   ({i64 arg2 = (i64)(((i64(*)(i64, i64))__repeat_lifted_9__)(0,arg1));
-  ({i64 _ = (i64)(((i64)(printInt((int64_t)arg2))));
+  ({(((i64)(printInt((int64_t)arg2))));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}

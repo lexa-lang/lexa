@@ -11,7 +11,7 @@ let letter = ['a'-'z' 'A'-'Z']
 let id_s = ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
 let id = ['a'-'z' '_'] id_s
 let prim = ['~'] id
-let sig = ['A'-'Z'] id
+let sig = ['A'-'Z'] id?
 
 rule read =
   parse

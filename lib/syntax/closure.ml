@@ -21,6 +21,7 @@ type t = (* expressions AFTER closure conversion *)
   | App of t * t list
   | Let of var * t * t
   | If of t * t * t
+  | Stmt of t * t
 
 type hdl = hdl_anno * var * var list * t
 

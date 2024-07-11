@@ -59,8 +59,8 @@
   }
   
   static i64 __jobs_lifted_4__(i64 __env__,i64 i,i64 job_closure,i64 sch_stub,i64 tick_stub) {
-  return(((i == 0) ? 0 : ({i64 _ = (i64)(RAISE(sch_stub, fork, (job_closure)));
-  ({i64 _ = (i64)(RAISE(tick_stub, tick, (0)));
+  return(((i == 0) ? 0 : ({(RAISE(sch_stub, fork, (job_closure)));
+  ({(RAISE(tick_stub, tick, (0)));
   (({__attribute__((musttail))
    return ((i64(*)(i64, i64, i64, i64, i64))__jobs_lifted_4__)(0,(i - 1),job_closure,sch_stub,tick_stub); 0;}));});})));
   }
@@ -74,7 +74,7 @@
   FAST_SWITCH_DECORATOR
    i64 process_fork(i64* env,i64 newjob_closure,i64 k) {
   return(({i64 job_queue = (i64)(((i64*)env)[1]);
-  ({i64 _ = (i64)(((i64)(queueEnq((queue_t*)job_queue, (int64_t)k))));
+  ({(((i64)(queueEnq((queue_t*)job_queue, (int64_t)k))));
   (((i64(*)(i64, i64, i64))__spawn_lifted_8__)(0,newjob_closure,job_queue));});}));
   }
   
@@ -92,7 +92,7 @@
   static i64 body_driver(i64 env,i64 exn_stub) {
   return(({i64 job_queue = (i64)(((i64*)env)[0]);
   ({i64 k = (i64)(((i64(*)(i64, i64, i64))__queueDeqExn_lifted_1__)(0,job_queue,exn_stub));
-  ({i64 _ = (i64)(FINAL_THROW(k, 0));
+  ({(FINAL_THROW(k, 0));
   (((i64(*)(i64, i64))__driver_lifted_7__)(0,job_queue));});});}));
   }
   
@@ -101,7 +101,7 @@
   }
   
   static i64 __driver_lifted_7__(i64 __env__,i64 job_queue) {
-  return(({i64 _ = (i64)(HANDLE(body_driver, ({ABORT, exn_throw}), (job_queue)));
+  return(({(HANDLE(body_driver, ({ABORT, exn_throw}), (job_queue)));
   0;}));
   }
   
@@ -111,13 +111,13 @@
   
   static i64 __scheduler_lifted_9__(i64 __env__,i64 init_closure) {
   return(({i64 job_queue = (i64)(((i64)(queueMake())));
-  ({i64 _ = (i64)(((i64(*)(i64, i64, i64))__spawn_lifted_8__)(0,init_closure,job_queue));
+  ({(((i64(*)(i64, i64, i64))__spawn_lifted_8__)(0,init_closure,job_queue));
   (((i64(*)(i64, i64))__driver_lifted_7__)(0,job_queue));});}));
   }
   
    i64 tick_tick(i64* env,i64 _) {
   return(({i64 c = (i64)(((i64*)env)[1]);
-  ({i64 _ = (i64)(((i64*)c)[0] = ((((i64*)c)[0]) + 1));
+  ({(((i64*)c)[0] = ((((i64*)c)[0]) + 1));
   0;});}));
   }
   
@@ -151,7 +151,7 @@
   ((i64*)temp)[0] = (i64)init;
   temp;
   }));
-  ({i64 _ = (i64)(HANDLE(body_run, ({TAIL, tick_tick}), (n_jobs, c)));
+  ({(HANDLE(body_run, ({TAIL, tick_tick}), (n_jobs, c)));
   (((i64*)c)[0]);});}));
   }
   
@@ -199,7 +199,7 @@
   
   i64 __res__ = ({i64 arg1 = (i64)(((i64)(readInt())));
   ({i64 arg2 = (i64)(((i64(*)(i64, i64))__repeat_lifted_13__)(0,arg1));
-  ({i64 _ = (i64)(((i64)(printInt((int64_t)arg2))));
+  ({(((i64)(printInt((int64_t)arg2))));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}

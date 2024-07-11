@@ -8,22 +8,11 @@ let extra_toplevels = ref []
 (* Map toplevel functions' original name to lifted name *)
 let toplevel_lifted_name_map = ref []
 
-(* l1 minus l2 *)
-let set_substract l1 l2 = 
-  List.filter (fun x -> not (List.mem x l2)) l1
-
-let%test _ = (set_substract [1;2;3;4] [2;3]) = [1;4]
-
 let counter = ref 0
 
 let gen_lifted_name name =
   incr counter;
   Printf.sprintf "__%s_lifted_%d__" name !counter
-
-(* A helper function to remove duplicates in a list *)
-let remove_dup xs = 
-  let uniq_cons x xs = if List.mem x xs then xs else x :: xs in
-  List.fold_right uniq_cons xs []
 
 let rec free_var (e : Syntax.expr) : Varset.t = 
   match e with
@@ -41,6 +30,7 @@ let rec free_var (e : Syntax.expr) : Varset.t =
   | Syntax.Resume (k, e) | Syntax.ResumeFinal (k, e) -> Varset.(free_var e |> add k)
   | Syntax.Hdl (xs, _, _, _) -> Varset.of_list xs
   | Syntax.Fun (params, body) -> Varset.(diff (free_var body) (of_list params))
+  | Syntax.Stmt (e1, e2) -> Varset.union (free_var e1) (free_var e2)
   | Syntax.Recdef (fundefs, e) ->
     let names = List.map (fun (f : Syntax.fundef) -> f.name) fundefs in
     (* TODO: Does each function need its individual free variable? *)
@@ -75,6 +65,7 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
   | Syntax.Hdl (env_vars, stub, hdl_name, body) -> Hdl (env_vars, stub, hdl_name, body)
   | Syntax.Let (x, e1, e2) -> Let (x, convert_expr e1 env, convert_expr e2 Varset.(env |> add x))
   | Syntax.If (e1, e2, e3) -> If (convert_expr e1 env, convert_expr e2 env, convert_expr e3 env)
+  | Syntax.Stmt (e1, e2) -> Stmt (convert_expr e1 env, convert_expr e2 env)
   | Syntax.Fun (params, body) ->
     let body' = convert_expr body Varset.(union (of_list params) env) in
     let func_fvs = Varset.(diff (free_var body) (of_list params)) in
@@ -147,14 +138,18 @@ and handle_bodies_e (e : Syntax.expr) : var list =
   | Syntax.New hv -> List.concat_map (fun x -> handle_bodies_e x) hv
   | Syntax.Get (e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
   | Syntax.Set (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
-  | Syntax.Raise (stub, _, args) -> stub :: List.concat_map (fun x -> handle_bodies_e x) args
-  | Syntax.Resume (k, e) | ResumeFinal (k, e) -> k :: handle_bodies_e e
+  | Syntax.Raise (_, _, args) -> List.concat_map (fun x -> handle_bodies_e x) args
+  | Syntax.Resume (_, e) | ResumeFinal (_, e) -> handle_bodies_e e
   | Syntax.Fun (_, e) ->
     handle_bodies_e e
   | Syntax.Recdef (fls, e) -> 
     (List.concat_map (fun ({body; _} : Syntax.fundef) -> handle_bodies_e body) fls) @ handle_bodies_e e
   | Syntax.Hdl (_, body, _, _) -> [body]
-  | _ -> []
+  | Syntax.Prim _ -> []
+  | Syntax.Int _ -> []
+  | Syntax.Bool _ -> []
+  | Syntax.Var _ -> []
+  | Syntax.Stmt (e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
 
 let closure_convert_toplevels (tls : Syntax.top_level list) =
   let handle_bodies = List.concat_map (fun x -> handle_bodies_tl x) tls in

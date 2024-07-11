@@ -19,7 +19,7 @@ def parse(prob_stub, tokens, symbols) {
         val len = ~stringLen(tokens);
         val sp = raise prob_stub.choose len;
         val substr1 = ~stringSubStr(tokens, 0, sp);
-        val _ = s(prob_stub, substr1);
+        s(prob_stub, substr1);
         val substr2 = ~stringSubStr(tokens, sp, len);
         parse(prob_stub, substr2, ss)
 }
@@ -100,7 +100,7 @@ def parse_S(prob_stub, tokens) {
 
 def body(env, prob_stub) {
     val tokens = ~stringMake(97, 1);
-    val _ = parse_S(prob_stub, tokens);
+    parse_S(prob_stub, tokens);
     ~floatMake(1, 1)
 }
 

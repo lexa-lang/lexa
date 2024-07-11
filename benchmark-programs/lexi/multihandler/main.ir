@@ -9,7 +9,7 @@ def countdown(state_stub) {
         i
     else
         val arg = i - 1;
-        val _ = raise state_stub.set arg;
+        raise state_stub.set arg;
         countdown(state_stub)
 }
 
@@ -21,7 +21,7 @@ obj state1(env) {
 
     def set(i) { 
         val s = env[0];
-        val _ = s[0] := i;
+        s[0] := i;
         0
     }
 }
@@ -34,7 +34,7 @@ obj state2(env) {
 
     def set(i) { 
         val s = env[0];
-        val _ = s[0] := i;
+        s[0] := i;
         0
     }
 }
@@ -45,7 +45,7 @@ def body(env, state_stub) {
 
 def run(n) {
     val s = newref {n};
-    val _ = (handle {s}
+    (handle {s}
         body
     with state1: State);
     handle {s}
@@ -56,7 +56,7 @@ def run(n) {
 def main() {
     val arg1 = ~readInt();
     val arg2 = run(arg1);
-    val _ = ~printInt(arg2);
+    ~printInt(arg2);
     0
 }
 

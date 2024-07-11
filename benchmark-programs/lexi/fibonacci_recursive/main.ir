@@ -7,6 +7,6 @@ def fib(n) {
 def main() {
     val arg = ~readInt();
     val res = fib(arg);
-    val _ = ~printInt(res);
+    ~printInt(res);
     0
 }

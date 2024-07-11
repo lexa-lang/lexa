@@ -1,0 +1,6 @@
+def main() {
+    ~printInt(42);
+    ~printInt(43);
+    ~printInt(44);
+    0
+}

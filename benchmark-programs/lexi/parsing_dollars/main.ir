@@ -41,7 +41,7 @@ def sum_body(env, emit_stub) {
 
 def sum(action, n) {
     val s = newref {0};
-    val _ = handle {action, s, n}
+    handle {action, s, n}
         sum_body
     with emit: Emit;
     s[0]
@@ -75,13 +75,13 @@ obj read(env) {
         if i > n then
             raise stop_stub.stop 0
         else
-            if j == 0 then
-                val _ = i_ref[0] := i + 1;
-                val _ = j_ref[0] := i + 1;
+            (if j == 0 then
+                i_ref[0] := i + 1;
+                j_ref[0] := i + 1;
                 newline()
             else
-                val _ = j_ref[0] := j - 1;
-                dollar()
+                (j_ref[0] := j - 1;
+                dollar()))
     }
 }
 
@@ -106,7 +106,7 @@ def parse(a, read_stub, emit_stub, stop_stub) {
         parse(a + 1, read_stub, emit_stub, stop_stub)
     else
         if is_newline(c) then
-            val _ = raise emit_stub.emit a;
+            raise emit_stub.emit a;
             parse(0, read_stub, emit_stub, stop_stub)
         else
             raise stop_stub.stop 0
@@ -134,6 +134,6 @@ def run(n) {
 def main() {
     val n = ~readInt();
     val run_result = run(n);
-    val _ = ~printInt(run_result);
+    ~printInt(run_result);
     0
 }

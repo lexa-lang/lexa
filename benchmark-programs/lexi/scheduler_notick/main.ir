@@ -33,8 +33,8 @@ def jobs(i, job_closure, sch_stub, tick_stub) {
     if i == 0 then
         0
     else
-        val _ = raise sch_stub.fork job_closure;
-        val _ = raise tick_stub.tick 0;
+        raise sch_stub.fork job_closure;
+        raise tick_stub.tick 0;
         jobs(i - 1, job_closure, sch_stub, tick_stub)
 }
 
@@ -46,7 +46,7 @@ obj process(env) {
 
     hdl_1 fork(newjob_closure, k) {
         val job_queue = env[1];
-        val _ = ~queueEnq(job_queue, k);
+        ~queueEnq(job_queue, k);
         spawn(newjob_closure, job_queue)
     }
 }
@@ -61,7 +61,7 @@ def body(env, sch_stub) {
 def body_driver(env, exn_stub) {
     val job_queue = env[0];
     val k = queueDeqExn(job_queue, exn_stub);
-    val _ = resume_final k 0;
+    resume_final k 0;
     driver(job_queue)
 }
 
@@ -72,7 +72,7 @@ obj exn(env) {
 }
 
 def driver(job_queue) {
-    val _ = 
+    
         handle {job_queue}
             body_driver
         with exn: Exn;
@@ -87,14 +87,14 @@ def spawn(job_closure, job_queue) {
 
 def scheduler(init_closure) {
     val job_queue = ~queueMake ();
-    val _ = spawn(init_closure, job_queue);
+    spawn(init_closure, job_queue);
     driver(job_queue)
 }
 
 obj tick(env) {
     def tick(_) {
         val c = env[1];
-        val _ = c[0] := c[0] + 1;
+        c[0] := c[0] + 1;
         0
     }
 }
@@ -110,7 +110,7 @@ def body_run(env, tick_stub) {
 
 def run(n_jobs, init) {
     val c = newref {init};
-    val _ = 
+    
         handle {n_jobs, c}
             body_run
         with tick: Tick;
@@ -131,6 +131,6 @@ def repeat(n_jobs) {
 def main() {
     val arg1 = ~readInt();
     val arg2 = repeat(arg1);
-    val _ = ~printInt(arg2);
+    ~printInt(arg2);
     0
 }
