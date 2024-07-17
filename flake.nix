@@ -79,6 +79,7 @@
               utop
               menhir
               ppx_inline_test
+              earlybird
           ]);
         };
       });

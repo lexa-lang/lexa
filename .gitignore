@@ -33,14 +33,14 @@ setup.log
 # Local OPAM switch
 _opam/
 
-.vscode/
+.vscode/*
+!.vscode/launch.json
 
 dump*
 *.out
 *.out.*
 perf.data
 perf.data.old
-.vscode/
 flamegraph.svg
 *.svg
 actual
