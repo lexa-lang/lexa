@@ -18,6 +18,13 @@
 1. Run `dune build` to build the project
 2. Open a .ml file and hover over a function or a variable, you should see its type
 
+## Debug
+The repository is setup with Ocamlearlybird, a debugger for OCaml with nice integration with VSCode. To debug, follow these steps:
+1. Open a .ml file
+2. Set a breakpoint by clicking on the left margin of the editor
+3. Press `F5`(or `Cmd + Shift + D` and click green button) to start debugging
+4. You can now step through the code using the debug toolbar
+
 ## Test
 We have three kinds of tests, each serving a different purpose. For `Compiler Test` and `Integration Test` we uses Cram Test framework; for `Unit Test` we use ppx_inline_test. Read more in [Writing and Running Tests — Dune documentation](https://dune.readthedocs.io/en/stable/tests.html#)
 1. `Compiler Test` runs Lexi complier on a set of simple programs, and compare the generated C code with a previous recorded version. This suite of tests are expected to fail if you are making changes to the code generation logic; when it happens, run `dune promote` to update the tests.
