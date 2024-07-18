@@ -38,14 +38,13 @@ obj loop_behead(env) {
 }
 
 def loop(it, yield_stub, behead_stub) {
-    val _ = handle {it, yield_stub, behead_stub}
+    handle {it, yield_stub, behead_stub}
             loop_body_1
         with replace_loop: Replace;
     val it_tail = ~listTail(it);
     val beheaded = newref {0};
-    val cond = ~listIsEmpty(it_tail);
     val newtl = 
-        if cond then
+        if ~listIsEmpty(it_tail) then
             ~listEnd()
         else
             handle {it_tail, yield_stub, beheaded}
@@ -70,12 +69,10 @@ def body_main_2(env, yield_stub) {
 
 obj yield_main(env) {
     def yield(x, behead_stub, replace_stub) {
-        val cond = x < 0;
-        if cond then
+        if x < 0 then
             raise behead_stub.behead 0
         else
-            val x2 = x * 2;
-            raise replace_stub.replace x2
+            raise replace_stub.replace (x * 2)
     }
 }
 
@@ -94,19 +91,14 @@ obj behead_main(env) {
 }
 
 def listSum(l, acc) {
-    val cond = ~listIsEmpty(l);
-    if cond then
+    if ~listIsEmpty(l) then
         acc
     else
-        val head = ~listHead(l);
-        val tail = ~listTail(l);
-        val newacc = acc + head;
-        listSum(tail, newacc)
+        listSum(~listTail(l), acc + ~listHead(l))
 }
 
 def run(n) {
-    val minusn = 0 - n;
-    val l = ~listRange(minusn, n);
+    val l = ~listRange(0 - n, n);
     val beheaded = newref {0};
     val newtl = 
         handle {l, beheaded}
@@ -122,14 +114,10 @@ def run(n) {
 }
 
 def step(i, acc, n_jobs) {
-    val cond = i == 0;
-    if cond then
+    if i == 0 then
         acc
     else
-        val i_dec = i - 1;
-        val res = run(n_jobs);
-        val acc2 = acc + res;
-        step(i_dec, acc2, n_jobs)
+        step(i - 1, acc + run(n_jobs), n_jobs)
 }
 
 def repeat(n_jobs) {
@@ -139,6 +127,6 @@ def repeat(n_jobs) {
 def main() {
     val arg1 = ~readInt();
     val arg2 = repeat(arg1);
-    val _ = ~printInt(arg2);
+    ~printInt(arg2);
     0
 }

@@ -29,9 +29,7 @@ def is_dollar(c) {
 obj emit(env) {
     def emit(e) {
         val s_ref = env[1];
-        val s = s_ref[0];
-        val s_inc = s + e;
-        s_ref[0] := s_inc
+        s_ref[0] := s_ref[0] + e
     }
 }
 
@@ -43,7 +41,7 @@ def sum_body(env, emit_stub) {
 
 def sum(action, n) {
     val s = newref {0};
-    val _ = handle {action, s, n}
+    handle {action, s, n}
         sum_body
     with emit: Emit;
     s[0]
@@ -74,20 +72,16 @@ obj read(env) {
         val j = j_ref[0];
         val n = env[3];
         val stop_stub = env[4];
-        val cond = i > n;
-        if cond then
+        if i > n then
             raise stop_stub.stop 0
         else
-            val cond = j == 0;
-            if cond then
-                val i_inc = i + 1;
-                val _ = i_ref[0] := i_inc;
-                val _ = j_ref[0] := i_inc;
+            (if j == 0 then
+                i_ref[0] := i + 1;
+                j_ref[0] := i + 1;
                 newline()
             else
-                val j_dec = j - 1;
-                val _ = j_ref[0] := j_dec;
-                dollar()
+                (j_ref[0] := j - 1;
+                dollar()))
     }
 }
 
@@ -108,14 +102,11 @@ def feed_body(env, read_stub) {
 
 def parse(a, read_stub, emit_stub, stop_stub) {
     val c = raise read_stub.read 0;
-    val cond = is_dollar(c);
-    if cond then
-        val a_inc = a + 1;
-        parse(a_inc, read_stub, emit_stub, stop_stub)
+    if is_dollar(c) then
+        parse(a + 1, read_stub, emit_stub, stop_stub)
     else
-        val cond = is_newline(c);
-        if cond then
-            val _ = raise emit_stub.emit a;
+        if is_newline(c) then
+            raise emit_stub.emit a;
             parse(0, read_stub, emit_stub, stop_stub)
         else
             raise stop_stub.stop 0
@@ -143,6 +134,6 @@ def run(n) {
 def main() {
     val n = ~readInt();
     val run_result = run(n);
-    val _ = ~printInt(run_result);
+    ~printInt(run_result);
     0
 }

@@ -4,28 +4,20 @@ effect Choice {
 }
 
 def choice(n, choice_stub) {
-    val cond = n < 1;
-    if cond then
+    if n < 1 then
         raise choice_stub.fail 0
     else
-        val cond = raise choice_stub.flip 0;
-        if cond then
+        if raise choice_stub.flip 0 then
             n
         else
-            val arg = n - 1;
-            choice(arg, choice_stub)
+            choice(n - 1, choice_stub)
 }
 
 def triple(n, s, choice_stub) {
     val i = choice(n, choice_stub);
-    val arg = i - 1;
-    val j = choice(arg, choice_stub);
-    val arg = j - 1;
-    val k = choice(arg, choice_stub);
-    val temp = i + j;
-    val sum = temp + k;
-    val cond = sum == s;
-    if cond then
+    val j = choice(i - 1, choice_stub);
+    val k = choice(j - 1, choice_stub);
+    if i + j + k == s then
         hash(i, j, k)
     else
         raise choice_stub.fail 0
@@ -43,11 +35,7 @@ obj choice(env) {
     }
 
     hdl_s flip(_, k) {
-        val p1 = resume k true;
-        val p2 = resume_final k false;
-        val mod1 = p1 + p2;
-        val mod2 = 1000000007;
-        mod1 % mod2
+        (resume k true + resume_final k false) % 1000000007
     }
 }
 
@@ -58,19 +46,13 @@ def run(n, s) {
 }
 
 def hash(a,b,c) {
-    val plus1 = 53 * a;
-    val plus2 = 2809 * b;
-    val plus3 = 148877 * c;
-    val interm = plus1 + plus2;
-    val mod1 = interm + plus3;
-    val mod2 = 1000000007;
-    mod1 % mod2
+    (53 * a + 2809 * b + 148877 * c) % 1000000007
 }
 
 def main() {
     val n = ~readInt();
     val res = run(n, n);
-    val _ = ~printInt(res);
+    ~printInt(res);
     0
 }
 

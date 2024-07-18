@@ -3,41 +3,30 @@ effect Choice {
 }
 
 def operator(x, y) {
-    val sub1 = x;
-    val sub2 = 503 * y;
-    val plus1 = sub1 - sub2;
-    val plus2 = 37;
-    val arg = plus1 + plus2;
-    val mod1 = ~mathAbs(arg);
-    mod1 % 1009
+    ~mathAbs((x - 503 * y) + 37) % 1009
 }
 
 def make(n) {
-    val cond = n == 0;
-    if cond then
+    if n == 0 then
         ~treeLeaf()
     else
-        val arg = n - 1;
-        val t = make(arg);
+        val t = make(n - 1);
         ~treeNode(n, t, t)
 }
 
 def explore(state, tree, choice_stub) {
-    val cond = ~treeIsEmpty(tree);
-    if cond then
+    if ~treeIsEmpty(tree) then
         state[0]
     else
         val next = 
-            val cond = raise choice_stub.choose 0;
-            if cond then 
+            if raise choice_stub.choose 0 then 
                 ~treeLeft(tree)
             else
                 ~treeRight(tree)
         ;
         val arg1 = state[0];
         val arg2 = ~treeValue(tree);
-        val v = operator(arg1, arg2);
-        val _ = state[0] := v;
+        state[0] := operator(arg1, arg2);
         val arg3 = explore(state, next, choice_stub);
         operator(arg2, arg3)
 }
@@ -53,9 +42,7 @@ obj choice(env) {
 def body(env, choice_stub) {
     val arg1 = env[0];
     val arg2 = env[1];
-    val arg3 = explore(arg1, arg2, choice_stub);
-    val arg4 = ~listEnd();
-    ~listNode(arg3, arg4)
+    ~listNode(explore(arg1, arg2, choice_stub), ~listEnd())
 }
 
 def paths(state, tree) {
@@ -65,15 +52,11 @@ def paths(state, tree) {
 }
 
 def loop(state, tree, i) {
-    val cond = i == 0;
-    if cond then
+    if i == 0 then
         state[0]
     else
-        val arg1 = paths(state, tree);
-        val v = ~listMax(arg1);
-        val _ = state[0] := v;
-        val arg2 = i - 1;
-        loop(state, tree, arg2)
+        (state[0] := ~listMax(paths(state, tree));
+        loop(state, tree, i - 1))
 }
 
 def run(n) {
@@ -85,6 +68,6 @@ def run(n) {
 def main() {
     val n = ~readInt();
     val res = run(n);
-    val _ = ~printInt(res);
+    ~printInt(res);
     0
 }

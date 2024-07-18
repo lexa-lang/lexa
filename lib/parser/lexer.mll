@@ -1,5 +1,7 @@
 {
   open Parser
+  open Lexing
+  exception SyntaxError of string
 }
 
 let white = [' ' '\t']+
@@ -9,11 +11,12 @@ let letter = ['a'-'z' 'A'-'Z']
 let id_s = ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
 let id = ['a'-'z' '_'] id_s
 let prim = ['~'] id
-let sig = ['A'-'Z'] id
+let sig = ['A'-'Z'] id?
 
 rule read =
   parse
-  "//" [^'\n']* '\n' { Lexing.new_line lexbuf; read lexbuf }
+  | "//" { read_single_line_comment lexbuf }
+  | "/*" { read_multi_line_comment lexbuf }
   | white { read lexbuf }
   | '\n' { Lexing.new_line lexbuf; read lexbuf }
   | "<" { LTS }
@@ -58,6 +61,8 @@ rule read =
   | "val" { VALDEF }
   | ";" { SEMICOLON }
   | "fun" { FUN }
+  | "rec" { REC }
+  | "and" { AND }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | sig { SIG (Lexing.lexeme lexbuf) }
   | id { VAR (Lexing.lexeme lexbuf) }
@@ -65,3 +70,13 @@ rule read =
   | eof { EOF }
   | _ as c { failwith (Printf.sprintf "unexpected character: %C" c) }
   
+and read_single_line_comment = parse
+  | "\n" { new_line lexbuf; read lexbuf }
+  | eof { EOF }
+  | _ { read_single_line_comment lexbuf }
+
+and read_multi_line_comment = parse
+  | "*/" { read lexbuf }
+  | "\n" { new_line lexbuf; read_multi_line_comment lexbuf }
+  | eof { raise (SyntaxError ("Lexer - Unexpected EOF - please terminate your comment.")) }
+  | _ { read_multi_line_comment lexbuf }

@@ -1,6 +1,6 @@
 open Common
 
-type closure = { entry : var; fv : var list }
+type closure = { entry : var; fv : Varset.t }
 
 type t = (* expressions AFTER closure conversion *)
   | Var of var
@@ -16,10 +16,12 @@ type t = (* expressions AFTER closure conversion *)
   | Resume of var * t
   | ResumeFinal of var * t
   | Hdl of var list * var * var * var
-  | MkClosure of var * closure * t
+  | Closure of closure
   | AppClosure of t * t list
+  | App of t * t list
   | Let of var * t * t
   | If of t * t * t
+  | Stmt of t * t
 
 type hdl = hdl_anno * var * var list * t
 

@@ -4,7 +4,7 @@ effect Scheduler {
 }
 
 def spawn(job_closure, suspend_closure, runnext_closure) {
-    val _ = handle {job_closure, suspend_closure, runnext_closure}
+    handle {job_closure, suspend_closure, runnext_closure}
         body
     with scheduler: Scheduler;
     val runnext_func = runnext_closure[0];
@@ -17,7 +17,7 @@ obj scheduler(env) {
         val suspend_closure = env[1];
         val suspend_func = suspend_closure[0];
         val job_queue = suspend_closure[1];
-        val _ = suspend_func(job_queue, k);
+        suspend_func(job_queue, k);
         val runnext_closure = env[2];
         val runnext_func = runnext_closure[0];
         val job_queue = runnext_closure[1];
@@ -28,7 +28,7 @@ obj scheduler(env) {
         val suspend_closure = env[1];
         val suspend_func = suspend_closure[0];
         val suspend_env = suspend_closure[1];
-        val _ = suspend_func(suspend_env, k);
+        suspend_func(suspend_env, k);
         val arg1 = env[1];
         val arg2 = env[2];
         spawn(newjob_closure, arg1, arg2)
@@ -36,11 +36,11 @@ obj scheduler(env) {
 }
 
 def job(state, sch_stub) {
-    val _ = raise sch_stub.yield 0;
+    raise sch_stub.yield 0;
     val v1 = state[0];
     val res1 = v1 + 1;
-    val _ = state[0] := res1;
-    val _ = raise sch_stub.yield 0;
+    state[0] := res1;
+    raise sch_stub.yield 0;
     val v3 = state[0];
     val res2 = v3 + 1;
     state[0] := res2
@@ -51,7 +51,7 @@ def loop(i, job_closure, sch_stub) {
     if cond then
         0
     else
-        val _ = raise sch_stub.fork job_closure;
+        raise sch_stub.fork job_closure;
         val arg1 = i - 1;
         loop(arg1, job_closure, sch_stub)
 }
@@ -94,7 +94,7 @@ def run(n) {
     val job_closure = newref {job, state};
     val entry_env = newref {n, job_closure};
     val entry_closure = newref {entry, entry_env};
-        val _ = startScheduler(entry_closure);
+        startScheduler(entry_closure);
         state[0]
 }
 
@@ -102,6 +102,6 @@ def run(n) {
 def main() {
     val arg1 = ~readInt();
     val arg2 = run(arg1);
-    val _ = ~printInt(arg2);
+    ~printInt(arg2);
     0
 }

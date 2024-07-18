@@ -3,6 +3,8 @@ open Syntax__Common
 open Printf
 open Primitive
 
+module Varset = Syntax__Varset
+
 type handler_type = hdl_anno
 type eff_sig_env = (var * string list) list
 type eff_type_env = (var * handler_type) list
@@ -22,6 +24,12 @@ let get_fun_type_env (e : env) = e.fun_type
 let get_toplevel_func_env (e : env) = e.toplevel_closure
 let env : env ref = ref {eff_sig = []; eff_type = []; fun_type = []; toplevel_closure = []}
 
+(* is tail optimization enabled *)
+let tail_call_opt : bool ref = ref false
+
+(* Not sure if this is a good way... *)
+let cur_toplevel : var ref = ref ""
+
 let lookup_hdl_type (hdl_var : var) (env : eff_type_env) : string =
   match (List.find_opt (fun (s, _) -> s = hdl_var) env) with
   | None -> raise (UndefinedHandler hdl_var)
@@ -31,14 +39,6 @@ let lookup_hdl_type (hdl_var : var) (env : eff_type_env) : string =
       | HExc -> "ABORT"
       | HHdl1 -> "SINGLESHOT"
       | HHdls -> "MULTISHOT")
-
-let lookup_hdl_index (hdl_var : var) (env : eff_sig_env) : int =
-  match (List.find_opt (fun (_, dcls) -> List.mem hdl_var dcls) env) with
-  | None -> raise (UndefinedHandler hdl_var)
-  | Some (_, dcls) ->
-    (match (List.find_index (fun x -> hdl_var = x) dcls) with
-      | None -> raise (UndefinedHandler "unreachable")
-      | Some i -> i)
 
 let lookup_eff_sig_dcls (sig_name : var) (sig_env : eff_sig_env) : string list =
   match (List.find_opt (fun (s, _) -> s = sig_name) sig_env) with
@@ -100,7 +100,7 @@ let gen_c_annotation = function
 | CAFastSwitch -> "FAST_SWITCH_DECORATOR\n"
 | CANone -> ""
 
-let rec gen_c_def (def : c_def) : string = 
+let rec gen_c_def ?(do_tail = false) (def : c_def) : string = 
   match def with
   | CDef (annotation, keyword, t_return, name, params, body) ->
     sprintf "%s%s %s %s(%s) {\nreturn(%s);\n}\n" 
@@ -109,7 +109,7 @@ let rec gen_c_def (def : c_def) : string =
       (gen_c_type t_return) 
       name 
       (gen_params params)
-      (gen_expr body)
+      (gen_expr body ~is_tail:(!tail_call_opt && do_tail))
 
 and gen_c_dec (dec : c_dec) : string =
   match dec with
@@ -126,7 +126,7 @@ and gen_params params =
 and gen_args l =
   "(" ^ String.concat "," (List.map (fun x -> gen_expr x) l) ^ ")"
 
-and gen_expr (e : Syntax__Closure.t) =
+and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
   let s = (match e with
     | Var x -> x
     | Int i -> string_of_int i
@@ -134,38 +134,45 @@ and gen_expr (e : Syntax__Closure.t) =
     | Prim prim ->
         String.sub prim 1 ((String.length prim) - 1)
     | Arith (e1, op, e2) ->
-      sprintf "%s %s %s" (gen_expr e1) (gen_arith op) (gen_expr e2)
+      sprintf "%s %s %s" (gen_expr e1 ~is_tail:false) (gen_arith op) (gen_expr e2 ~is_tail:false)
     | Cmp (e1, op, e2) ->
-      sprintf "%s %s %s" (gen_expr e1) (gen_cmp op) (gen_expr e2)
+      sprintf "%s %s %s" (gen_expr e1 ~is_tail:false) (gen_cmp op) (gen_expr e2 ~is_tail:false)
     | Let (x, e1, e2) ->
-        sprintf "{i64 %s = (i64)%s;\n%s;}" x (gen_expr e1) (gen_expr e2)
-    (* | App (e1, args) ->
-        (match e1 with
-        | Prim _ -> 
-          let name = gen_expr e1 in (* name is prim with leading ~ stripped *)
-          (* The name here should have ~ stripped *)
-          let cast_args (name : string) (args : t list) : string list =
-            match List.assoc_opt name prim_env with
-            | None -> raise (UndefinedPrimitive name)
-            | Some param_types -> 
-                let rec cast args pt =
-                  (match args, pt with
-                  | [], [] -> []
-                  | args_h :: args_t, pt_h :: pt_t ->
-                    ((gen_prim_type pt_h) ^ (gen_expr args_h)) :: (cast args_t pt_t)
-                  | _, _ -> raise (InvalidPrimitiveCall name)) in
-                cast args param_types in
-          let casted_args = cast_args name args in
-          sprintf "((i64)(%s(%s)))" name (String.concat ", " casted_args) 
-        | _ -> 
-          let rec list_repeat n s =
-            if n = 0 then [] else
-            s :: list_repeat (n - 1) s in
-          let cast_func_str =
-            sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length args) "i64")) in
-          sprintf "((%s)%s)%s" cast_func_str (gen_expr e1) (gen_args args)) *)
+        sprintf "{i64 %s = (i64)%s;\n%s;}" x (gen_expr e1 ~is_tail:false) (gen_expr e2 ~is_tail:is_tail)
+    | App (e1, args) ->
+        let s =
+          (match e1 with
+          | Prim _ -> 
+            let name = gen_expr e1 in (* name is prim with leading ~ stripped *)
+            (* The name here should have ~ stripped *)
+            (* TODO: Remove duplicate code here and in AppClosure *)
+            let cast_args (name : string) (args : t list) : string list =
+              match List.assoc_opt name prim_env with
+              | None -> raise (UndefinedPrimitive name)
+              | Some param_types -> 
+                  let rec cast args pt =
+                    (match args, pt with
+                    | [], [] -> []
+                    | args_h :: args_t, pt_h :: pt_t ->
+                      ((gen_prim_type pt_h) ^ (gen_expr args_h)) :: (cast args_t pt_t)
+                    | _, _ -> raise (InvalidPrimitiveCall name)) in
+                  cast args param_types in
+            let casted_args = cast_args name args in
+            sprintf "((i64)(%s(%s)))" name (String.concat ", " casted_args) 
+          | _ -> 
+            let rec list_repeat n s =
+              if n = 0 then [] else
+              s :: list_repeat (n - 1) s in
+            let cast_func_str =
+              sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length args) "i64")) in
+            sprintf "((%s)%s)%s" cast_func_str (gen_expr e1) (gen_args args)) in
+        let do_tail = is_tail && (match e1 with
+        | Var callee_name -> callee_name = !cur_toplevel
+        | _ -> false) in 
+        (* Need a value after return to solve return type error by clang *)
+        if do_tail then sprintf "({__attribute__((musttail))\n return %s; 0;})" s else s
     | If (v, e1, e2) ->
-        sprintf "%s ? %s : %s" (gen_expr v) (gen_expr e1) (gen_expr e2)
+        sprintf "%s ? %s : %s" (gen_expr v) (gen_expr e1 ~is_tail:is_tail) (gen_expr e2 ~is_tail:is_tail)
     | New value_list ->
         let size = List.length value_list in
         let init = sprintf "i64 temp = (i64)malloc(%d * sizeof(i64));" size
@@ -187,33 +194,31 @@ and gen_expr (e : Syntax__Closure.t) =
         let env_str = "(" ^ String.concat ", " env_list ^ ")" in
         sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
     | Raise (stub, hdl, args) ->
-        let hdl_idx = lookup_hdl_index hdl (get_eff_sig_env !env) in
-        sprintf "RAISE(%s, %d, %s)" stub hdl_idx (gen_args args)
+        sprintf "RAISE(%s, %s, %s)" stub hdl (gen_args args)
     | Resume (k, e) -> sprintf "THROW(%s, %s)" k (gen_expr e)
     | ResumeFinal (k, e) -> sprintf "FINAL_THROW(%s, %s)" k (gen_expr e)
-    | MkClosure (name, { entry = entry_name; fv = free_vars }, e) ->
+    | Closure ({ entry = entry_name; fv = free_vars }) ->
       let fv_creation : string =
-        if List.is_empty free_vars then
+        if Varset.is_empty free_vars then
           "__c__->env = (i64)NULL;"
         else
-          sprintf "__c__->env = (i64)malloc(%d * sizeof(i64));" (List.length free_vars)
+          sprintf "__c__->env = (i64)malloc(%d * sizeof(i64));" (Varset.cardinal free_vars)
       in
       let copy_fv : string =
         String.concat "\n" (List.mapi 
           (fun i x -> sprintf "((i64*)(__c__->env))[%d] = %s;" i x)
-          free_vars)
+          (Varset.to_list free_vars))
       in
       let closure_creation : string =
         sprintf 
 {|({closure_t* __c__ = malloc(sizeof(closure_t));
 __c__->func_pointer = (i64)%s;
-__c__->num_fv = (i64)%d;
 %s
 %s
 (i64)__c__;})|}
-        entry_name (List.length free_vars) fv_creation copy_fv
+        entry_name fv_creation copy_fv
       in
-      sprintf "{i64 %s = %s;\n%s;}" name closure_creation (gen_expr e)
+      closure_creation
     | AppClosure (e, args) ->
       (match e with
         | Prim _ -> 
@@ -246,6 +251,8 @@ i64 __env__ = (i64)(__clo__->env);
 ((%s)__f__)%s;
 })|}
           (gen_expr e) cast_func_str (gen_args (Var "__env__" :: args)))
+    | Stmt (e1, e2) ->
+      sprintf "{%s;\n%s;}" (gen_expr e1) (gen_expr e2 ~is_tail:is_tail)
   )
   in
   (match e with
@@ -291,6 +298,7 @@ let rec fun_type_pass (toplevel : top_level list) : fun_type_env =
 let gen_top_level (tl : top_level) =
   match tl with 
   | TLAbs (name, params, body) ->
+    cur_toplevel := name;
     let toplevel_func_closure = get_toplevel_func_env !env in
     let rec init_closures l = (match l with
     | [] -> ""
@@ -314,9 +322,10 @@ return((int)__res__);}|}
       c_decs := (name, cdec) :: !c_decs;
       let cdef =
         CDef (CANone, CKStatic, CTI64, name, (List.map (fun p -> (CTI64, p)) params), body) in
-      gen_c_def cdef
+      gen_c_def cdef ~do_tail:true
       (* sprintf "i64 %s(%s) {\nreturn(%s);\n}\n" name (genParams params) (gen_expr body) *)
-  | TLEffSig _ -> ""
+  | TLEffSig (sig_name, sig_methods) ->
+    sprintf "enum %s {%s};\n" sig_name (String.concat "," sig_methods)
   | TLObj (obj_name, obj_params, hdls) -> 
     let gen_hdl (hdl_anno, name, hdl_params, body) = 
       let concated_params = (List.map (fun x -> (CTI64P, x)) obj_params) 
@@ -333,7 +342,8 @@ return((int)__res__);}|}
     in
     String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
 
-let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (string * string) list)) =
+let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (string * string) list)) ~tail =
+  tail_call_opt := tail;
   let header = "#include <stdint.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>\n#include <defs.h>\n#include <datastructure.h>\n"
   in
   let eff_sig_env = sig_pass toplevels in
@@ -341,7 +351,7 @@ let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (strin
   let fun_type_env = fun_type_pass toplevels in
   let toplevel_func_env = toplevel_closures in
   env := {eff_sig = eff_sig_env; eff_type = eff_type_env; fun_type = fun_type_env; toplevel_closure = toplevel_func_env};
-  let declare_closures = String.concat "\n" (List.map (fun (x, _) -> sprintf "closure_t* %s;" x) toplevel_func_env) in
+  let declare_closures = String.concat "\n" (List.map (fun (x, _) -> sprintf "static closure_t* %s;" x) toplevel_func_env) in
   let prog = (String.concat "\n" 
     (List.map 
       (fun x -> gen_top_level x)

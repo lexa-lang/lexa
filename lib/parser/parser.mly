@@ -52,16 +52,22 @@
 %token VALDEF
 %token SEMICOLON
 %token FUN
+%token REC
+%token AND
 
 %start <Syntax.top_level list> prog
-%nonassoc SEMICOLON
+
+%nonassoc STMT
+%nonassoc HIGHER_THAN_STMT
+%left SEMICOLON
 %nonassoc ELSE
 %nonassoc NEQ CMPEQ LTS GTS
 %nonassoc COLONEQ
 %left ADD SUB
 %left MULT DIV PERC
-%nonassoc LSB
 %%
+
+// There is probably more undiscovered bugs in the parsing rules
 
 prog:
   | list(top_level); EOF { $1 }
@@ -73,19 +79,6 @@ top_level:
   | OBJ name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN 
       LCB l = list(hdl_def) RCB { TLObj (name, params, l) }
       
-// arith:
-//   | ADD { AAdd }
-//   | SUB { ASub }
-//   | MULT { AMult }
-//   | DIV { ADiv }
-//   | PERC { AMod }
-  
-// cmp:
-//   | CMPEQ { CEq }
-//   | NEQ { CNeq }
-//   | GTS { CGt }
-//   | LTS { CLt }
-
 effect_sig:
   | DCL v = VAR { v }
 
@@ -100,6 +93,10 @@ hdl_def:
 
 heap_value:
   | LCB l = separated_list(COMMA, simple_expr) RCB { l }
+
+recfun:
+  | name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB e = expr RCB 
+    { ({name = name; params = params; body = e} : Syntax.fundef) }
 
 app_expr:
   | simple_expr { $1 }
@@ -119,15 +116,17 @@ expr:
 	| e1 = expr LTS e2 = expr { Cmp(e1, CLt, e2) }
 	
   | NEWREF heap_value { New $2 }
-  | v = expr LSB v2 = expr RSB { Get (v, v2) }
-  | v1 = expr LSB v2 = expr RSB COLONEQ v3 = expr { Set (v1, v2, v3) }
-  | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr { Let (x, t1, t2) }
+  | v1 = simple_expr LSB v2 = expr RSB COLONEQ v3 = expr { Set (v1, v2, v3) }
+  | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr %prec HIGHER_THAN_STMT { Let (x, t1, t2) }
   | IF v = expr THEN t1 = expr ELSE t2 = expr { If (v, t1, t2) }
   | RAISE stub = VAR DOT hdl = VAR params = list(simple_expr) { Raise (stub, hdl, params) }
   | RESUME k = VAR v = simple_expr { Resume (k, v) }
   | RESUMEFINAL k = VAR v = simple_expr { ResumeFinal (k, v) }
   | HANDLE LCB env = separated_list(COMMA, VAR) RCB body = VAR WITH obj = VAR COLON sig_name = SIG { Hdl (env, body, obj, sig_name) }
-  | VALDEF x = VAR EQ FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB SEMICOLON e2 = expr { Letrec (x, params, body, e2) }
+  | FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB { Fun (params, body) }
+  | REC DEF fs = separated_list(AND, recfun) SEMICOLON e = expr { Recdef (fs, e) }
+  | e1 = expr SEMICOLON e2 = expr %prec STMT { Stmt (e1, e2) }
+  // | VALDEF x = VAR EQ FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB SEMICOLON e2 = expr { Recdef (x, params, body, e2) }
 
 simple_expr:
   | VAR { Var $1 }
@@ -135,4 +134,5 @@ simple_expr:
   | TRUE { Bool true }
   | FALSE { Bool false }
   | PRIM { Prim $1 }
-  | LPAREN e = expr RPAREN { e }    
+  | LPAREN e = expr RPAREN { e }
+  | v = simple_expr LSB v2 = expr RSB { Get (v, v2) }    

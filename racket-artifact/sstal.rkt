@@ -1,6 +1,7 @@
 #lang racket
 (require racket/exn)
 (provide run-sstal!)
+(provide R)
 ;; simulator state
 
 ;; Register file R + PC + SP

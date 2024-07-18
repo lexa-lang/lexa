@@ -6,10 +6,8 @@ obj prime(env) {
     def prime(e) {
         val i = env[0];
         val r = env[3];
-        val remainder = e % i;
-        val cond = remainder == 0;
-        if cond then
-            0
+        if (e % i) == 0 then
+            false
         else
             raise r.prime e
     }
@@ -19,22 +17,17 @@ def primes_body(env, prime_stub) {
     val i = env[0];
     val n = env[1];
     val a = env[2];
-    val inc_i = i + 1;
-    val inc_a = a + i;
-    primes(prime_stub, inc_i, n, inc_a)
+    primes(prime_stub, i + 1, n, a + i)
 }
 
 def primes(prime_stub, i, n, a) {
-    val cond = i < n;
-    if cond then
-        val cond1 = raise prime_stub.prime i;
-        if cond1 then
+    if i < n then
+        if raise prime_stub.prime i then
             handle {i, n, a, prime_stub}
                 primes_body
             with prime: Prime
         else
-            val inc_i = i + 1;
-            primes(prime_stub, inc_i, n, a)
+            primes(prime_stub, i + 1, n, a)
     else
         a
 }
@@ -59,6 +52,6 @@ def run(n) {
 def main() {
     val arg1 = ~readInt();
     val arg2 = run(arg1);
-    val _ = ~printInt(arg2);
+    ~printInt(arg2);
     0
 }

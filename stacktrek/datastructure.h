@@ -32,6 +32,26 @@ typedef struct queue_t {
     node_t* rear;
 } queue_t;
 
+typedef struct array_t {
+    int64_t* data;
+    int64_t size;
+    int64_t capacity;
+} array_t;
+
+#define readInt() (argc == 2) ? atoi(argv[1]) : (printf("Usage: %s <int>\n", argv[0]), exit(EXIT_FAILURE), 0)
+
+DEBUG_ATTRIBUTE
+int64_t printInt(int64_t x) {
+  printf("%ld\n", x);
+  return 0;
+}
+
+DEBUG_ATTRIBUTE
+int64_t printChar(int64_t x) {
+  printf("%c\n", (char)x);
+  return 0;
+}
+
 
 DEBUG_ATTRIBUTE
 node_t* listNode(int64_t value, node_t* next) {
@@ -43,7 +63,7 @@ node_t* listNode(int64_t value, node_t* next) {
 
 DEBUG_ATTRIBUTE
 node_t* listRange(int64_t start, int64_t end) {
-  if (start >= end) {
+  if (start > end) {
     return NULL;
   } else {
     return listNode(start, listRange(start + 1, end));
@@ -301,4 +321,108 @@ int64_t floatPrint(int64_t x) {
 DEBUG_ATTRIBUTE
 int64_t boolAnd(int64_t a, int64_t b) {
   return a && b;
+}
+
+DEBUG_ATTRIBUTE
+int64_t boolOr(int64_t a, int64_t b) {
+  return a || b;
+}
+
+DEBUG_ATTRIBUTE
+array_t* arrayMake(int64_t size) {
+  array_t* a = (array_t*)xmalloc(sizeof(array_t));
+  a->data = (int64_t*)xmalloc(size * sizeof(int64_t));
+  a->size = size;
+  a->capacity = size;
+  return a;
+}
+
+DEBUG_ATTRIBUTE
+array_t* arrayMakeInit(int64_t size, int64_t init) {
+  array_t* a = (array_t*)xmalloc(sizeof(array_t));
+  a->data = (int64_t*)xmalloc(size * sizeof(int64_t));
+  a->size = size;
+  a->capacity = size;
+  for (int64_t i = 0; i < size; i++) {
+    a->data[i] = init;
+  }
+  return a;
+}
+
+DEBUG_ATTRIBUTE
+int64_t arrayLen(array_t* a) {
+  return a->size;
+}
+
+DEBUG_ATTRIBUTE
+int64_t arrayAt(array_t* a, int64_t i) {
+  #ifdef DEBUG
+  assert(0 <= i && i < a->size);
+  #endif
+
+  return a->data[i];
+}
+
+DEBUG_ATTRIBUTE
+int64_t arraySet(array_t* a, int64_t i, int64_t value) {
+  #ifdef DEBUG
+  assert(0 <= i && i < a->size);
+  #endif
+
+  a->data[i] = value;
+  return value;
+}
+
+DEBUG_ATTRIBUTE
+int64_t arrayPush(array_t* a, int64_t value) {
+  if (a->size == a->capacity) {
+    a->capacity = a->capacity * 2 + 1;
+    a->data = (int64_t*)realloc(a->data, a->capacity * sizeof(int64_t));
+  }
+  a->data[a->size] = value;
+  a->size++;
+  return value;
+}
+
+DEBUG_ATTRIBUTE
+int64_t arrayPop(array_t* a) {
+  #ifdef DEBUG
+  assert(a->size > 0);
+  #endif
+
+  a->size--;
+  return a->data[a->size];
+}
+
+DEBUG_ATTRIBUTE
+int64_t arrayPrint(array_t* a) {
+  for (int64_t i = 0; i < a->size; i++) {
+    printf("%ld ", a->data[i]);
+  }
+  printf("\n");
+  return 0;
+}
+
+DEBUG_ATTRIBUTE
+int64_t arrayPrintChars(array_t* a) {
+  for (int64_t i = 0; i < a->size; i++) {
+    printf("%c", (char)a->data[i]);
+  }
+  printf("\n");
+  return 0;
+}
+
+DEBUG_ATTRIBUTE
+int64_t pairMake(int32_t a, int32_t b) {
+  return ((int64_t)a << 32) | (int64_t)b;
+}
+
+DEBUG_ATTRIBUTE
+int32_t pairFst(int64_t p) {
+  return (int32_t)(p >> 32);
+}
+
+DEBUG_ATTRIBUTE
+int32_t pairSnd(int64_t p) {
+  return (int32_t)p;
 }

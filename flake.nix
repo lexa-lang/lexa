@@ -22,44 +22,29 @@
           inherit system;
         };
 
-        clang_dev = pkgs.wrapCC ( pkgs.stdenv.mkDerivation rec {
-          pname = "llvm-project";
-          version = "dev";
-
-          src = builtins.path { path = "/home/congm/src/llvm-project/build"; };
-          dontStrip = true;
-
-          installPhase = ''
-            mkdir -p $out/bin
-            cp bin/clang $out/bin
-            cp bin/opt $out/bin
-            cp bin/llc $out/bin
-            cp -r lib $out/lib
-          '';
-
-          passthru.isClang = true;
-        });
         
       in {
-        packages.koka = pkgs-unstable.haskellPackages.callPackage ./nix/koka.nix { };
-        packages.effektOOPSLA23 = pkgs.callPackage ./nix/effektOOPSLA23.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
+        # packages.koka_3_1_1 = pkgs-unstable.haskellPackages.callPackage ./nix/koka.nix { };
         packages.clang_18_preserve_none = pkgs.callPackage ./nix/clang18.nix { };
         packages.effekt_0_2_2 = pkgs.callPackage ./nix/effekt_0_2_2.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
-        packages.effekt_latest = pkgs.callPackage ./nix/effekt_latest.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
         devShell = with pkgs; mkShell {
           nativeBuildInputs = [
-            # clang_main
-            # clang_dev
             self.packages.${system}.clang_18_preserve_none
           ];
           buildInputs = [
+            gnumake
+            gdb
+            vim
+            emacs
+            busybox
+
             mlton
             chez
-            nodejs_21
-            self.packages.${system}.effektOOPSLA23
+            nodejs-slim_21
+            racket
             self.packages.${system}.effekt_0_2_2
-            self.packages.${system}.effekt_latest
-            self.packages.${system}.koka
+            # self.packages.${system}.koka_3_1_1
+            pkgs-unstable.koka
 
             (python3.withPackages (ps: with ps; [
               matplotlib
@@ -94,6 +79,7 @@
               utop
               menhir
               ppx_inline_test
+              earlybird
           ]);
         };
       });

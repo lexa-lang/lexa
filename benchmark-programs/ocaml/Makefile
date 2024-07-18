@@ -8,7 +8,9 @@ bench: build
 		'tree_explore/main 16' \
 		'triples/main 300' \
 		'resume_nontail/main 10000' \
-		'parsing_dollars/main 20000'
+		'parsing_dollars/main 20000' \
+		'handler_sieve/main 60000' \
+		'scheduler/main 3000'
 
 test: build
 	echo "Running programs..."
@@ -19,8 +21,11 @@ test: build
 	cd nqueens ; ./main 5 > actual ; echo 10 > expected ; diff expected actual
 	cd tree_explore ; ./main 5 > actual ; echo 946 > expected ; diff expected actual
 	cd triples ; ./main 10 > actual ; echo 779312 > expected ; diff expected actual
-	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
 	cd resume_nontail ; ./main 5 > actual ; echo 37 > expected ; diff expected actual
+	cd parsing_dollars ; ./main 10 > actual ; echo 55 > expected ; diff expected actual
+	cd handler_sieve ; ./main 10 > actual ; echo 17 > expected ; diff expected actual
+	cd scheduler ; ./main 10 > actual ; echo 10000 > expected ; diff expected actual
+	
 
 build:
 	echo "Building programs..."
@@ -31,8 +36,11 @@ build:
 	cd nqueens ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
 	cd tree_explore ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
 	cd triples ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
-	cd parsing_dollars ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
 	cd resume_nontail ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
+	cd parsing_dollars ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
+	cd handler_sieve ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
+	cd scheduler ; opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml
+	
 
 clean:
 	-rm */main.cmi

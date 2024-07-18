@@ -47,7 +47,7 @@ def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
     loop(l)
 }
 
-def run(n: Int) = ignoring0[EmptyList] {
+def run(n: Int) : Int = {
     var lst = range(0-n, n);
     var beheaded = false;
     var res = try { lst.iter }
@@ -58,19 +58,20 @@ def run(n: Int) = ignoring0[EmptyList] {
             beheaded = true;
             resume(())
         };
-    if (beheaded) res.drop(1) else res
+    sum(if (beheaded) res.drop(1) else res)
 }
 
 def step(i: Int, acc: Int, n_jobs: Int): Int = {
   if (i == 0) {
     acc
   } else {
-    step(i - 1, sum(run(n_jobs))+acc, n_jobs)
+    step(i - 1, run(n_jobs)+acc, n_jobs)
   }
 }
 
 def repeat(n_jobs: Int): Int = {
-  step(1000, 0, n_jobs)
+  // NB: The loop count is reduced from 1000
+  step(1, 0, n_jobs)
 }
 
 def main() = commandLineArgs() match {

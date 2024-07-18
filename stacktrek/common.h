@@ -1,5 +1,13 @@
 #pragma once
 
+#include <stdio.h>
+#include <stdlib.h>
+
+int error(const char* msg) {
+    fprintf(stderr, "Error: %s\n", msg);
+    exit(1);
+}
+
 #ifdef DEBUG
 #define DEBUG_ATTRIBUTE __attribute__((noinline))
 #else

@@ -12,8 +12,7 @@ effect Exn {
 }
 
 def queueDeqExn(q, exn_stub) {
-    val cond = ~queueIsEmpty(q);
-    if cond then
+    if ~queueIsEmpty(q) then
         raise exn_stub.throw 0
     else
         ~queueDeq(q)
@@ -31,14 +30,12 @@ def entry(env, sch_stub) {
 }
 
 def jobs(i, job_closure, sch_stub, tick_stub) {
-    val cond = i == 0;
-    if cond then
+    if i == 0 then
         0
     else
-        val _ = raise sch_stub.fork job_closure;
-        val a = raise tick_stub.tick 0;
-        val i0 = i - 1;
-            jobs(i0, job_closure, sch_stub, tick_stub)
+        (raise sch_stub.fork job_closure;
+        raise tick_stub.tick 0;
+        jobs(i - 1, job_closure, sch_stub, tick_stub))
 }
 
 obj process(env) {
@@ -49,7 +46,7 @@ obj process(env) {
 
     hdl_1 fork(newjob_closure, k) {
         val job_queue = env[1];
-        val _ = ~queueEnq(job_queue, k);
+        ~queueEnq(job_queue, k);
         spawn(newjob_closure, job_queue)
     }
 }
@@ -64,7 +61,7 @@ def body(env, sch_stub) {
 def body_driver(env, exn_stub) {
     val job_queue = env[0];
     val k = queueDeqExn(job_queue, exn_stub);
-    val _ = resume_final k 0;
+    resume_final k 0;
     driver(job_queue)
 }
 
@@ -75,7 +72,7 @@ obj exn(env) {
 }
 
 def driver(job_queue) {
-    val _ = 
+    
         handle {job_queue}
             body_driver
         with exn: Exn;
@@ -90,16 +87,14 @@ def spawn(job_closure, job_queue) {
 
 def scheduler(init_closure) {
     val job_queue = ~queueMake ();
-    val _ = spawn(init_closure, job_queue);
+    spawn(init_closure, job_queue);
     driver(job_queue)
 }
 
 obj tick(env) {
     def tick(_) {
         val c = env[1];
-        val v1 = c[0];
-        val v2 = v1 + 1;
-        val _ = c[0] := v2;
+        c[0] := c[0] + 1;
         0
     }
 }
@@ -115,22 +110,18 @@ def body_run(env, tick_stub) {
 
 def run(n_jobs, init) {
     val c = newref {init};
-    val _ = 
+    
         handle {n_jobs, c}
             body_run
         with tick: Tick;
-    val v = c[0];
-    v
+    c[0]
 }
 
 def step(i, acc, n_jobs) {
-    val cond = i == 0;
-    if cond then
+    if i == 0 then
         acc
     else
-        val i_dec = i - 1;
-        val acc2 = run(n_jobs, acc);
-        step(i_dec, acc2, n_jobs)
+        step(i - 1, run(n_jobs, acc), n_jobs)
 }
 
 def repeat(n_jobs) {
@@ -140,6 +131,6 @@ def repeat(n_jobs) {
 def main() {
     val arg1 = ~readInt();
     val arg2 = repeat(arg1);
-    val _ = ~printInt(arg2);
+    ~printInt(arg2);
     0
 }
