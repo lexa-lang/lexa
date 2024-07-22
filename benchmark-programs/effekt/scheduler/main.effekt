@@ -11,8 +11,11 @@ interface Tick {
 interface Process {
   def yield(): Unit
   def exit(): Nothing
-  def fork { newjob: () => Unit }: Unit
+  def fork { p: () => Unit / Process }: Boolean
 }
+
+extern pure def cast[T, R](x : T): R =
+  "${x}"
 
 def scheduler { prog: => Unit / Process }: Unit / Tick = region this {
   var queue: Dequeue[() => Unit at {this, prog}] in this = emptyQueue();
@@ -28,30 +31,36 @@ def scheduler { prog: => Unit / Process }: Unit / Tick = region this {
     } with NoSuchElementException {
       def throwNSE() = ()
     }
-  try { prog() } with Process {
-    def yield() = {
-      queue = queue.pushFront(fun() { resume(()) })
+
+  def spawn(prog1: () => Unit / Process at {this, prog} ): Unit = {
+    try { prog1() } with Process {
+      def yield() = {
+        queue = queue.pushFront(fun() { resume(()) })
+      }
+      def fork() = {
+        queue = queue.pushFront(fun() { resume { {_: () => Unit / Process } => false } })
+        resume { {p: () => Unit / Process } => spawn(cast(box p)); true } 
+      }
+      def exit() = ()
     }
-    def fork() /* {{() => Unit} => Unit} => Unit */ = {
-      queue = queue
-        .pushFront(fun() { resume { {newjob: () => Unit} => newjob() /* FIX do abort() */ } })
-        .pushFront(fun() { resume { {newjob: () => Unit} => () } })
-    }
-    def exit() /* Nothing => Unit */ = ()
   }
 
+  spawn(prog)
   driver()
 }
 
+def job(): Unit / Process = {
+  do yield ()
+  do exit() // FIX this is crucial since fork is not implemented correctly
+}
+
 def jobs(n_jobs: Int): Unit / {Process, Tick} = {
-  def job(): Unit = {
-    do yield ()
-    do exit() // FIX this is crucial since fork is not implemented correctly
-  }
   var i = 0;
   while (i < n_jobs) {
     do tick()
-    do fork {job}
+    if (do fork {job}) {
+      do exit()
+    }
     i = i + 1
   }
 }
