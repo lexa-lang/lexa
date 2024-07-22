@@ -1,4 +1,4 @@
-{ stdenv, pkgsHostTarget, cmake, makeWrapper, mkDerivation, fetchFromGitHub
+{ stdenv, fetchurl, pkgsHostTarget, cmake, makeWrapper, mkDerivation, fetchFromGitHub
 , alex, array, base, bytestring, cond, containers, directory, extra
 , filepath, hpack, hspec, hspec-core, isocline, json, lib, mtl
 , parsec, process, regex-compat, text, time, FloatingHex, aeson
@@ -54,6 +54,13 @@ mkDerivation rec {
   '';
   doCheck = false;
   prePatch = "hpack";
+
+  patches = [ 
+    (fetchurl {
+      url = "https://patch-diff.githubusercontent.com/raw/koka-lang/koka/pull/560.patch";
+      sha256 = "sha256-kf+lfGqXjiREeDTe2iFCxQ9h2PFbN0JCbCNO/6aSaXc=";
+    })
+   ];
   description = "Koka language compiler and interpreter";
   homepage = "https://github.com/koka-lang/koka";
   changelog = "${homepage}/blob/master/doc/spec/news.mdk";

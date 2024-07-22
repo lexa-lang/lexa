@@ -24,7 +24,7 @@
 
         
       in {
-        # packages.koka_3_1_1 = pkgs-unstable.haskellPackages.callPackage ./nix/koka.nix { };
+        packages.koka_3_1_1 = pkgs-unstable.haskellPackages.callPackage ./nix/koka.nix { };
         packages.clang_18_preserve_none = pkgs.callPackage ./nix/clang18.nix { };
         packages.effekt_0_2_2 = pkgs.callPackage ./nix/effekt_0_2_2.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
         devShell = with pkgs; mkShell {
@@ -43,7 +43,7 @@
             nodejs-slim_21
             racket
             self.packages.${system}.effekt_0_2_2
-            # self.packages.${system}.koka_3_1_1
+            self.packages.${system}.koka_3_1_1
             pkgs-unstable.koka
 
             (python3.withPackages (ps: with ps; [
