@@ -1,0 +1,32 @@
+effect E {
+    dcl e
+}
+
+obj e_obj(env) {
+    hdl_1 e(_, k) {
+        env[0][0] := k;
+        0
+    }
+}
+
+def body(env, e_stub) {
+    val q = env[0];
+    raise e_stub.e 0;
+    ~printInt(env[1]);
+    0
+}
+
+def main() {
+    val k1 = f(10);
+    val k2 = f(20);
+    resume (if ~readInt() then k1 else k2) 0;
+    0
+}
+
+def f(x) {
+    val r = newref {0};
+    handle {r, x}
+        body
+    with e_obj: E;
+    r[0]
+}

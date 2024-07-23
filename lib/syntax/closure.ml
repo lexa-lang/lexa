@@ -12,9 +12,9 @@ type t = (* expressions AFTER closure conversion *)
   | New of t list
   | Get of t * t
   | Set of t * t * t
-  | Raise of var * var * t list
-  | Resume of var * t
-  | ResumeFinal of var * t
+  | Raise of t * var * t list
+  | Resume of t * t
+  | ResumeFinal of t * t
   | Hdl of var list * var * var * var
   | Closure of closure
   | AppClosure of t * t list

@@ -119,9 +119,9 @@ expr:
   | v1 = simple_expr LSB v2 = expr RSB COLONEQ v3 = expr { Set (v1, v2, v3) }
   | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr %prec HIGHER_THAN_STMT { Let (x, t1, t2) }
   | IF v = expr THEN t1 = expr ELSE t2 = expr { If (v, t1, t2) }
-  | RAISE stub = VAR DOT hdl = VAR params = list(simple_expr) { Raise (stub, hdl, params) }
-  | RESUME k = VAR v = simple_expr { Resume (k, v) }
-  | RESUMEFINAL k = VAR v = simple_expr { ResumeFinal (k, v) }
+  | RAISE stub = simple_expr DOT hdl = VAR params = list(simple_expr) { Raise (stub, hdl, params) }
+  | RESUME k = simple_expr v = simple_expr { Resume (k, v) }
+  | RESUMEFINAL k = simple_expr v = simple_expr { ResumeFinal (k, v) }
   | HANDLE LCB env = separated_list(COMMA, VAR) RCB body = VAR WITH obj = VAR COLON sig_name = SIG { Hdl (env, body, obj, sig_name) }
   | FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB { Fun (params, body) }
   | REC DEF fs = separated_list(AND, recfun) SEMICOLON e = expr { Recdef (fs, e) }

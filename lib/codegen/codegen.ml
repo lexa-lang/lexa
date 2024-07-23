@@ -194,9 +194,9 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
         let env_str = "(" ^ String.concat ", " env_list ^ ")" in
         sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
     | Raise (stub, hdl, args) ->
-        sprintf "RAISE(%s, %s, %s)" stub hdl (gen_args args)
-    | Resume (k, e) -> sprintf "THROW(%s, %s)" k (gen_expr e)
-    | ResumeFinal (k, e) -> sprintf "FINAL_THROW(%s, %s)" k (gen_expr e)
+        sprintf "RAISE(%s, %s, %s)" (gen_expr stub) hdl (gen_args args)
+    | Resume (k, e) -> sprintf "THROW(%s, %s)" (gen_expr k) (gen_expr e)
+    | ResumeFinal (k, e) -> sprintf "FINAL_THROW(%s, %s)" (gen_expr k) (gen_expr e)
     | Closure ({ entry = entry_name; fv = free_vars }) ->
       let fv_creation : string =
         if Varset.is_empty free_vars then

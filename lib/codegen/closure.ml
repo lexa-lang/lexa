@@ -26,8 +26,8 @@ let rec free_var (e : Syntax.expr) : Varset.t =
   | Syntax.New hv -> Varset.union_map free_var hv
   | Syntax.Get (e1, e2) -> Varset.union (free_var e1) (free_var e2)
   | Syntax.Set (e1, e2, e3) -> Varset.((free_var e1) @@@ (free_var e2) @@@ (free_var e3))
-  | Syntax.Raise (stub, _, args) -> Varset.((union_map free_var args) |> add stub)
-  | Syntax.Resume (k, e) | Syntax.ResumeFinal (k, e) -> Varset.(free_var e |> add k)
+  | Syntax.Raise (stub, _, args) -> Varset.((union_map free_var args) @@@ (free_var stub))
+  | Syntax.Resume (k, e) | Syntax.ResumeFinal (k, e) -> Varset.(free_var e @@@ (free_var k))
   | Syntax.Hdl (xs, _, _, _) -> Varset.of_list xs
   | Syntax.Fun (params, body) -> Varset.(diff (free_var body) (of_list params))
   | Syntax.Stmt (e1, e2) -> Varset.union (free_var e1) (free_var e2)
@@ -59,9 +59,9 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
   | Syntax.New es -> New (List.map (fun x -> convert_expr x env) es)
   | Syntax.Get (e1, e2) -> Get (convert_expr e1 env, convert_expr e2 env)
   | Syntax.Set (e1, e2, e3) -> Set (convert_expr e1 env, convert_expr e2 env, convert_expr e3 env)
-  | Syntax.Raise (v1, v2, es) -> Raise (v1, v2, List.map (fun x -> convert_expr x env) es)
-  | Syntax.Resume (v, e) -> Resume (v, convert_expr e env)
-  | Syntax.ResumeFinal (v, e) -> ResumeFinal (v, convert_expr e env)
+  | Syntax.Raise (s, v2, es) -> Raise (convert_expr s env, v2, List.map (fun x -> convert_expr x env) es)
+  | Syntax.Resume (k, e) -> Resume (convert_expr k env, convert_expr e env)
+  | Syntax.ResumeFinal (k, e) -> ResumeFinal (convert_expr k env, convert_expr e env)
   | Syntax.Hdl (env_vars, stub, hdl_name, body) -> Hdl (env_vars, stub, hdl_name, body)
   | Syntax.Let (x, e1, e2) -> Let (x, convert_expr e1 env, convert_expr e2 Varset.(env |> add x))
   | Syntax.If (e1, e2, e3) -> If (convert_expr e1 env, convert_expr e2 env, convert_expr e3 env)
@@ -138,8 +138,8 @@ and handle_bodies_e (e : Syntax.expr) : var list =
   | Syntax.New hv -> List.concat_map (fun x -> handle_bodies_e x) hv
   | Syntax.Get (e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
   | Syntax.Set (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
-  | Syntax.Raise (_, _, args) -> List.concat_map (fun x -> handle_bodies_e x) args
-  | Syntax.Resume (_, e) | ResumeFinal (_, e) -> handle_bodies_e e
+  | Syntax.Raise (stub, _, args) -> (handle_bodies_e stub) @ (List.concat_map (fun x -> handle_bodies_e x) args)
+  | Syntax.Resume (k, e) | ResumeFinal (k, e) -> (handle_bodies_e k) @ (handle_bodies_e e)
   | Syntax.Fun (_, e) ->
     handle_bodies_e e
   | Syntax.Recdef (fls, e) -> 

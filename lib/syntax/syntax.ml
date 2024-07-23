@@ -22,9 +22,9 @@ and expr =
   | New of expr list
   | Get of expr * expr
   | Set of expr * expr * expr
-  | Raise of var * var * expr list
-  | Resume of var * expr
-  | ResumeFinal of var * expr
+  | Raise of expr * var * expr list
+  | Resume of expr * expr
+  | ResumeFinal of expr * expr
   | Hdl of var list * var * var * var (* handle *)
   | Recdef of fundef list * expr
   | Fun of var list * expr
