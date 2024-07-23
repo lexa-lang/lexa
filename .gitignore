@@ -58,5 +58,5 @@ plot.png
 parser.conflicts
 
 .direnv
-node_modules
+node_modules/
 compilation_errors.log
