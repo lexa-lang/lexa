@@ -10,25 +10,26 @@ rec effect process
    ctl yield(): ()
    ctl fork(g: () -> <process, div, exn, st<global>> ()): ()
 
-fun scheduler(f: () -> <process, div, st<global>, exn|e> ()): <st<global>, pure|e> ()
+fun scheduler(f)
   val q: ref<global, dequeue<() -> <div, st<global>|e> ()>> = ref(emptyQueue())
 
-  fun spawn(f: () -> <process, div, st<global>, exn|e> ()): <div, st<global>, exn|e> ()
+  fun spawn(f)
     with handler
       raw ctl yield()
         q := (!q).pushBack(fn() rcontext.resume(()))
-      raw ctl fork(g: () -> <process, div, exn, st<global>> ())
+      raw ctl fork(g)
         q := (!q).pushBack(fn() rcontext.resume(()))
         spawn(g)
     f()
 
-  fun driver(): <st<global>, pure> ()
+  fun driver(): <st<global>, pure|e> ()
     with handler
       final ctl throw-exn(err) ()
     val res = (!q).popFront()
     q := snd(res)
-    fst(res)()
-    driver()
+    mask<exn>
+      fst(res)()
+      driver()
 
   spawn(f)
   driver()
@@ -57,7 +58,7 @@ fun repeat(n_jobs : int)
     else 
       val r: int = run(n_jobs)
       step(i - 1, acc + r)
-  step(1, 0)
+  step(1000, 0)
 
 
 pub fun main()
