@@ -1,8 +1,7 @@
 import exnlist
 import exndequeue
-import immutable/option
-import io/args
-import text/string
+import args
+import bench
 
 interface Tick {
   def tick(): Unit
@@ -11,7 +10,7 @@ interface Tick {
 interface Process {
   def yield(): Unit
   def exit(): Nothing
-  def fork { p: () => Unit / Process }: Boolean
+  def fork { p: () => Unit / Process }: Bool
 }
 
 extern pure def cast[T, R](x : T): R =
@@ -82,11 +81,14 @@ def run(n: Int): Int = {
   a
 }
 
-def main() = commandLineArgs() match {
-  case Nil() => println(run(10))
-  case Cons(x, Nil()) => toInt(x) match {
-    case None() => println("Unexpected non-integer '" ++ show(x) ++ "'")
-    case Some(i) => println(run(i))
-  }
-  case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Nil()) =>
+    val t = timed{ 
+              val r = run(x.toInt)
+              println(r)
+            }
+    println("Time used: " ++ show(t / 1000 / 1000))
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
 }
