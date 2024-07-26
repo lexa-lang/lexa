@@ -55,7 +55,7 @@ let rec step i acc n_jobs =
       step (i - 1) (acc + r) n_jobs
 
 let repeat n_jobs =
-  step 1000 0 n_jobs
+  step 100 0 n_jobs
 
 let main () =
   let n = try int_of_string (Sys.argv.(1)) with _ -> 5 in
