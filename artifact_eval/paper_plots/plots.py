@@ -1,7 +1,12 @@
 import matplotlib.pyplot as plt
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
 import re
 import argparse
+
+# On my machine with i5-13600K, the 6 performance cores
+# uses hyperthreading, so we have 6 physical cores as follow
+CPUs = ["0", "2", "4", "6", "8", "10"]
 
 IN_VAL_PLACEHOLDER = "IN"
 
@@ -19,21 +24,29 @@ def main() = ignore[WrongFormat] {commandLineArgs() match {
 def print_message(message):
     print(f"{'='*len(message)}\n{message}\n{'='*len(message)}")
 
+def run_processes(commands, cwd):
+    with ThreadPoolExecutor(max_workers=len(CPUs)) as executor:
+        results = executor.map(
+            lambda c: 
+                subprocess.run(c, check=True, text=True, capture_output=True, shell=True, cwd=cwd), 
+            commands)
+    return results
+
 def parse_output(output_file):
     pairs = []
     f = open(output_file, 'r')
-    for line in f.readlines()[1:]:
+    for line in f.readlines():
         command = line.split(",")[0]
         n = int(re.search(r'\d+', command).group())
         mean_time = float(line.split(",")[1])
         pairs.append((n, mean_time))
     return pairs
 
-def plot(result_file, title, plot_file, overhead):
+def plot(result_file, title, plot_file, overhead_sec):
     plt.figure(figsize=(6,6))
 
     n_values, runtimes = zip(*parse_output(result_file))
-    runtimes = [r - overhead for r in runtimes]
+    runtimes = [r - overhead_sec for r in runtimes]
     plt.plot(n_values, runtimes, marker='o', alpha=1)
 
     plt.xlabel('n')
@@ -44,13 +57,21 @@ def plot(result_file, title, plot_file, overhead):
 
     print_message(f"\"{title}\" saved to {plot_file}")
 
-def build_and_bench(path, build_command, run_command, max_input, result_file):
+def build_and_bench(path, build_command, run_command, max_input, num_input, result_file):
     print_message(f"Building {path}")
     subprocess.run(build_command, check=True, text=True, shell=True, cwd=path)
     print_message("Done building")
     print_message(f"Benchmarking {path}")
-    benchmark_command = f"hyperfine --shell none --warmup 3 -P {IN_VAL_PLACEHOLDER} 0 {max_input} -D {int(max_input / 10)} --export-csv {result_file} '{run_command}'"
-    subprocess.run(benchmark_command, check=True, text=True, shell=True, cwd=path)
+    # NB: use five spaces so that the command can be parsed out later
+    taskset_cmd = f"taskset -c {','.join(CPUs)}     {{}}     "
+    hyperfine_cmd = f"hyperfine --shell none --warmup 3 --time-unit second '{taskset_cmd}'"
+    commands = [hyperfine_cmd.format(run_command.replace(f"{{{IN_VAL_PLACEHOLDER}}}", str(i))) for i in range(0, max_input, int(max_input / num_input))]
+    results = run_processes(commands, path)
+    with open(result_file, 'w') as f:
+        for command, result in zip(commands, results):
+            time_sec = re.search(r"Time \(mean ± σ\):\s+(\d+\.\d+) s", result.stdout).group(1)
+            command = re.search(r"     (.*)     ".format(IN_VAL_PLACEHOLDER), command).group(1)
+            f.write(f"{command}, {time_sec}\n")
     print_message("Done benchmarking")
 
 def bench_warnup_overhead(path, run_command):
@@ -71,34 +92,64 @@ def bench_warnup_overhead(path, run_command):
 def main():
     cmds = {
         "scheduler" : {
+            # "lexi" : {
+            #     "build" : "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main",
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 3000,
+            # },
+            # "effekt" : {
+            #     "build" : "effekt_latest.sh --backend js --compile main.effekt",
+            #     # 0 in the run command is a dummy second argument to tell the program to measure its internal timing
+            #     "run" : f"node --eval \"require(\'\"\'./out/main.js\'\"\').main()\" -- _ {{{IN_VAL_PLACEHOLDER}}} 0",
+            #     "max_input" : 3000,
+            #     "adjust_warmup" : True
+            # },
+            # "koka" : {
+            #     "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 3000,
+            # },
+            # "koka_named" : {
+            #     "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 3000,
+            #     "fail_reason" : "Koka internal compiler error",
+            # },
+            # "ocaml" : {
+            #     "build" : "opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml",
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 100000,
+            # }
+        },
+
+
+        "resume_nontail_with_stack_growth" : {
             "lexi" : {
                 "build" : "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main",
                 "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 3000,
+                "max_input" : 60000,
             },
-            "effekt" : {
-                "build" : "effekt_latest.sh --backend js --compile main.effekt",
-                # 0 in the run command is a dummy second argument to tell the program to measure its internal timing
-                "run" : f"node --eval \"require(\'\"\'./out/main.js\'\"\').main()\" -- _ {{{IN_VAL_PLACEHOLDER}}} 0",
-                "max_input" : 10,
-                "adjust_warmup" : True
-            },
-            "koka" : {
-                "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
-                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 3000,
-            },
-            "koka_named" : {
-                "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
-                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 3000,
-                "fail_reason" : "Koka internal compiler error",
-            },
-            "ocaml" : {
-                "build" : "opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml",
-                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 100000,
-            }
+            # "effekt" : {
+            #     "build" : "effekt_latest.sh --backend ml --compile main.effekt",
+            #     # 0 in the run command is a dummy second argument to tell the program to measure its internal timing
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 60000,
+            # },
+            # "koka" : {
+            #     "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 1000,
+            # },
+            # "koka_named" : {
+            #     "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 1000,
+            # },
+            # "ocaml" : {
+            #     "build" : "opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml",
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 40000,
+            # }
         }
     }
     for bench, sys_cmds in cmds.items():
@@ -108,12 +159,12 @@ def main():
                 continue
             path = f"../../benchmark-programs/{sys}/{bench}"
             result_file = f"{sys}_{bench}.csv"
-            build_and_bench(path, cmds["build"], cmds["run"], cmds["max_input"], result_file)
-            subprocess.run(f"cp {path}/{result_file} .", check=True, text=True, shell=True)
-            overhead = 0
+            num_input = 20
+            build_and_bench(path, cmds["build"], cmds["run"], cmds["max_input"], num_input, result_file)
+            overhead_sec = 0
             if "adjust_warmup" in cmds:
-                overhead = bench_warnup_overhead(path, cmds["run"])
-            plot(result_file, f"{sys.capitalize()} {bench}", f"{sys}_{bench}.png", overhead)
+                overhead_sec = bench_warnup_overhead(path, cmds["run"])
+            plot(result_file, f"{sys.capitalize()} {bench}", f"{sys}_{bench}.png", overhead_sec)
 
 if __name__ == "__main__":
     main()
