@@ -60,7 +60,7 @@ fun repeat(n_jobs : int)
     else 
       val r: int = run(n_jobs)
       step(i - 1, acc + r)
-  step(1000, 0)
+  step(100, 0)
 
 
 pub fun main()

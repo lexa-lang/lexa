@@ -125,7 +125,7 @@ def step(i, acc, n_jobs) {
 }
 
 def repeat(n_jobs) {
-    step(1000, 0, n_jobs)
+    step(100, 0, n_jobs)
 }
 
 def main() {
