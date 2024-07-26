@@ -88,7 +88,7 @@ def main() = ignore[WrongFormat] {commandLineArgs() match {
               val r = run(x.toInt)
               println(r)
             }
-    println("Time used: " ++ show(t / 1000 / 1000))
+    println("Time used: " ++ show(t / 1000))
   case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
 }
 }
