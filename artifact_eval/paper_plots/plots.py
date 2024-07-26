@@ -54,13 +54,18 @@ def build_and_bench(path, build_command, run_command, max_input, result_file):
     print_message("Done benchmarking")
 
 def bench_warnup_overhead(path, run_command):
-    print_message(f"Calculating warmup for {path}")
+    print_message(f"Estimating warmup for {path}")
     run_command = "time " + run_command.replace(f"{{{IN_VAL_PLACEHOLDER}}}", "0")
-    out = subprocess.run(run_command, check=True, text=True, shell=True, cwd=path, capture_output=True)
-    internal_mili = int(re.search(r"Time used: (\d+)", out.stdout).group(1))
-    minutes, seconds = map(float, re.search(r"real\s+(\d+)m(\d+\.\d+)s", out.stderr).groups())
-    external_mili = minutes * 60 + seconds
-    overhead = external_mili - internal_mili
+    overheads = []
+    for _ in range(100):
+        out = subprocess.run(run_command, check=True, text=True, shell=True, cwd=path, capture_output=True)
+        internal_nano = int(re.search(r"Nanosecond used: (\d+)", out.stdout).group(1))
+        minutes, seconds = map(float, re.search(r"real\s+(\d+)m(\d+\.\d+)s", out.stderr).groups())
+        external_sec = minutes * 60 + seconds
+        overheads.append(external_sec * 1000 - internal_nano / 1e6)
+    overheads = overheads[10:] # Discard first 10 runs
+    overhead = sum(overheads) / len(overheads)
+    print_message(f"Estimated warmup overhead: {overhead} ms")
     return overhead
     
 def main():
@@ -73,8 +78,9 @@ def main():
             },
             "effekt" : {
                 "build" : "effekt_latest.sh --backend js --compile main.effekt",
-                "run" : f"node --eval \"require(\'\"\'./out/main.js\'\"\').main()\" -- _ {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 1000,
+                # 0 in the run command is a dummy second argument to tell the program to measure its internal timing
+                "run" : f"node --eval \"require(\'\"\'./out/main.js\'\"\').main()\" -- _ {{{IN_VAL_PLACEHOLDER}}} 0",
+                "max_input" : 10,
                 "adjust_warmup" : True
             },
             "koka" : {
