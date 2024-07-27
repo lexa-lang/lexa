@@ -21,16 +21,27 @@ def main() = ignore[WrongFormat] {commandLineArgs() match {
 }
 """
 
-def print_message(message):
-    print(f"{'='*len(message)}\n{message}\n{'='*len(message)}")
+def print_message(message, short=False):
+    if short:
+        print(f"=> {message} <=")
+    else:
+        print(f"{'='*len(message)}\n{message}\n{'='*len(message)}")
 
-def run_processes(commands, cwd):
-    with ThreadPoolExecutor(max_workers=len(CPUs)) as executor:
-        results = executor.map(
-            lambda c: 
-                subprocess.run(c, check=True, text=True, capture_output=True, shell=True, cwd=cwd), 
-            commands)
-    return results
+def run_processes(commands, cwd, seq=False):
+    if seq:
+        results = []
+        for command in commands:
+            print_message(f"Running {command}", short=True)
+            result = subprocess.run(command, check=True, text=True, capture_output=True, shell=True, cwd=cwd)
+            results.append(result)
+        return results
+    else:
+        with ThreadPoolExecutor(max_workers=len(CPUs)) as executor:
+            results = executor.map(
+                lambda c: 
+                    subprocess.run(c, check=True, text=True, capture_output=True, shell=True, cwd=cwd), 
+                commands)
+        return results
 
 def parse_output(output_file):
     pairs = []
@@ -66,7 +77,7 @@ def build_and_bench(path, build_command, run_command, max_input, num_input, resu
     taskset_cmd = f"taskset -c {','.join(CPUs)}     {{}}     "
     hyperfine_cmd = f"hyperfine --shell none --warmup 3 --time-unit second '{taskset_cmd}'"
     commands = [hyperfine_cmd.format(run_command.replace(f"{{{IN_VAL_PLACEHOLDER}}}", str(i))) for i in range(0, max_input, int(max_input / num_input))]
-    results = run_processes(commands, path)
+    results = run_processes(commands, path, seq=True)
     with open(result_file, 'w') as f:
         for command, result in zip(commands, results):
             time_sec = re.search(r"Time \(mean ± σ\):\s+(\d+\.\d+) s", result.stdout).group(1)
@@ -115,20 +126,20 @@ def main():
             #     "max_input" : 3000,
             #     "fail_reason" : "Koka internal compiler error",
             # },
-            # "ocaml" : {
-            #     "build" : "opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml",
-            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-            #     "max_input" : 100000,
-            # }
+            "ocaml" : {
+                "build" : "opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml",
+                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+                "max_input" : 1000,
+            }
         },
 
 
         "resume_nontail_with_stack_growth" : {
-            "lexi" : {
-                "build" : "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main",
-                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 60000,
-            },
+            # "lexi" : {
+            #     "build" : "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main",
+            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
+            #     "max_input" : 60000,
+            # },
             # "effekt" : {
             #     "build" : "effekt_latest.sh --backend ml --compile main.effekt",
             #     # 0 in the run command is a dummy second argument to tell the program to measure its internal timing
@@ -159,7 +170,7 @@ def main():
                 continue
             path = f"../../benchmark-programs/{sys}/{bench}"
             result_file = f"{sys}_{bench}.csv"
-            num_input = 20
+            num_input = 10
             build_and_bench(path, cmds["build"], cmds["run"], cmds["max_input"], num_input, result_file)
             overhead_sec = 0
             if "adjust_warmup" in cmds:
