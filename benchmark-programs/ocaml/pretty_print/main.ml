@@ -61,9 +61,18 @@ let run n =
     continue k 0);
   !result
 
+let repeat n =
+  let rec loop i acc =
+    if i = 0 then
+      acc
+    else
+      let r = run n in
+      loop (i - 1) (acc + r) in
+  loop 300 0
+
 let main () =
   let n = try int_of_string (Sys.argv.(1)) with _ -> 5 in
-  let r = run n in
+  let r = repeat n in
   Printf.printf "%d\n" r
 
 let _ = main ()

@@ -2,13 +2,13 @@ module main
 
 import std/os/env
 import std/text/parse
+import std/num/int64
 
 effect emit
-  fun emit(i: int) : ()
+  ctl emit(i: int) : ()
 
 effect value
   fun get() : int
-
 
 val constant = 0
 val newline = 10
@@ -37,10 +37,7 @@ fun make(n : int) : div node
     While(Constant, make(n - 1))
 
 fun indent(n : int)
-  var i := 0
-  while {i < n}
-    emit(space)
-    i := i + 1
+  emit(space * n)
 
 fun visit(n : node): <emit,div,value> ()
   val l = get()
@@ -67,14 +64,25 @@ fun visit(n : node): <emit,div,value> ()
 fun run(n : int)
   var result := 0
   with handler
-    fun emit(i) result := result + i
+    raw ctl emit(i)
+      result := result + i
+      rcontext.resume(())
   with handler
     fun get() 0
   val ast = make(n)
   visit(ast)
   result
 
+fun repeat(n : int)
+  fun step(i, acc)
+    if i == 0 then
+      acc
+    else
+      val r = run(n)
+      step(i - 1, acc + r)
+  step(300, 0)
+
 pub fun main()
   val n = get-args().head("").parse-int().default(5)
-  val r = run(n)
+  val r = repeat(n)
   println(r)

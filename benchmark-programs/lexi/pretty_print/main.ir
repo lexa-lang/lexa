@@ -30,11 +30,7 @@ def make(n) {
 }
 
 def indent(n, emit_stub) {
-    if n > 0 then
-        raise emit_stub.emit (space());
-        indent(n - 1, emit_stub)
-    else
-        0
+    raise emit_stub.emit (n*space())
 }
 
 def visit_get_body(env, get_stub) {
@@ -71,21 +67,26 @@ def visit(n, emit_stub, get_stub) {
 def emit_body(env, emit_stub) {
     val ast = env[0];
     val result = env[1];
-    val get_stub = env[2];
+    val seed = env[2];
+    val get_stub = env[3];
     visit(ast, emit_stub, get_stub)
 }
 
 obj emitter(env) {
     def emit(i) {
         val result = env[1];
-        result[0] := result[0] + i
+        val seed = env[2];
+        seed[0] := (seed[0] * 1103515245 + 12345) % 2147483648;
+        val rand = (seed[0] / 65536) % 32768;
+        result[0] := result[0] + i * rand
     }
 }
 
 def get_body(env, get_stub) {
     val ast = env[0];
     val result = env[1];
-    handle {ast, result, get_stub}
+    val seed = newref {1};
+    handle {ast, result, seed, get_stub}
         emit_body
     with emitter: Emit
 }
