@@ -1,0 +1,45 @@
+effect State {
+    dcl get
+    dcl set
+}
+
+def countdown(state_stub) {
+    val i = raise state_stub.get 0;
+    if i == 0 then
+        i
+    else
+        (raise state_stub.set(i-1);
+        countdown(state_stub))
+}
+
+obj state(env) {
+    def get(_) { 
+        env[0][0]
+    }
+
+    def set(i) {
+        env[0][0] := i;
+        0
+    }
+}
+
+def body(env, state_stub) {
+    countdown(state_stub)
+}
+
+def work(acc, storage) {
+    
+}
+
+def run(n) {
+    val acc = newref {0};
+    val storage = newref {0};
+    handle {s}
+        body
+    with state: State
+}
+
+def main() {
+    ~printInt(run(~readInt()));
+    0
+}
