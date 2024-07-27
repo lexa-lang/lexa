@@ -13,44 +13,36 @@ def countdown(state_stub) {
         countdown(state_stub)
 }
 
-obj state1(env) {
-    def get(_) { 
-        val s = env[0];
-        s[0]
-    }
-
-    def set(i) { 
-        val s = env[0];
-        s[0] := i;
-        0
-    }
-}
-
-obj state2(env) {
-    def get(_) { 
-        val s = env[0];
-        s[0]
-    }
-
-    def set(i) { 
-        val s = env[0];
-        s[0] := i;
-        0
-    }
-}
-
 def body(env, state_stub) {
     countdown(state_stub)
 }
 
 def run(n) {
     val s = newref {n};
-    (handle {s}
-        body
-    with state1: State);
-    handle {s}
-        body
-    with state2: State
+    handle {
+        countdown(state1_stub)
+    } with state1_stub: State {
+        def get(_) { 
+            s[0]
+        }
+
+        def set(i) { 
+            s[0] := i;
+            0
+        }
+    };
+    handle {
+        countdown(state2_stub)
+    } with state2_stub: State {
+        def get(_) { 
+            s[0]
+        }
+
+        def set(i) { 
+            s[0] := i;
+            0
+        }
+    }
 }
 
 def main() {

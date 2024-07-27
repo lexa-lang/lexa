@@ -31,24 +31,16 @@ def explore(state, tree, choice_stub) {
         operator(arg2, arg3)
 }
 
-obj choice(env) {
-    hdl_s choose(_, k) {
-        val arg1 = resume k true;
-        val arg2 = resume_final k false;
-        ~listAppend(arg1, arg2)
-    }
-}
-
-def body(env, choice_stub) {
-    val arg1 = env[0];
-    val arg2 = env[1];
-    ~listNode(explore(arg1, arg2, choice_stub), ~listEnd())
-}
-
 def paths(state, tree) {
-    handle {state, tree}
-        body
-    with choice: Choice
+    handle {
+            ~listNode(explore(state, tree, choice_stub), ~listEnd())
+    } with choice_stub: Choice {
+        hdl_s choose(_, k) {
+            val arg1 = resume k true;
+            val arg2 = resume_final k false;
+            ~listAppend(arg1, arg2)
+        }        
+    }
 }
 
 def loop(state, tree, i) {

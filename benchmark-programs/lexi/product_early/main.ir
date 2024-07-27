@@ -22,21 +22,19 @@ def enumerate(i) {
         ~listNode(i, enumerate(i - 1))
 }
 
-obj abort(env) {
-    exc done(r) {
-        r
-    }
-}
-
 def body(env, abort_stub) {
     val arg1 = env[0];
     product(arg1, abort_stub)
 }
 
 def runProduct(xs) {
-    handle {xs}
-        body
-    with abort: Abort
+    handle {
+        product(xs, abort_stub)
+    } with abort_stub: Abort {
+        exc done(r) {
+            r
+        }
+    }
 }
 
 def loop(xs, i, a) {

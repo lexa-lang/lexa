@@ -123,8 +123,12 @@ and gen_c_dec (dec : c_dec) : string =
 and gen_params params =
   String.concat "," (List.map (fun (t, v) -> ((gen_c_type t) ^ " " ^ v)) params)
 
-and gen_args l =
-  "(" ^ String.concat "," (List.map (fun x -> gen_expr x) l) ^ ")"
+and gen_args ?(cast = false) l =
+  if cast then
+    sprintf "(%s)" 
+      (String.concat ", " (List.map (fun x -> "(i64)" ^ (gen_expr x)) l))
+  else
+    "(" ^ String.concat "," (List.map (fun x -> gen_expr x) l) ^ ")"
 
 and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
   let s = (match e with
@@ -184,19 +188,20 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
         sprintf "((i64*)%s)[%s]" (gen_expr e1) (gen_expr e2)
     | Set (e1, e2, e3) ->
         sprintf "((i64*)%s)[%s] = %s" (gen_expr e1) (gen_expr e2) (gen_expr e3) 
-    | Hdl (env_list, body_var, obj_name, effsig) ->
-        let hdl_list = lookup_eff_sig_dcls effsig (get_eff_sig_env !env) in
+    | Handle {env = handle_env; body_name; obj_name; sig_name} ->
+        let hdl_list = lookup_eff_sig_dcls sig_name (get_eff_sig_env !env) in
         let hdl_str = "(" ^ (String.concat ", " (List.map 
           (fun name -> 
             let hdl_type = lookup_hdl_type name (get_eff_type_env !env) in
             let hdl_name = obj_name ^ "_" ^ name in
               (sprintf "{%s, %s}" hdl_type hdl_name)) hdl_list)) ^ ")" in
-        let env_str = "(" ^ String.concat ", " env_list ^ ")" in
-        sprintf "HANDLE(%s, %s, %s)" body_var hdl_str env_str
+        let env_str = sprintf "(%s)" 
+          (String.concat ", " (List.map (fun x -> "(i64)" ^ x) handle_env)) in
+        sprintf "HANDLE(%s, %s, %s)" body_name hdl_str env_str
     | Raise (stub, hdl, args) ->
-        sprintf "RAISE(%s, %s, %s)" stub hdl (gen_args args)
-    | Resume (k, e) -> sprintf "THROW(%s, %s)" k (gen_expr e)
-    | ResumeFinal (k, e) -> sprintf "FINAL_THROW(%s, %s)" k (gen_expr e)
+        sprintf "RAISE(%s, %s, %s)" (gen_expr stub) hdl (gen_args args ~cast:true)
+    | Resume (k, e) -> sprintf "THROW(%s, %s)" (gen_expr k) (gen_expr e)
+    | ResumeFinal (k, e) -> sprintf "FINAL_THROW(%s, %s)" (gen_expr k) (gen_expr e)
     | Closure ({ entry = entry_name; fv = free_vars }) ->
       let fv_creation : string =
         if Varset.is_empty free_vars then
@@ -286,7 +291,7 @@ let rec fun_type_pass (toplevel : top_level list) : fun_type_env =
     match t with
     | Let (_, t1, t2) -> (get_handle_bodies t1) @ (get_handle_bodies t2)
     | If (_, t1, t2) -> (get_handle_bodies t1) @ (get_handle_bodies t2)
-    | Hdl (_, body_name, _, _) -> [body_name]
+    | Handle {body_name; _} -> [body_name]
     | _ -> []
   in
   match toplevel with

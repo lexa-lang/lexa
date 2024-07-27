@@ -1,0 +1,25 @@
+effect E {
+    dcl e
+}
+
+def main() {
+    val k1 = f(10);
+    val k2 = f(20);
+    resume (if ~readInt() then k1 else k2) 0;
+    0
+}
+
+def f(x) {
+    val r = newref {0};
+    handle {
+        raise e_stub.e 0;
+        ~printInt(x);
+        0
+    } with e_stub: E {
+        hdl_1 e(_, k) {
+            r[0] := k;
+            0
+        }
+    };
+    r[0]
+}

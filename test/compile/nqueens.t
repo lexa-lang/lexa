@@ -8,11 +8,11 @@
   #include <defs.h>
   #include <datastructure.h>
   
+  static i64 __handle_body_lifted_6__(i64,i64);
   FAST_SWITCH_DECORATOR
-   i64 search_pick(i64*,i64,i64);
-   i64 search_fail(i64*,i64);
-  static i64 __loop_lifted_5__(i64,i64,i64,i64,i64);
-  static i64 body(i64,i64);
+   i64 __search_stub_lifted_7___pick(i64*,i64,i64);
+   i64 __search_stub_lifted_7___fail(i64*,i64);
+  static i64 __loop_lifted_4__(i64,i64,i64,i64,i64);
   static i64 __run_lifted_3__(i64,i64);
   static i64 __place_lifted_2__(i64,i64,i64,i64);
   static i64 __safe_lifted_1__(i64,i64,i64,i64);
@@ -32,38 +32,23 @@
   
   static i64 __place_lifted_2__(i64 __env__,i64 size,i64 column,i64 search_stub) {
   return(((column == 0) ? (((i64)(listEnd()))) : ({i64 rest = (i64)(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)(0,size,(column - 1),search_stub));
-  ({i64 next = (i64)(RAISE(search_stub, pick, (size)));
-  ((((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)(0,next,1,rest)) ? (((i64)(listNode((int64_t)next, (node_t*)rest)))) : (RAISE(search_stub, fail, (0))));});})));
+  ({i64 next = (i64)(RAISE(search_stub, pick, ((i64)size)));
+  ((((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)(0,next,1,rest)) ? (((i64)(listNode((int64_t)next, (node_t*)rest)))) : (RAISE(search_stub, fail, ((i64)0))));});})));
   }
   
   static i64 __run_lifted_3__(i64 __env__,i64 n) {
-  return((HANDLE(body, ({MULTISHOT, search_pick}, {ABORT, search_fail}), (n))));
+  return((HANDLE(__handle_body_lifted_6__, ({MULTISHOT, __search_stub_lifted_7___pick}, {ABORT, __search_stub_lifted_7___fail}), ((i64)loop, (i64)n, (i64)place))));
   }
   
-  static i64 body(i64 env,i64 search_stub) {
-  return(({i64 n = (i64)(((i64*)env)[0]);
-  ({(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)(0,n,n,search_stub));
-  1;});}));
-  }
-  
-  static i64 __loop_lifted_5__(i64 __env__,i64 i,i64 a,i64 size,i64 k) {
+  static i64 __loop_lifted_4__(i64 __env__,i64 i,i64 a,i64 size,i64 k) {
   return(((i == size) ? (a + (FINAL_THROW(k, i))) : (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_5__)(0,(i + 1),(a + (THROW(k, i))),size,k); 0;}))));
-  }
-  
-   i64 search_fail(i64* env,i64 _) {
-  return(0);
-  }
-  
-  FAST_SWITCH_DECORATOR
-   i64 search_pick(i64* env,i64 size,i64 k) {
-  return((((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_5__)(0,1,0,size,k)));
+   return ((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_4__)(0,(i + 1),(a + (THROW(k, i))),size,k); 0;}))));
   }
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
   loop = malloc(sizeof(closure_t));
-  loop->func_pointer = (i64)__loop_lifted_5__;
+  loop->func_pointer = (i64)__loop_lifted_4__;
   loop->env = (i64)NULL;
   run = malloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_3__;
@@ -81,3 +66,26 @@
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}
+   i64 __search_stub_lifted_7___fail(i64* __env__,i64 _) {
+  return(({i64 loop = (i64)(((i64*)__env__)[0]);
+  ({i64 n = (i64)(((i64*)__env__)[1]);
+  ({i64 place = (i64)(((i64*)__env__)[2]);
+  0;});});}));
+  }
+  
+  FAST_SWITCH_DECORATOR
+   i64 __search_stub_lifted_7___pick(i64* __env__,i64 size,i64 k) {
+  return(({i64 loop = (i64)(((i64*)__env__)[0]);
+  ({i64 n = (i64)(((i64*)__env__)[1]);
+  ({i64 place = (i64)(((i64*)__env__)[2]);
+  (((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_4__)(0,1,0,size,k));});});}));
+  }
+  
+  static i64 __handle_body_lifted_6__(i64 __env__,i64 search_stub) {
+  return(({i64 loop = (i64)(((i64*)__env__)[0]);
+  ({i64 n = (i64)(((i64*)__env__)[1]);
+  ({i64 place = (i64)(((i64*)__env__)[2]);
+  ({(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)(0,n,n,search_stub));
+  1;});});});}));
+  }
+  
