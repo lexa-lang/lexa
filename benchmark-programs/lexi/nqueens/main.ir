@@ -29,15 +29,15 @@ def place(size, column, search_stub) {
 }
 
 def run(n) {
-    handle {n}
-        body
-    with search: Search
-}
-
-def body(env, search_stub) {
-    val n = env[0];
-    place(n, n, search_stub);
-    1
+    handle {
+        place(n, n, search_stub);
+        1
+    } with search_stub: Search {
+        exc fail(_) { 0 }
+        hdl_s pick(size, k) {
+            loop(1, 0, size, k)
+        }
+    }
 }
 
 def loop(i, a, size, k) {
@@ -45,13 +45,6 @@ def loop(i, a, size, k) {
         a + resume_final k i
     else
         loop(i + 1, a + resume k i, size, k)
-}
-
-obj search(env) {
-    exc fail(_) { 0 }
-    hdl_s pick(size, k) {
-        loop(1, 0, size, k)
-    }
 }
 
 def main() {

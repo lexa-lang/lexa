@@ -8,6 +8,12 @@ effect Behead {
     dcl behead
 }
 
+def loop_body_2(env, behead_stub) {
+    val it_tail = env[0];
+    val yield_stub = env[1];
+    loop(it_tail, yield_stub, behead_stub)
+}
+
 def loop_body_1(env, replace_stub) {
     val it = env[0];
     val yield_stub = env[1];
@@ -16,40 +22,29 @@ def loop_body_1(env, replace_stub) {
     raise yield_stub.yield v behead_stub replace_stub
 }
 
-obj replace_loop(env) {
-    def replace(x) {
-        val it = env[0];
-        ~listSetHead(it, x)
-    }
-}
-
-def loop_body_2(env, behead_stub) {
-    val it_tail = env[0];
-    val yield_stub = env[1];
-    loop(it_tail, yield_stub, behead_stub)
-}
-
-obj loop_behead(env) {
-    def behead(_) {
-        val it = env[0];
-        val beheaded = env[2];
-        beheaded[0] := 1
-    }
-}
 
 def loop(it, yield_stub, behead_stub) {
-    handle {it, yield_stub, behead_stub}
-            loop_body_1
-        with replace_loop: Replace;
+    handle { 
+        val v = ~listHead(it);
+        raise yield_stub.yield v behead_stub replace_stub                
+    } with replace_stub: Replace {
+        def replace(x) {
+            ~listSetHead(it, x)
+        }
+    };
     val it_tail = ~listTail(it);
     val beheaded = newref {0};
     val newtl = 
         if ~listIsEmpty(it_tail) then
             ~listEnd()
         else
-            handle {it_tail, yield_stub, beheaded}
-                loop_body_2
-            with loop_behead: Behead;
+            handle {
+                loop(it_tail, yield_stub, behead_stub)
+            } with behead_stub: Behead {
+                def behead(_) {
+                    beheaded[0] := 1
+                }                
+            };
     val tobehead = beheaded[0];
     val _ =
         if tobehead then
@@ -67,29 +62,6 @@ def body_main_2(env, yield_stub) {
     loop(l, yield_stub, behead_stub)
 }
 
-obj yield_main(env) {
-    def yield(x, behead_stub, replace_stub) {
-        if x < 0 then
-            raise behead_stub.behead 0
-        else
-            raise replace_stub.replace (x * 2)
-    }
-}
-
-def body_main_1(env, behead_stub) {
-    val l = env[0];
-    handle {behead_stub, l}
-        body_main_2
-    with yield_main: Yield
-}
-
-obj behead_main(env) {
-    def behead(_) {
-        val beheaded = env[1];
-        beheaded[0] := 1
-    }
-}
-
 def listSum(l, acc) {
     if ~listIsEmpty(l) then
         acc
@@ -101,9 +73,22 @@ def run(n) {
     val l = ~listRange(0 - n, n);
     val beheaded = newref {0};
     val newtl = 
-        handle {l, beheaded}
-            body_main_1
-        with behead_main: Behead;
+        handle {
+            handle {
+                loop(l, yield_stub, behead_main_stub)
+            } with yield_stub: Yield {
+                def yield(x, behead_stub, replace_stub) {
+                    if x < 0 then
+                        raise behead_stub.behead 0
+                    else
+                        raise replace_stub.replace (x * 2)
+                }
+            }            
+        } with behead_main_stub: Behead {
+            def behead(_) {
+                beheaded[0] := 1
+            }            
+        };
     val tobehead = beheaded[0];
     val res =
         if tobehead then

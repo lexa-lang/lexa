@@ -2,18 +2,6 @@ effect Choose {
     dcl choose
 }
 
-obj choose_left(env) {
-    def choose(p) {
-        p[0]
-    }
-}
-
-obj choose_right(env) {
-    def choose(p) {
-        p[1]
-    }
-}
-
 def main() {
     val x = ~readInt();
     ~printInt(f(x));
@@ -21,19 +9,18 @@ def main() {
 }
 
 def f(x) {
-    handle {x}
-        l_body
-    with choose_left: Choose
-}
-
-def l_body(env, left_stub) {
-    val x = env[0];
-    handle {x, left_stub}
-        r_body
-    with choose_right: Choose
-}
-
-def r_body(env, right_stub) {
-    val p = newref {10,20};
-    raise (if env[0] then env[1] else right_stub).choose p
+    handle {
+        handle {
+            val p = newref {10,20};
+            raise (if x then left_stub else right_stub).choose p
+        } with right_stub: Choose {
+            def choose(p) {
+                p[1]
+            }            
+        }
+    } with left_stub: Choose {
+        def choose(p) {
+            p[0]
+        }
+    }
 }

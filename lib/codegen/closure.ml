@@ -28,7 +28,11 @@ let rec free_var (e : Syntax.expr) : Varset.t =
   | Syntax.Set (e1, e2, e3) -> Varset.((free_var e1) @@@ (free_var e2) @@@ (free_var e3))
   | Syntax.Raise (stub, _, args) -> Varset.((union_map free_var args) @@@ (free_var stub))
   | Syntax.Resume (k, e) | Syntax.ResumeFinal (k, e) -> Varset.(free_var e @@@ (free_var k))
-  | Syntax.Hdl (xs, _, _, _) -> Varset.of_list xs
+  | Syntax.Handle {handle_body; stub; handler_defs; _} ->
+    let handler_fvs = Varset.union_map 
+      (fun (_, _, params, hdl_body) -> Varset.(diff (free_var hdl_body) (of_list params))) handler_defs in
+    let hdler_names = List.map (fun (_, name, _, _) -> name) handler_defs in
+    Varset.((diff (free_var handle_body) (of_list (stub :: hdler_names))) @@@ handler_fvs)
   | Syntax.Fun (params, body) -> Varset.(diff (free_var body) (of_list params))
   | Syntax.Stmt (e1, e2) -> Varset.union (free_var e1) (free_var e2)
   | Syntax.Recdef (fundefs, e) ->
@@ -62,7 +66,24 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
   | Syntax.Raise (s, v2, es) -> Raise (convert_expr s env, v2, List.map (fun x -> convert_expr x env) es)
   | Syntax.Resume (k, e) -> Resume (convert_expr k env, convert_expr e env)
   | Syntax.ResumeFinal (k, e) -> ResumeFinal (convert_expr k env, convert_expr e env)
-  | Syntax.Hdl (env_vars, stub, hdl_name, body) -> Hdl (env_vars, stub, hdl_name, body)
+  | Syntax.Handle {handle_body; stub; sig_name; handler_defs} -> 
+    let handle_body' = convert_expr handle_body Varset.(env |> add stub) in
+    let body_lifted_name = gen_lifted_name "handle_body" in
+    let obj_lifted_name = gen_lifted_name stub in
+    let fvs = free_var e in
+    let body_fv_opened = open_env (Varset.to_list fvs) handle_body' in
+    let lifted_body = TLAbs (body_lifted_name, ["__env__"; stub], body_fv_opened) in
+    extra_toplevels := lifted_body :: !extra_toplevels;
+
+    let convert_hdl (anno, hdl_name, params, hdl_body) =
+      (anno, hdl_name, params, open_env (Varset.to_list fvs) (convert_expr hdl_body Varset.(union (of_list params) env))) in
+    let handler_defs' = List.map convert_hdl handler_defs in
+    let lifted_obj = TLObj (obj_lifted_name, ["__env__"], handler_defs') in
+    extra_toplevels := lifted_obj :: !extra_toplevels;
+    Handle { env = Varset.to_list fvs; 
+             body_name = body_lifted_name;
+             obj_name = obj_lifted_name;
+             sig_name }
   | Syntax.Let (x, e1, e2) -> Let (x, convert_expr e1 env, convert_expr e2 Varset.(env |> add x))
   | Syntax.If (e1, e2, e3) -> If (convert_expr e1 env, convert_expr e2 env, convert_expr e3 env)
   | Syntax.Stmt (e1, e2) -> Stmt (convert_expr e1 env, convert_expr e2 env)
@@ -113,46 +134,12 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
         (* Function name is not in the environment, callee must be a top level function *)
         let lifted_name = (List.assoc name !toplevel_lifted_name_map) in
         (* Pass 0 as the closure environment argument *)
-        App(Var lifted_name, Int 0 :: (List.map (fun x -> convert_expr x env) es))
+        App (Var lifted_name, Int 0 :: (List.map (fun x -> convert_expr x env) es))
       else
         AppClosure(convert_expr e env, List.map (fun x -> convert_expr x env) es)
     | _ -> AppClosure(convert_expr e env, List.map (fun x -> convert_expr x env) es))
     
-
-let rec handle_bodies_tl (tl : Syntax.top_level) : var list =
-  match tl with
-  | Syntax.TLAbs (_, _, body) -> handle_bodies_e body
-  | Syntax.TLEffSig (_, _) -> []
-  | Syntax.TLObj (_, _, l) -> 
-    List.concat_map (fun (_, _, _, body) -> handle_bodies_e body) l
-
-(* Identify all the handle bodies, as they do not have the additional
-    environment parameter *)
-and handle_bodies_e (e : Syntax.expr) : var list =
-  match e with
-  | Syntax.Arith (e1, _, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-  | Syntax.Cmp (e1, _, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-  | Syntax.Let (_, e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-  | Syntax.If (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
-  | Syntax.App (e, args) -> handle_bodies_e e @ (List.concat_map (fun x -> handle_bodies_e x) args)
-  | Syntax.New hv -> List.concat_map (fun x -> handle_bodies_e x) hv
-  | Syntax.Get (e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-  | Syntax.Set (e1, e2, e3) -> handle_bodies_e e1 @ handle_bodies_e e2 @ handle_bodies_e e3
-  | Syntax.Raise (stub, _, args) -> (handle_bodies_e stub) @ (List.concat_map (fun x -> handle_bodies_e x) args)
-  | Syntax.Resume (k, e) | ResumeFinal (k, e) -> (handle_bodies_e k) @ (handle_bodies_e e)
-  | Syntax.Fun (_, e) ->
-    handle_bodies_e e
-  | Syntax.Recdef (fls, e) -> 
-    (List.concat_map (fun ({body; _} : Syntax.fundef) -> handle_bodies_e body) fls) @ handle_bodies_e e
-  | Syntax.Hdl (_, body, _, _) -> [body]
-  | Syntax.Prim _ -> []
-  | Syntax.Int _ -> []
-  | Syntax.Bool _ -> []
-  | Syntax.Var _ -> []
-  | Syntax.Stmt (e1, e2) -> handle_bodies_e e1 @ handle_bodies_e e2
-
 let closure_convert_toplevels (tls : Syntax.top_level list) =
-  let handle_bodies = List.concat_map (fun x -> handle_bodies_tl x) tls in
   let toplevel_closures = ref [] in
   List.iter (fun tl -> (match tl with
   | Syntax.TLAbs (name, _, _) -> 
@@ -164,20 +151,12 @@ let closure_convert_toplevels (tls : Syntax.top_level list) =
       if name = "main" then
         TLAbs (name, params, convert_expr body (Varset.of_list params))
       else
-        (* Closures for toplevel functions except for handle bodies (before closure conversion) *)
-        if List.mem name handle_bodies then
-          TLAbs (name, params, convert_expr body (Varset.of_list params)) 
-        else
-          let lifted_name = (List.assoc name !toplevel_lifted_name_map) in
-          toplevel_closures := (name, lifted_name) :: !toplevel_closures;
-          TLAbs (lifted_name, ("__env__" :: params), convert_expr body (Varset.of_list params))
+        let lifted_name = (List.assoc name !toplevel_lifted_name_map) in
+        toplevel_closures := (name, lifted_name) :: !toplevel_closures;
+        TLAbs (lifted_name, ("__env__" :: params), convert_expr body (Varset.of_list params))
     | Syntax.TLEffSig (name, dcls) ->
       TLEffSig (name, dcls)
-    | Syntax.TLObj (name, obj_params, hdls) ->
-      let hdls_converted (anno, name, params, body) = 
-        (anno, name, params, convert_expr body (Varset.of_list params)) in
-      TLObj (name, obj_params, List.map hdls_converted hdls)
   in
   let converted_original_toplevels = (List.map closure_convert_toplevel tls) in
-  (!extra_toplevels @ converted_original_toplevels, !toplevel_closures)
+  (converted_original_toplevels @ !extra_toplevels, !toplevel_closures)
       
