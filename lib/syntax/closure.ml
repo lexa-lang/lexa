@@ -2,7 +2,14 @@ open Common
 
 type closure = { entry : var; fv : Varset.t }
 
-type t = (* expressions AFTER closure conversion *)
+type hdl = hdl_anno * var * var list * t
+
+and handle = { env : var list;
+               body_name: var;
+               obj_name : var;
+               sig_name : var }
+
+and t = (* expressions AFTER closure conversion *)
   | Var of var
   | Int of int
   | Bool of bool
@@ -15,15 +22,13 @@ type t = (* expressions AFTER closure conversion *)
   | Raise of t * var * t list
   | Resume of t * t
   | ResumeFinal of t * t
-  | Hdl of var list * var * var * var
+  | Handle of handle
   | Closure of closure
   | AppClosure of t * t list
   | App of t * t list
   | Let of var * t * t
   | If of t * t * t
   | Stmt of t * t
-
-type hdl = hdl_anno * var * var list * t
 
 type top_level =
   | TLAbs of var * var list * t

@@ -1,5 +1,6 @@
 %{
   open Syntax
+  open Syntax__Common
   open Stdlib
 %}
 // %token NEWLINE
@@ -45,7 +46,6 @@
 %token EXC
 %token HDL1
 %token HDLS
-%token OBJ
 %token RESUME
 %token RESUMEFINAL
 %token PERC
@@ -76,8 +76,6 @@ top_level:
   | DEF name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN 
       LCB e = expr RCB { TLAbs (name, params, e) }
   | EFFECT name = SIG LCB l = list(effect_sig) RCB { TLEffSig (name, l) }
-  | OBJ name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN 
-      LCB l = list(hdl_def) RCB { TLObj (name, params, l) }
       
 effect_sig:
   | DCL v = VAR { v }
@@ -122,7 +120,8 @@ expr:
   | RAISE stub = simple_expr DOT hdl = VAR params = list(simple_expr) { Raise (stub, hdl, params) }
   | RESUME k = simple_expr v = simple_expr { Resume (k, v) }
   | RESUMEFINAL k = simple_expr v = simple_expr { ResumeFinal (k, v) }
-  | HANDLE LCB env = separated_list(COMMA, VAR) RCB body = VAR WITH obj = VAR COLON sig_name = SIG { Hdl (env, body, obj, sig_name) }
+  | HANDLE LCB handle_body = expr RCB WITH stub = VAR COLON sig_name = SIG LCB handler_defs = list(hdl_def) RCB 
+    { Handle {handle_body; stub; sig_name; handler_defs} }
   | FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB { Fun (params, body) }
   | REC DEF fs = separated_list(AND, recfun) SEMICOLON e = expr { Recdef (fs, e) }
   | e1 = expr SEMICOLON e2 = expr %prec STMT { Stmt (e1, e2) }

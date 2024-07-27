@@ -51,7 +51,6 @@ rule read =
   | "dcl" { DCL }
   | "effect" { EFFECT }
   | "exc" { EXC }
-  | "obj" { OBJ }
   | "." { DOT }
   | "hdl_1" { HDL1 }
   | "hdl_s" { HDLS }

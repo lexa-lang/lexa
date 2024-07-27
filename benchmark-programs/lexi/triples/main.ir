@@ -23,26 +23,18 @@ def triple(n, s, choice_stub) {
         raise choice_stub.fail 0
 }
 
-def body(env, choice_stub) {
-    val n = env[0];
-    val s = env[1];
-    triple(n, s, choice_stub)
-}
-
-obj choice(env) {
-    exc fail(_) {
-        0
-    }
-
-    hdl_s flip(_, k) {
-        (resume k true + resume_final k false) % 1000000007
-    }
-}
-
 def run(n, s) {
-    handle {n, s}
-        body
-    with choice: Choice
+    handle {
+        triple(n, s, choice_stub)
+    } with choice_stub: Choice {
+        exc fail(_) {
+            0
+        }
+
+        hdl_s flip(_, k) {
+            (resume k true + resume_final k false) % 1000000007
+        }
+    }
 }
 
 def hash(a,b,c) {

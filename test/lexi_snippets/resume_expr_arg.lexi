@@ -2,20 +2,6 @@ effect E {
     dcl e
 }
 
-obj e_obj(env) {
-    hdl_1 e(_, k) {
-        env[0][0] := k;
-        0
-    }
-}
-
-def body(env, e_stub) {
-    val q = env[0];
-    raise e_stub.e 0;
-    ~printInt(env[1]);
-    0
-}
-
 def main() {
     val k1 = f(10);
     val k2 = f(20);
@@ -25,8 +11,15 @@ def main() {
 
 def f(x) {
     val r = newref {0};
-    handle {r, x}
-        body
-    with e_obj: E;
+    handle {
+        raise e_stub.e 0;
+        ~printInt(x);
+        0
+    } with e_stub: E {
+        hdl_1 e(_, k) {
+            r[0] := k;
+            0
+        }
+    };
     r[0]
 }

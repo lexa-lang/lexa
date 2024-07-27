@@ -2,12 +2,6 @@ effect E {
     dcl plus_42
 }
 
-obj e_obj(env) {
-    def plus_42(x) {
-        x + 42
-    }
-}
-
 def f() {
     val x = newref {0};
     x[0] := x[0] + 42;
@@ -16,15 +10,14 @@ def f() {
 
 def g() {
     val x = newref {0};
-    handle {x}
-        body
-    with e_obj : E;
+    handle {
+        x[0] := raise e_stub.plus_42 x[0]
+    } with e_stub : E {
+        def plus_42(y) {
+            y + 42
+        }
+    };
     x[0]
-}
-
-def body(env, e_stub) {
-    val x = env[0];
-    x[0] := raise e_stub.plus_42 x[0]
 }
 
 def main() {

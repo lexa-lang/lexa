@@ -2,51 +2,33 @@ effect Prime {
     dcl prime
 }
 
-obj prime(env) {
-    def prime(e) {
-        val i = env[0];
-        val r = env[3];
-        if (e % i) == 0 then
-            false
-        else
-            raise r.prime e
-    }
-}
-
-def primes_body(env, prime_stub) {
-    val i = env[0];
-    val n = env[1];
-    val a = env[2];
-    primes(prime_stub, i + 1, n, a + i)
-}
-
 def primes(prime_stub, i, n, a) {
     if i < n then
         if raise prime_stub.prime i then
-            handle {i, n, a, prime_stub}
-                primes_body
-            with prime: Prime
+            handle {
+                primes(new_prime_stub, i + 1, n, a + i)
+            } with new_prime_stub: Prime {
+                def prime(e) {
+                    if (e % i) == 0 then
+                        false
+                    else
+                        raise prime_stub.prime e
+                }                
+            }
         else
             primes(prime_stub, i + 1, n, a)
     else
         a
 }
 
-def body(env, prime_stub) {
-    val n = env[0];
-    primes(prime_stub, 2, n, 0)
-}
-
-obj prime_true(env) {
-    def prime(e) {
-        1
-    }
-}
-
 def run(n) {
-    handle {n}
-        body
-    with prime_true: Prime
+    handle {
+        primes(prime_true_stub, 2, n, 0)
+    } with prime_true_stub: Prime {
+        def prime(e) {
+            1
+        }        
+    }
 }
 
 def main() {

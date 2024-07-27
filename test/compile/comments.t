@@ -8,14 +8,9 @@
   #include <defs.h>
   #include <datastructure.h>
   
-  static i64 __make_adder_lifted_1__(i64,i64);
   static i64 __fun_lifted_3__(i64,i64);
+  static i64 __make_adder_lifted_1__(i64,i64);
   static closure_t* make_adder;
-  static i64 __fun_lifted_3__(i64 __env__,i64 b) {
-  return(({i64 a = (i64)(((i64*)__env__)[0]);
-  (a + b);}));
-  }
-  
   static i64 __make_adder_lifted_1__(i64 __env__,i64 a) {
   return(({i64 res = (i64)(({closure_t* __c__ = malloc(sizeof(closure_t));
   __c__->func_pointer = (i64)__fun_lifted_3__;
@@ -46,3 +41,8 @@
   0;});});});});
   destroy_stack_pool();
   return((int)__res__);}
+  static i64 __fun_lifted_3__(i64 __env__,i64 b) {
+  return(({i64 a = (i64)(((i64*)__env__)[0]);
+  (a + b);}));
+  }
+  
