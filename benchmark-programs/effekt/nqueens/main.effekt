@@ -10,7 +10,7 @@ interface Search {
   def fail(): Nothing
 }
 
-def safe(queen: Int, diag: Int, xs: Solution): Boolean =
+def safe(queen: Int, diag: Int, xs: Solution): Bool =
   xs match {
     case Nil() => true
     case Cons(q, qs) => if(queen != q && queen != q + diag && queen != q - diag) {

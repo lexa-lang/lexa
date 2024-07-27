@@ -5,7 +5,7 @@ import text/string
 
 record Triple(a: Int, b: Int, c: Int)
 
-effect Flip(): Boolean
+effect Flip(): Bool
 
 effect Fail(): Nothing
 
