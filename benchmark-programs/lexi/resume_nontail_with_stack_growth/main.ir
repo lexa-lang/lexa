@@ -1,0 +1,46 @@
+effect Operator {
+    dcl operator
+}
+
+def loop(i, s, operator_stub) {
+    if i == 0 then
+        s
+    else
+        (raise operator_stub.operator i;
+        loop(i - 1, s, operator_stub) + 1)
+}
+
+obj operator(env) {
+    hdl_1 operator(x, k) {
+        val y = resume_final k 0;
+        ~mathAbs(x - (503 * y) + 37) % 1009
+    }
+}
+
+def run(n, s) {
+    handle {n, s}
+        body
+    with operator: Operator
+}
+
+def body(env, operator_stub) {
+    val n = env[0];
+    val s = env[1];
+    loop(n, s, operator_stub)
+}
+
+def step(l, s, n) {
+    if l == 0 then
+        s
+    else
+        step(l - 1, run(n, s), n)
+}
+
+def repeat(n) {
+    step(1000, 0, n)
+}
+
+def main() {
+    ~printInt(repeat(~readInt()));
+    0
+}
