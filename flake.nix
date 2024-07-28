@@ -37,7 +37,6 @@
             gdb
             vim
             emacs
-            busybox
 
             mlton
             chez
