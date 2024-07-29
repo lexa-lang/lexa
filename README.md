@@ -1,18 +1,21 @@
 
-## Setup(Assuming you have a local devbox and have access to plg7a)
+## Setup(Assuming you have a local devbox and have access to plg2.cs.uwaterloo.ca)
 ### On Local Devbox
 1. Install VSCode and extention [Remote - SSH
 ](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
-2. Setup VSCode SSH extension with plg7a following [instructions](https://code.visualstudio.com/docs/remote/ssh#_connect-to-a-remote-host)
-3. Connect to plg7a
-4. Install additional extensions on plg7a: [direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) and [OCaml Platform](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform)
+2. Setup VSCode SSH extension with plg2 following [instructions](https://code.visualstudio.com/docs/remote/ssh#_connect-to-a-remote-host)
+3. Connect to plg2
+4. Install additional extensions on plg2: [direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) and [OCaml Platform](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform)
 
-### On plg7a
-1. SSH into plg7a
-2. Install `direnv` using `nix-env -iA nixpkgs.direnv` and hook it into your shell following [instructions](https://direnv.net/docs/hook.html)
-3. Restart your shell
-4. Clone this repo and `cd` into it
-5. Enable direnv: `direnv allow .`
+### On plg2
+1. SSH into plg2
+2. Clone this repo
+3. Move the custom nix binary at `./dev/bin/nix` into PATH
+4. Run `mkdir -p ~/.config/nix; echo 'experimental-features = nix-command flakes' > ~/.config/nix/nix.conf`
+5. Re-enter the shell, run `nix run nixpkgs#hello` and make sure there's no error
+6. Install `direnv`: `nix profile install nixpkgs#direnv`
+7. Hook up `direnv` with your shell following [instructions](https://direnv.net/docs/hook.html)
+8. Re-enter the shell
 
 ### Check if everything is setup correctly
 1. Run `dune build` to build the project
