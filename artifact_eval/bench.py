@@ -33,7 +33,7 @@ def test(platform):
 
 def bench(platform):
     print_message(f"Benchmarking {platform}...")
-    make_command = f"cd ../benchmark-programs/{platform}/ && taskset -c 1 make bench"
+    make_command = f"cd ../benchmark-programs/{platform}/ && taskset -c 0 make bench"
     subprocess.run(make_command, shell=True, check=True)
     pairs = parse_output(f"../benchmark-programs/{platform}/results.csv")
     with open(result_file, "a") as f:
