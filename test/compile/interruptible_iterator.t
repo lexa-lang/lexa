@@ -8,165 +8,130 @@
   #include <defs.h>
   #include <datastructure.h>
   
-  static i64 __handle_body_lifted_10__(i64,i64);
-   i64 __behead_stub_lifted_11___behead(i64*,i64);
-  static i64 __handle_body_lifted_12__(i64,i64);
-   i64 __replace_stub_lifted_13___replace(i64*,i64);
-  static i64 __handle_body_lifted_14__(i64,i64);
-   i64 __yield_stub_lifted_15___yield(i64*,i64,i64,i64);
-  static i64 __handle_body_lifted_16__(i64,i64);
-   i64 __behead_main_stub_lifted_17___behead(i64*,i64);
-  static i64 __repeat_lifted_8__(i64,i64);
-  static i64 __step_lifted_7__(i64,i64,i64,i64);
-  static i64 __run_lifted_6__(i64,i64);
-  static i64 __listSum_lifted_5__(i64,i64,i64);
-  static i64 __body_main_2_lifted_4__(i64,i64,i64);
-  static i64 __loop_lifted_3__(i64,i64,i64,i64);
-  static i64 __loop_body_1_lifted_2__(i64,i64,i64);
-  static i64 __loop_body_2_lifted_1__(i64,i64,i64);
+  static i64 __handle_body_lifted_7__(i64,i64);
+   i64 __behead_stub_lifted_8___behead(i64*,i64);
+  static i64 __handle_body_lifted_9__(i64,i64);
+   i64 __replace_stub_lifted_10___replace(i64*,i64);
+  static i64 __handle_body_lifted_11__(i64,i64);
+   i64 __yield_stub_lifted_12___yield(i64*,i64,i64,i64);
+  static i64 __handle_body_lifted_13__(i64,i64);
+   i64 __behead_main_stub_lifted_14___behead(i64*,i64);
+  static i64 __repeat_lifted_5__(i64,i64);
+  static i64 __step_lifted_4__(i64,i64,i64,i64);
+  static i64 __run_lifted_3__(i64,i64);
+  static i64 __listSum_lifted_2__(i64,i64,i64);
+  static i64 __loop_lifted_1__(i64,i64,i64,i64);
   static closure_t* repeat;
   static closure_t* step;
   static closure_t* run;
   static closure_t* listSum;
-  static closure_t* body_main_2;
   static closure_t* loop;
-  static closure_t* loop_body_1;
-  static closure_t* loop_body_2;
   enum Yield {yield};
   
   enum Replace {replace};
   
   enum Behead {behead};
   
-  static i64 __loop_body_2_lifted_1__(i64 __env__,i64 env,i64 behead_stub) {
-  return(({i64 it_tail = (i64)(((i64*)env)[0]);
-  ({i64 yield_stub = (i64)(((i64*)env)[1]);
-  (((i64(*)(i64, i64, i64, i64))__loop_lifted_3__)(0,it_tail,yield_stub,behead_stub));});}));
-  }
-  
-  static i64 __loop_body_1_lifted_2__(i64 __env__,i64 env,i64 replace_stub) {
-  return(({i64 it = (i64)(((i64*)env)[0]);
-  ({i64 yield_stub = (i64)(((i64*)env)[1]);
-  ({i64 behead_stub = (i64)(((i64*)env)[2]);
-  ({i64 v = (i64)(((i64)(listHead((node_t*)it))));
-  (RAISE(yield_stub, yield, ((i64)v, (i64)behead_stub, (i64)replace_stub)));});});});}));
-  }
-  
-  static i64 __loop_lifted_3__(i64 __env__,i64 it,i64 yield_stub,i64 behead_stub) {
-  return(({(HANDLE(__handle_body_lifted_12__, ({TAIL, __replace_stub_lifted_13___replace}), ((i64)behead_stub, (i64)it, (i64)yield_stub)));
+  static i64 __loop_lifted_1__(i64 __env__,i64 it,i64 yield_stub,i64 behead_stub) {
+  return(({(HANDLE(__handle_body_lifted_9__, ({TAIL, __replace_stub_lifted_10___replace}), ((i64)behead_stub, (i64)it, (i64)yield_stub)));
   ({i64 it_tail = (i64)(((i64)(listTail((node_t*)it))));
   ({i64 beheaded = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
   ((i64*)temp)[0] = (i64)0;
   temp;
   }));
-  ({i64 newtl = (i64)((((i64)(listIsEmpty((node_t*)it_tail)))) ? (((i64)(listEnd()))) : (HANDLE(__handle_body_lifted_10__, ({TAIL, __behead_stub_lifted_11___behead}), ((i64)beheaded, (i64)it_tail, (i64)loop, (i64)yield_stub))));
+  ({i64 newtl = (i64)((((i64)(listIsEmpty((node_t*)it_tail)))) ? (((i64)(listEnd()))) : (HANDLE(__handle_body_lifted_7__, ({TAIL, __behead_stub_lifted_8___behead}), ((i64)beheaded, (i64)it_tail, (i64)loop, (i64)yield_stub))));
   ({i64 tobehead = (i64)(((i64*)beheaded)[0]);
   ({i64 _ = (i64)(tobehead ? ({i64 tailtail = (i64)(((i64)(listTail((node_t*)newtl))));
   (((i64)(listSetTail((node_t*)it, (node_t*)tailtail))));}) : 0);
   it;});});});});});}));
   }
   
-  static i64 __body_main_2_lifted_4__(i64 __env__,i64 env,i64 yield_stub) {
-  return(({i64 behead_stub = (i64)(((i64*)env)[0]);
-  ({i64 l = (i64)(((i64*)env)[1]);
-  (((i64(*)(i64, i64, i64, i64))__loop_lifted_3__)(0,l,yield_stub,behead_stub));});}));
-  }
-  
-  static i64 __listSum_lifted_5__(i64 __env__,i64 l,i64 acc) {
+  static i64 __listSum_lifted_2__(i64 __env__,i64 l,i64 acc) {
   return(((((i64)(listIsEmpty((node_t*)l)))) ? acc : (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64))__listSum_lifted_5__)(0,(((i64)(listTail((node_t*)l)))),(acc + (((i64)(listHead((node_t*)l)))))); 0;}))));
+   return ((i64(*)(i64, i64, i64))__listSum_lifted_2__)(0,(((i64)(listTail((node_t*)l)))),(acc + (((i64)(listHead((node_t*)l)))))); 0;}))));
   }
   
-  static i64 __run_lifted_6__(i64 __env__,i64 n) {
+  static i64 __run_lifted_3__(i64 __env__,i64 n) {
   return(({i64 l = (i64)(((i64)(listRange((int64_t)(0 - n), (int64_t)n))));
   ({i64 beheaded = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
   ((i64*)temp)[0] = (i64)0;
   temp;
   }));
-  ({i64 newtl = (i64)(HANDLE(__handle_body_lifted_16__, ({TAIL, __behead_main_stub_lifted_17___behead}), ((i64)beheaded, (i64)l, (i64)loop)));
+  ({i64 newtl = (i64)(HANDLE(__handle_body_lifted_13__, ({TAIL, __behead_main_stub_lifted_14___behead}), ((i64)beheaded, (i64)l, (i64)loop)));
   ({i64 tobehead = (i64)(((i64*)beheaded)[0]);
   ({i64 res = (i64)(tobehead ? (((i64)(listTail((node_t*)newtl)))) : newtl);
-  (((i64(*)(i64, i64))__listSum_lifted_5__)(0,res));});});});});}));
+  (((i64(*)(i64, i64))__listSum_lifted_2__)(0,res));});});});});}));
   }
   
-  static i64 __step_lifted_7__(i64 __env__,i64 i,i64 acc,i64 n_jobs) {
+  static i64 __step_lifted_4__(i64 __env__,i64 i,i64 acc,i64 n_jobs) {
   return(((i == 0) ? acc : (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64, i64))__step_lifted_7__)(0,(i - 1),(acc + (((i64(*)(i64, i64))__run_lifted_6__)(0,n_jobs))),n_jobs); 0;}))));
+   return ((i64(*)(i64, i64, i64, i64))__step_lifted_4__)(0,(i - 1),(acc + (((i64(*)(i64, i64))__run_lifted_3__)(0,n_jobs))),n_jobs); 0;}))));
   }
   
-  static i64 __repeat_lifted_8__(i64 __env__,i64 n_jobs) {
-  return((((i64(*)(i64, i64, i64, i64))__step_lifted_7__)(0,1000,0,n_jobs)));
+  static i64 __repeat_lifted_5__(i64 __env__,i64 n_jobs) {
+  return((((i64(*)(i64, i64, i64, i64))__step_lifted_4__)(0,1000,0,n_jobs)));
   }
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
   repeat = malloc(sizeof(closure_t));
-  repeat->func_pointer = (i64)__repeat_lifted_8__;
+  repeat->func_pointer = (i64)__repeat_lifted_5__;
   repeat->env = (i64)NULL;
   step = malloc(sizeof(closure_t));
-  step->func_pointer = (i64)__step_lifted_7__;
+  step->func_pointer = (i64)__step_lifted_4__;
   step->env = (i64)NULL;
   run = malloc(sizeof(closure_t));
-  run->func_pointer = (i64)__run_lifted_6__;
+  run->func_pointer = (i64)__run_lifted_3__;
   run->env = (i64)NULL;
   listSum = malloc(sizeof(closure_t));
-  listSum->func_pointer = (i64)__listSum_lifted_5__;
+  listSum->func_pointer = (i64)__listSum_lifted_2__;
   listSum->env = (i64)NULL;
-  body_main_2 = malloc(sizeof(closure_t));
-  body_main_2->func_pointer = (i64)__body_main_2_lifted_4__;
-  body_main_2->env = (i64)NULL;
   loop = malloc(sizeof(closure_t));
-  loop->func_pointer = (i64)__loop_lifted_3__;
+  loop->func_pointer = (i64)__loop_lifted_1__;
   loop->env = (i64)NULL;
-  loop_body_1 = malloc(sizeof(closure_t));
-  loop_body_1->func_pointer = (i64)__loop_body_1_lifted_2__;
-  loop_body_1->env = (i64)NULL;
-  loop_body_2 = malloc(sizeof(closure_t));
-  loop_body_2->func_pointer = (i64)__loop_body_2_lifted_1__;
-  loop_body_2->env = (i64)NULL;
   
   i64 __res__ = ({i64 arg1 = (i64)(((i64)(readInt())));
-  ({i64 arg2 = (i64)(((i64(*)(i64, i64))__repeat_lifted_8__)(0,arg1));
+  ({i64 arg2 = (i64)(((i64(*)(i64, i64))__repeat_lifted_5__)(0,arg1));
   ({(((i64)(printInt((int64_t)arg2))));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}
-   i64 __behead_main_stub_lifted_17___behead(i64* __env__,i64 _) {
+   i64 __behead_main_stub_lifted_14___behead(i64* __env__,i64 _) {
   return(({i64 beheaded = (i64)(((i64*)__env__)[0]);
   ({i64 l = (i64)(((i64*)__env__)[1]);
   ({i64 loop = (i64)(((i64*)__env__)[2]);
   (((i64*)beheaded)[0] = 1);});});}));
   }
   
-  static i64 __handle_body_lifted_16__(i64 __env__,i64 behead_main_stub) {
+  static i64 __handle_body_lifted_13__(i64 __env__,i64 behead_main_stub) {
   return(({i64 beheaded = (i64)(((i64*)__env__)[0]);
   ({i64 l = (i64)(((i64*)__env__)[1]);
   ({i64 loop = (i64)(((i64*)__env__)[2]);
-  (HANDLE(__handle_body_lifted_14__, ({TAIL, __yield_stub_lifted_15___yield}), ((i64)behead_main_stub, (i64)l, (i64)loop)));});});}));
+  (HANDLE(__handle_body_lifted_11__, ({TAIL, __yield_stub_lifted_12___yield}), ((i64)behead_main_stub, (i64)l, (i64)loop)));});});}));
   }
   
-   i64 __yield_stub_lifted_15___yield(i64* __env__,i64 x,i64 behead_stub,i64 replace_stub) {
+   i64 __yield_stub_lifted_12___yield(i64* __env__,i64 x,i64 behead_stub,i64 replace_stub) {
   return(({i64 behead_main_stub = (i64)(((i64*)__env__)[0]);
   ({i64 l = (i64)(((i64*)__env__)[1]);
   ({i64 loop = (i64)(((i64*)__env__)[2]);
   ((x < 0) ? (RAISE(behead_stub, behead, ((i64)0))) : (RAISE(replace_stub, replace, ((i64)(x * 2)))));});});}));
   }
   
-  static i64 __handle_body_lifted_14__(i64 __env__,i64 yield_stub) {
+  static i64 __handle_body_lifted_11__(i64 __env__,i64 yield_stub) {
   return(({i64 behead_main_stub = (i64)(((i64*)__env__)[0]);
   ({i64 l = (i64)(((i64*)__env__)[1]);
   ({i64 loop = (i64)(((i64*)__env__)[2]);
-  (((i64(*)(i64, i64, i64, i64))__loop_lifted_3__)(0,l,yield_stub,behead_main_stub));});});}));
+  (((i64(*)(i64, i64, i64, i64))__loop_lifted_1__)(0,l,yield_stub,behead_main_stub));});});}));
   }
   
-   i64 __replace_stub_lifted_13___replace(i64* __env__,i64 x) {
+   i64 __replace_stub_lifted_10___replace(i64* __env__,i64 x) {
   return(({i64 behead_stub = (i64)(((i64*)__env__)[0]);
   ({i64 it = (i64)(((i64*)__env__)[1]);
   ({i64 yield_stub = (i64)(((i64*)__env__)[2]);
   (((i64)(listSetHead((node_t*)it, (int64_t)x))));});});}));
   }
   
-  static i64 __handle_body_lifted_12__(i64 __env__,i64 replace_stub) {
+  static i64 __handle_body_lifted_9__(i64 __env__,i64 replace_stub) {
   return(({i64 behead_stub = (i64)(((i64*)__env__)[0]);
   ({i64 it = (i64)(((i64*)__env__)[1]);
   ({i64 yield_stub = (i64)(((i64*)__env__)[2]);
@@ -174,7 +139,7 @@
   (RAISE(yield_stub, yield, ((i64)v, (i64)behead_stub, (i64)replace_stub)));});});});}));
   }
   
-   i64 __behead_stub_lifted_11___behead(i64* __env__,i64 _) {
+   i64 __behead_stub_lifted_8___behead(i64* __env__,i64 _) {
   return(({i64 beheaded = (i64)(((i64*)__env__)[0]);
   ({i64 it_tail = (i64)(((i64*)__env__)[1]);
   ({i64 loop = (i64)(((i64*)__env__)[2]);
@@ -182,11 +147,11 @@
   (((i64*)beheaded)[0] = 1);});});});}));
   }
   
-  static i64 __handle_body_lifted_10__(i64 __env__,i64 behead_stub) {
+  static i64 __handle_body_lifted_7__(i64 __env__,i64 behead_stub) {
   return(({i64 beheaded = (i64)(((i64*)__env__)[0]);
   ({i64 it_tail = (i64)(((i64*)__env__)[1]);
   ({i64 loop = (i64)(((i64*)__env__)[2]);
   ({i64 yield_stub = (i64)(((i64*)__env__)[3]);
-  (((i64(*)(i64, i64, i64, i64))__loop_lifted_3__)(0,it_tail,yield_stub,behead_stub));});});});}));
+  (((i64(*)(i64, i64, i64, i64))__loop_lifted_1__)(0,it_tail,yield_stub,behead_stub));});});});}));
   }
   

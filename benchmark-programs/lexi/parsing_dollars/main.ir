@@ -26,14 +26,6 @@ def is_dollar(c) {
     c == 36
 }
 
-/*
-def sum_body(env, emit_stub) {
-    val action = env[0];
-    val n = env[2];
-    action(emit_stub, n)
-} 
-*/
-
 def sum(action, n) {
     val s = newref {0};
     handle {
@@ -46,15 +38,6 @@ def sum(action, n) {
     s[0]
 }
 
-/*
-def catch_body(env, stop_stub) {
-    val action = env[0];
-    val emit_stub = env[1];
-    val n = env[2];
-    action(stop_stub, emit_stub, n)
-}
-*/
-
 def catch(action, emit_stub, n) {
     handle {
         action(stop_stub, emit_stub, n)
@@ -62,29 +45,6 @@ def catch(action, emit_stub, n) {
         exc stop(_) { 0 }
     }
 }
-
-/*
-obj read(env) {
-    def read() {
-        val i_ref = env[1];
-        val j_ref = env[2];
-        val i = i_ref[0];
-        val j = j_ref[0];
-        val n = env[3];
-        val stop_stub = env[4];
-        if i > n then
-            raise stop_stub.stop 0
-        else
-            (if j == 0 then
-                i_ref[0] := i + 1;
-                j_ref[0] := i + 1;
-                newline()
-            else
-                (j_ref[0] := j - 1;
-                dollar()))
-    }
-}
-*/
 
 def feed(n, action, stop_stub, emit_stub) {
     val i_ref = newref {0};
@@ -109,13 +69,6 @@ def feed(n, action, stop_stub, emit_stub) {
         }
     
     }
-}
-
-def feed_body(env, read_stub) {
-    val action = env[0];
-    val stop_stub = env[4];
-    val emit_stub = env[5];
-    action(read_stub, emit_stub, stop_stub)
 }
 
 def parse(a, read_stub, emit_stub, stop_stub) {

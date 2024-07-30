@@ -22,11 +22,6 @@ def enumerate(i) {
         ~listNode(i, enumerate(i - 1))
 }
 
-def body(env, abort_stub) {
-    val arg1 = env[0];
-    product(arg1, abort_stub)
-}
-
 def runProduct(xs) {
     handle {
         product(xs, abort_stub)
