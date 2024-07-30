@@ -8,21 +8,6 @@ effect Behead {
     dcl behead
 }
 
-def loop_body_2(env, behead_stub) {
-    val it_tail = env[0];
-    val yield_stub = env[1];
-    loop(it_tail, yield_stub, behead_stub)
-}
-
-def loop_body_1(env, replace_stub) {
-    val it = env[0];
-    val yield_stub = env[1];
-    val behead_stub = env[2];
-    val v = ~listHead(it);
-    raise yield_stub.yield v behead_stub replace_stub
-}
-
-
 def loop(it, yield_stub, behead_stub) {
     handle { 
         val v = ~listHead(it);
@@ -54,12 +39,6 @@ def loop(it, yield_stub, behead_stub) {
             0;
     it
             
-}
-
-def body_main_2(env, yield_stub) {
-    val behead_stub = env[0];
-    val l = env[1];
-    loop(l, yield_stub, behead_stub)
 }
 
 def listSum(l, acc) {

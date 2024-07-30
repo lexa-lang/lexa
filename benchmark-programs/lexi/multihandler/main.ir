@@ -13,10 +13,6 @@ def countdown(state_stub) {
         countdown(state_stub)
 }
 
-def body(env, state_stub) {
-    countdown(state_stub)
-}
-
 def run(n) {
     val s = newref {n};
     handle {
