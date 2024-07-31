@@ -1,0 +1,53 @@
+effect State {
+    dcl get
+    dcl set
+}
+
+def countdown(state_stub) {
+    val i = raise state_stub.get 0;
+    if i == 0 then
+        i
+    else
+        val arg = i - 1;
+        raise state_stub.set arg;
+        countdown(state_stub)
+}
+
+def body(env, state_stub) {
+    countdown(state_stub)
+}
+
+def run(n) {
+    val s = newref {n};
+    handle {
+        countdown(state1_stub)
+    } with state1_stub: State {
+        def get(_) { 
+            s[0]
+        }
+
+        def set(i) { 
+            s[0] := i;
+            0
+        }
+    };
+    handle {
+        countdown(state2_stub)
+    } with state2_stub: State {
+        hdl_1 get(_, k) { 
+            resume_final k s[0]
+        }
+
+        hdl_1 set(i, k) { 
+            s[0] := i;
+            resume_final k 0
+        }
+    }
+}
+
+def main() {
+    val arg1 = ~readInt();
+    val arg2 = run(arg1);
+    ~printInt(arg2);
+    0
+}
