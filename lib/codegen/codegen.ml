@@ -5,13 +5,15 @@ open Primitive
 
 module Varset = Syntax__Varset
 
-type handler_type = hdl_anno
+type operation_type = hdl_anno
 type eff_sig_env = (var * string list) list
-type eff_type_env = (var * handler_type) list
+(* TODO: Rename type names *)
+type eff_type_env_key = {obj_name : var; op_name : var}
+type eff_type_env = (eff_type_env_key * operation_type) list
 type fun_type_env = var list (* list of functions that are handler bodies *)
 type env = {eff_sig : eff_sig_env; eff_type : eff_type_env; fun_type : fun_type_env; toplevel_closure : (string * string) list}
 
-exception UndefinedHandler of string
+exception UndefinedOperation of string
 exception UndefinedSignature of string
 exception ParameterMismatch of string
 exception NestedFunction of string
@@ -30,11 +32,15 @@ let tail_call_opt : bool ref = ref false
 (* Not sure if this is a good way... *)
 let cur_toplevel : var ref = ref ""
 
-let lookup_hdl_type (hdl_var : var) (env : eff_type_env) : string =
-  match (List.find_opt (fun (s, _) -> s = hdl_var) env) with
-  | None -> raise (UndefinedHandler hdl_var)
-  | Some (_, hdl_type) -> 
-      (match hdl_type with
+(* Get the annotation of a handler operation *)
+let lookup_operation_type (obj_name : var) (op_name : var) (env : eff_type_env) : string =
+  match (List.find_opt 
+    (fun ({obj_name = obj_name'; op_name = op_name'}, _) -> 
+      obj_name = obj_name' && op_name = op_name')
+    env) with
+  | None -> raise (UndefinedOperation op_name)
+  | Some (_, op_type) -> 
+      (match op_type with
       | HDef -> "TAIL"
       | HExc -> "ABORT"
       | HHdl1 -> "SINGLESHOT"
@@ -190,11 +196,12 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
         sprintf "((i64*)%s)[%s] = %s" (gen_expr e1) (gen_expr e2) (gen_expr e3) 
     | Handle {env = handle_env; body_name; obj_name; sig_name} ->
         let hdl_list = lookup_eff_sig_dcls sig_name (get_eff_sig_env !env) in
-        let hdl_str = "(" ^ (String.concat ", " (List.map 
-          (fun name -> 
-            let hdl_type = lookup_hdl_type name (get_eff_type_env !env) in
-            let hdl_name = obj_name ^ "_" ^ name in
-              (sprintf "{%s, %s}" hdl_type hdl_name)) hdl_list)) ^ ")" in
+        let gen_operation_arg operation_name =
+          let operation_type = lookup_operation_type obj_name operation_name (get_eff_type_env !env) in
+          let full_operation_name = obj_name ^ "_" ^ operation_name in
+          (sprintf "{%s, %s}" operation_type full_operation_name)
+        in
+        let hdl_str = "(" ^ (String.concat ", " (List.map gen_operation_arg hdl_list)) ^ ")" in
         let env_str = sprintf "(%s)" 
           (String.concat ", " (List.map (fun x -> "(i64)" ^ x) handle_env)) in
         sprintf "HANDLE(%s, %s, %s)" body_name hdl_str env_str
@@ -276,13 +283,8 @@ let rec sig_pass (toplevel : top_level list) : eff_sig_env =
 let rec eff_type_pass (toplevel : top_level list) : eff_type_env =
   match toplevel with
   | [] -> []
-  | (TLObj (_, _, hdl_list)) :: tail ->
-      (List.map (fun x -> 
-        let (hdl_anno, name, _, _) = x in
-          (match hdl_anno with (* analyze escapeness when it's a general handler *)
-          | HHdl1 | HHdls -> (name, hdl_anno)
-          | _ -> (name, hdl_anno))
-        ) hdl_list)
+  | (TLObj (obj_name, _, operation_list)) :: tail ->
+      (List.map (fun (op_anno, op_name, _, _) -> ({obj_name; op_name}, op_anno)) operation_list)
       @ (eff_type_pass tail)
   | _ :: tail -> eff_type_pass tail
 
