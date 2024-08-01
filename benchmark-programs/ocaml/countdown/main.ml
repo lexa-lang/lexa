@@ -1,6 +1,8 @@
+open Effect
+open Effect.Deep
 
-effect Get : unit -> int
-effect Set : int -> unit
+type _ Effect.t += Get : unit -> int t
+type _ Effect.t += Set : int -> unit t
 
 let rec countdown () =
   let i = perform (Get ()) in
@@ -15,8 +17,8 @@ let run n =
   try
     countdown ()
   with
-  | effect (Get ()) k -> continue k (!s)
-  | effect (Set i) k -> s := i; continue k ()
+  | effect (Get ()), k -> continue k (!s)
+  | effect (Set i), k -> s := i; continue k ()
 
 let main () =
   let n = try int_of_string (Sys.argv.(1)) with _ -> 5 in
@@ -24,4 +26,3 @@ let main () =
   Printf.printf "%d\n" r
 
 let _ = main ()
-

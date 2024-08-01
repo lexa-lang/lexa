@@ -1,4 +1,7 @@
-effect Choose : unit -> bool
+open Effect
+open Effect.Deep
+
+type _ Effect.t += Choose: unit -> bool t
 
 type tree =
 | Leaf
@@ -25,8 +28,8 @@ let run n =
   let paths () =
     match explore tree with
     | _x -> [_x]
-    | effect (Choose ()) k ->
-      let l = continue (Obj.clone_continuation k) true in
+    | effect (Choose ()), k ->
+      let l = continue (Multicont.Deep.clone_continuation k) true in
       let r = continue k false in
       l @ r in
 

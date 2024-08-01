@@ -1,5 +1,7 @@
+open Effect
+open Effect.Deep
 
-effect Emit : int -> unit
+type _ Effect.t += Emit: int -> unit t
 
 let rec range l u =
   if (l > u)
@@ -14,7 +16,7 @@ let run n =
     (range 0 n;
     !s)
   with
-  | effect (Emit e) k -> (s := !s + e ; continue k ())
+  | effect (Emit e), k -> (s := !s + e ; continue k ())
 
 let main () =
   let n = try int_of_string (Sys.argv.(1)) with _ -> 5 in
@@ -22,4 +24,3 @@ let main () =
   Printf.printf "%d\n" r
 
 let _ = main ()
-

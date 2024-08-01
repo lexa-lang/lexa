@@ -1,5 +1,7 @@
+open Effect
+open Effect.Deep
 
-effect Prime : int -> bool
+type _ Effect.t += Prime: int -> bool t
 
 let rec primes i n a =
   if (i >= n)
@@ -10,7 +12,7 @@ let rec primes i n a =
           try
             primes (i + 1) n (a + i)
           with
-          | effect (Prime e) k ->
+          | effect (Prime e), k ->
             if (e mod i = 0)
               then continue k false
               else continue k (perform (Prime e))
@@ -21,7 +23,7 @@ let run n =
   try
     primes 2 n 0
   with
-  | effect (Prime e) k -> continue k true
+  | effect (Prime e), k -> continue k true
 
 let main () =
   let n = try int_of_string (Sys.argv.(1)) with _ -> 10 in

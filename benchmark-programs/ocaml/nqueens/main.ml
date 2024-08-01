@@ -1,5 +1,7 @@
+open Effect
+open Effect.Deep
 
-effect Pick : int -> int
+type _ Effect.t += Pick: int -> int t
 exception Fail
 
 let rec safe queen diag xs =
@@ -24,10 +26,10 @@ let run n =
   match place n n with
   | _x -> 1
   | exception Fail -> 0
-  | effect (Pick size) k ->
+  | effect (Pick size), k ->
       let rec loop i a =
         if i = size then (a + continue k i)
-        else loop (i+1) (a + continue (Obj.clone_continuation k) i)
+        else loop (i+1) (a + continue (Multicont.Deep.clone_continuation k) i)
       in loop 1 0
 
 let main () =
@@ -36,4 +38,3 @@ let main () =
   Printf.printf "%d\n" r
 
 let _ = main()
-
