@@ -8,7 +8,7 @@ import os
 def print_message(message):
     print(f"{'='*len(message)}\n{message}\n{'='*len(message)}")
 
-benchmark_programs = ["countdown", "fibonacci_recursive", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "scheduler", "interruptible_iterator"]
+benchmark_programs = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "scheduler", "interruptible_iterator"]
 result_file = "runtimes.txt"
 
 def parse_output(output_file):
@@ -33,7 +33,7 @@ def test(platform):
 
 def bench(platform):
     print_message(f"Benchmarking {platform}...")
-    make_command = f"cd ../benchmark-programs/{platform}/ && make bench"
+    make_command = f"cd ../benchmark-programs/{platform}/ && taskset -c 0 make bench"
     subprocess.run(make_command, shell=True, check=True)
     pairs = parse_output(f"../benchmark-programs/{platform}/results.csv")
     with open(result_file, "a") as f:

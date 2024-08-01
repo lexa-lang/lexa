@@ -13,6 +13,10 @@ def countdown(state_stub) {
         countdown(state_stub)
 }
 
+def body(env, state_stub) {
+    countdown(state_stub)
+}
+
 def run(n) {
     val s = newref {n};
     handle {
@@ -30,13 +34,13 @@ def run(n) {
     handle {
         countdown(state2_stub)
     } with state2_stub: State {
-        def get(_) { 
-            s[0]
+        hdl_1 get(_, k) { 
+            resume_final k s[0]
         }
 
-        def set(i) { 
+        hdl_1 set(i, k) { 
             s[0] := i;
-            0
+            resume_final k 0
         }
     }
 }
@@ -47,4 +51,3 @@ def main() {
     ~printInt(arg2);
     0
 }
-

@@ -90,7 +90,7 @@ hdl_def:
   | a = hdl_anno name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB e = expr RCB { (a, name, params, e) }
 
 heap_value:
-  | LCB l = separated_list(COMMA, simple_expr) RCB { l }
+  | LCB l = separated_list(COMMA, expr) RCB { l }
 
 recfun:
   | name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB e = expr RCB 

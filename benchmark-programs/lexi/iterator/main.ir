@@ -10,11 +10,6 @@ def range(l, u, emit_stub) {
         range(l + 1, u, emit_stub))
 }
 
-def body(env, emit_stub) {
-    val n = env[0];
-    range(0, n, emit_stub)
-}
-
 def run(n) {
     val s = newref {0};
     handle {
