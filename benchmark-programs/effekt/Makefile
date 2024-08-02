@@ -1,4 +1,4 @@
-bench:
+bench: build
 	hyperfine --warmup 3 --export-csv results.csv \
 		'countdown/main 200000000' \
 		'fibonacci_recursive/main 42' \
@@ -30,18 +30,18 @@ test: build
 
 build:
 	echo "Building programs..."
-	cd countdown ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd fibonacci_recursive ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd product_early ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd iterator ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd nqueens ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd tree_explore ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd triples ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd resume_nontail ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd parsing_dollars ; effekt022.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
-	cd handler_sieve ; effekt022.sh --backend chez-lift --compile main.effekt
-	cd scheduler ; effekt022.sh --backend js --compile main.effekt
-	cd interruptible_iterator ; effekt022.sh --backend js --compile main.effekt
+	cd countdown ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd fibonacci_recursive ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd product_early ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd iterator ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd nqueens ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd tree_explore ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd triples ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd resume_nontail ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd parsing_dollars ; effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml
+	cd handler_sieve ; effekt_latest.sh --backend chez-lift --compile main.effekt
+	cd scheduler ; effekt_latest.sh --backend js --compile main.effekt
+	cd interruptible_iterator ; effekt_latest.sh --backend js --compile main.effekt
 
 clean:
 	-rm -r */out/

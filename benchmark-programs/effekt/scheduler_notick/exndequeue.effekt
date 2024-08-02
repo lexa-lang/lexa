@@ -1,7 +1,6 @@
 module exndequeue
 
 import exnlist
-import immutable/option
 
 // An implementation of a functional dequeue, using Okasaki's
 // bankers dequeue implementation.

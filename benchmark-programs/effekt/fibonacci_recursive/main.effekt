@@ -1,7 +1,6 @@
-import immutable/list
-import immutable/option
-import io/args
-import text/string
+import list
+import args
+import bench
 
 def fibonacci(n: Int): Int =
   if (n == 0) {
@@ -12,8 +11,15 @@ def fibonacci(n: Int): Int =
     fibonacci(n - 1) + fibonacci(n - 2)
   }
 
-def main() = {
-  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 5 };
-  val r = fibonacci(n);
-  println(r)
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val t = timed{ fibonacci(x.toInt); () }
+    println("Nanosecond used: " ++ show(t))
+  case Cons(x, Nil()) =>
+    val r = fibonacci(x.toInt)
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
 }

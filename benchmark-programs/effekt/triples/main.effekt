@@ -1,7 +1,6 @@
-import io/args
-import immutable/list
-import immutable/option
-import text/string
+import list
+import args
+import bench
 
 record Triple(a: Int, b: Int, c: Int)
 
@@ -43,8 +42,15 @@ def run(n: Int, s: Int): Int =
     def Fail() = 0
   }
 
-def main() = {
-  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 10 };
-  val r = run(n, n);
-  println(r)
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val t = timed{ run(x.toInt, x.toInt); () }
+    println("Nanosecond used: " ++ show(t))
+  case Cons(x, Nil()) =>
+    val r = run(x.toInt, x.toInt)
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
 }

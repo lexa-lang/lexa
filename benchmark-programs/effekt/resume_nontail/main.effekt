@@ -1,7 +1,7 @@
-import immutable/list
-import immutable/option
-import io/args
-import text/string
+import list
+import args
+import bench
+
 
 def abs(i: Int): Int = if (i < 0) { 0 - i } else { i }
 
@@ -34,8 +34,16 @@ def repeat(n: Int): Int = {
   step(1000, 0)
 }
 
-def main() = {
-  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 5 };
-  val r = repeat(n);
-  println(r)
+
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val t = timed{ repeat(x.toInt); () }
+    println("Nanosecond used: " ++ show(t))
+  case Cons(x, Nil()) =>
+    val r = repeat(x.toInt)
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
 }

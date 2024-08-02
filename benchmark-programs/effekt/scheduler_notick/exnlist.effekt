@@ -1,7 +1,6 @@
 module exnlist
 
 import effekt
-import immutable/option
 
 interface NoSuchElementException {
   def throwNSE(): Nothing

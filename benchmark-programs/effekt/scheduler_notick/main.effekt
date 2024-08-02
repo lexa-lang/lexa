@@ -1,8 +1,8 @@
 import exnlist
 import exndequeue
-import immutable/option
-import io/args
-import text/string
+import list
+import args
+import bench
 
 interface Tick {
   def tick(): Unit
@@ -81,11 +81,15 @@ def run(n: Int): Int = {
   a
 }
 
-def main() = commandLineArgs() match {
-  case Nil() => println(run(10))
-  case Cons(x, Nil()) => toInt(x) match {
-    case None() => println("Unexpected non-integer '" ++ show(x) ++ "'")
-    case Some(i) => println(run(i))
-  }
-  case other => println("Expects zero or one argument, not '" ++ show(size(other)) ++ "'")
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val t = timed{ run(x.toInt); () }
+    println("Nanosecond used: " ++ show(t))
+  case Cons(x, Nil()) =>
+    val r = run(x.toInt)
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
 }

@@ -1,7 +1,6 @@
-import immutable/list
-import immutable/option
-import io/args
-import text/string
+import list
+import args
+import bench
 
 effect Abort[A](i: Int): A
 
@@ -37,8 +36,15 @@ def run(n: Int) = {
   loop(n,0)
 }
 
-def main() = {
-  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 5 };
-  val r = run(n);
-  println(r)
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val t = timed{ run(x.toInt); () }
+    println("Nanosecond used: " ++ show(t))
+  case Cons(x, Nil()) =>
+    val r = run(x.toInt)
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
 }
