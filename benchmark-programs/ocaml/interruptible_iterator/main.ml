@@ -44,7 +44,8 @@ let rec step i acc n_jobs =
   else step (i - 1) (acc + List.fold_left (+) 0 (run n_jobs)) n_jobs
 
 let repeat n_jobs =
-  step 1000 0 n_jobs
+  (* loop count reduced from 1000 *)
+  step 10 0 n_jobs
 
 let main () =
   let n = try int_of_string Sys.argv.(1) with _ -> 5 in
