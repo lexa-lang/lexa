@@ -50,6 +50,7 @@
             (python3.withPackages (ps: with ps; [
               matplotlib
               numpy
+              pandas
 
               capstone
               keystone-engine
