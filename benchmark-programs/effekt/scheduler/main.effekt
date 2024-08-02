@@ -67,7 +67,8 @@ def jobs(n_jobs: Int): Unit / {Process, Tick} = {
 def run(n: Int): Int = {
   var i = 0;
   var a = 0;
-  while (i < 100) {
+  // NB: The loop count is reduced from 100
+  while (i < 1) {
     try { 
       scheduler { jobs(n) }
     } with Tick {
