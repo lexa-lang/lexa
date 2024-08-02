@@ -1,8 +1,10 @@
-
+open Effect
+open Effect.Deep
 open Queue
-effect Yield : unit -> unit
-effect Fork : (unit -> unit) -> unit
-effect Tick : unit -> unit
+
+type _ Effect.t += Yield: unit -> unit Effect.t
+type _ Effect.t += Fork: (unit -> unit) -> unit Effect.t
+type _ Effect.t += Tick: unit -> unit Effect.t
 
 let rec driver q =
   try
@@ -16,9 +18,9 @@ let rec spawn f (q: (unit, 'b) continuation Queue.t) =
   try
     f ()
   with
-  | effect (Yield ()) k ->
+  | effect (Yield ()), k ->
       Queue.push k q
-  | effect (Fork f) k ->
+  | effect (Fork f), k ->
       Queue.push k q;
       spawn f q
 
@@ -43,7 +45,7 @@ let run n_jobs =
     try
       scheduler(fun () -> jobs n_jobs)
     with
-    | effect (Tick ()) k -> c := !c + 1; continue k ()
+    | effect (Tick ()), k -> c := !c + 1; continue k ()
   in
   !c
 

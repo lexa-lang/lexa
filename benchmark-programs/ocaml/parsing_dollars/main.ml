@@ -1,12 +1,12 @@
+open Effect
+open Effect.Deep
 
 type chr = int
 
-effect Read : unit -> chr
-
-effect Emit : int -> unit
+type _ Effect.t += Read: unit -> chr t
+type _ Effect.t += Emit: int -> unit t
 
 exception Stop
-
 
 let newline = 10
 let is_newline c = c = 10
@@ -26,7 +26,7 @@ let sum action =
   try
     (action () ; !s)
   with
-  | effect (Emit e) k -> (s := !s + e ; continue k ())
+  | effect (Emit e), k -> (s := !s + e ; continue k ())
 
 let catch action =
   try
@@ -40,7 +40,7 @@ let feed n action =
   try
     action ()
   with
-  | effect (Read ()) k ->
+  | effect (Read ()), k ->
     if (!i > n)
       then raise Stop
       else if(!j = 0)
