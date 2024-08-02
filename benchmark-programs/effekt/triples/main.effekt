@@ -46,10 +46,11 @@ def main() = ignore[WrongFormat] {commandLineArgs() match {
   case Nil() => println("Expects one argument")
   case Cons(x, Cons(y, Nil())) => 
     println("Measuring internal running time")
-    val t = timed{ run(x.toInt, x.toInt); () }
+    val i = x.toInt; var r = 0; val t = timed{ r = run(i, i); }
     println("Nanosecond used: " ++ show(t))
+    println(r)
   case Cons(x, Nil()) =>
-    val r = run(x.toInt, x.toInt)
+    val i = x.toInt; val r = run(i, i)
     println(r)
   case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
 }
