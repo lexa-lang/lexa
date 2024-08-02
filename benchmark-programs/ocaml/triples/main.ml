@@ -1,5 +1,8 @@
+open Effect
+open Effect.Deep
 
-effect Flip : unit -> bool
+type _ Effect.t += Flip: unit -> bool t
+
 exception Fail
 
 let rec choice n =
@@ -28,8 +31,8 @@ let run n s =
   | Fail ->
      0
   with
-  | effect (Flip ()) k ->
-    let l = continue (Obj.clone_continuation k) true in
+  | effect (Flip ()), k ->
+    let l = continue (Multicont.Deep.clone_continuation k) true in
     let r = continue k false in
     (l + r) mod 1000000007
 

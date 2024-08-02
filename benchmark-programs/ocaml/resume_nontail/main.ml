@@ -1,5 +1,7 @@
+open Effect
+open Effect.Deep
 
-effect Operator : int -> unit
+type _ Effect.t += Operator: int -> unit t
 
 let rec loop i s =
   if i = 0
@@ -11,7 +13,7 @@ let rec loop i s =
 let run n s =
   match loop n s with
   | x -> x
-  | effect (Operator x) k ->
+  | effect (Operator x), k ->
       let y = continue k () in
       abs (x - (503 * y) + 37) mod 1009
 
