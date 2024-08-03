@@ -6,12 +6,8 @@ def make(n) {
     if n == 0 then
         ~treeLeaf()
     else 
-        if n % 10 == 0 then
-            val t = make(n - 1);
-            ~treeNode(n, t, t)
-        else
-            val t = make(n - 1);
-            ~treeNode(n, t, ~treeLeaf())
+        val t = make(n - 1);
+        ~treeNode(n, t, t)
 }
 
 def operator(x, y) {

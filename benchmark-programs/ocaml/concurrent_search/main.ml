@@ -12,10 +12,7 @@ let operator x y = abs (x - (503 * y) + 37) mod 1009
 let rec make = function
   | 0 -> Leaf
   | n -> 
-    if n mod 10 = 0 then
       let t = make (n-1) in Node (t,n,t)
-    else
-      let t = make (n-1) in Node (t,n,Leaf)
 
 let run n =
   let tree = make n in

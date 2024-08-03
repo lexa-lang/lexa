@@ -16,12 +16,8 @@ fun make(n: int) : div tree
   if n == 0 then
     Leaf
   else
-    if n % 10 == 0 then
-      val t = make(n - 1)
-      Node(t, n, t)
-    else
-      val t = make(n - 1)
-      Node(t, n, Leaf)
+    val t = make(n - 1)
+    Node(t, n, t)
 
 fun run(n : int)
   val tree = make(n)

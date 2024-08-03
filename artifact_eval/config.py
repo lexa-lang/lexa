@@ -71,4 +71,4 @@ for platform in platforms:
     config[(platform, "handler_sieve")]["bench_input"] = 60000
     config[(platform, "scheduler")]["bench_input"] = 3000
     config[(platform, "interruptible_iterator")]["bench_input"] = 3000
-    config[(platform, "concurrent_search")]["bench_input"] = 70
+    config[(platform, "concurrent_search")]["bench_input"] = 13
