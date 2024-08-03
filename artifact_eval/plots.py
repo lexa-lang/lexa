@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import re
 import argparse
 import pandas as pd
+import numpy as np
 
 import sys, os
 chemin_actuel = os.path.dirname(os.path.abspath(__file__))
@@ -13,20 +14,48 @@ sys.path.append(chemin_parent)
 from utils import *
 
 def plot_df(df):
+    twinx = [
+        ("koka", "concurrent_search"),
+        ("effekt", "interruptible_iterator"),
+        ("effekt", "scheduler")
+    ]
+    colors = {
+        "lexi": "blue",
+        "effekt": "green",
+        "koka": "red",
+        "koka_named": "orange",
+        "ocaml": "purple"
+    }
     for benchmark in df['benchmark'].unique():
-        plt.figure()
+        legends = ([], [])
+        fig, ax1 = plt.subplots()
+        ax2 = ax1.twinx()
+        ax2.set_visible(False)
         for platform in df['platform'].unique():
             subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
             if subset['time_mili'].isna().any():
-                plt.plot([], [], label=platform + " (Not Available)", marker='o', alpha=0.8)
+                l, = ax1.plot([], [], label=platform + " (Not Available)", marker='o', alpha=0.8, color=colors[platform])
+                legends[0].append(l)
+                legends[1].append(platform + " (Not Available)")
             else:
-                plt.plot(subset['n'], subset['time_mili'], label=platform, marker='o', alpha=0.8)
+                if (platform, benchmark) in twinx:
+                    l, = ax2.plot(subset['n'], subset['time_mili'], label=platform, marker='x', alpha=0.8, color=colors[platform])
+                    ax2.set_visible(True)
+                    legends[0].append(l)
+                    legends[1].append(platform)
+                else:
+                    l, = ax1.plot(subset['n'], subset['time_mili'], label=platform, marker='o', alpha=0.8, color=colors[platform])
+                    legends[0].append(l)
+                    legends[1].append(platform)
+                    
 
         plt.xlabel('Input size')
         plt.ylabel('Runtime (mili-seconds)')
         plt.title(benchmark)
-        plt.legend()
-        plt.grid(True)
+        # plt.legend(legends[0], legends[1], loc='upper left')
+        ax1.legend(loc='upper left')
+        ax2.legend(loc='upper right')
+        ax1.grid(True)
 
         plt.savefig(f"./plots/scaling_plot_{benchmark}.png", dpi=600)
         print_message(f"\"{benchmark}\" saved to ./plots/scaling_plot_{benchmark}.png")
