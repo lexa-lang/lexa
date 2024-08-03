@@ -1,0 +1,10 @@
+def bar() {
+    0
+}
+
+def main() {
+    val foo = fun() {
+        bar()
+    };
+    foo()
+}
