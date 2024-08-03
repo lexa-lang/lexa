@@ -53,6 +53,7 @@ config[("effekt", "interruptible_iterator")]["adjust_warmup"] = True
 # Known Failures
 config[("koka", "interruptible_iterator")]["fail_reason"] = "Koka type system limitation"
 config[("koka_named", "scheduler")]["fail_reason"] = "Koka internal compiler error"
+config[("koka_named", "concurrent_search")]["fail_reason"] = "Koka internal compiler error"
 
 config[("effekt", "scheduler")]["scale"] = 100
 config[("effekt", "interruptible_iterator")]["scale"] = 1000
