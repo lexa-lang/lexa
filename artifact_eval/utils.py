@@ -46,13 +46,16 @@ def build(path, build_command):
     subprocess.run(taskset_cmd, check=True, text=True, capture_output=True, shell=True, cwd=path)
     print_message("Done building")
 
-def bench(path, run_command, input, adjust_warmup):
+def bench(path, run_command, input, adjust_warmup, quick=False):
     thread_id = int(current_thread().getName().split('_')[1])
     CPU = bench_CPUs[thread_id]
     print_message(f"Benchmarking {path}")
     # NB: use five spaces so that the command can be parsed out later
     taskset_cmd = f"taskset -c {CPU}     {{}}     "
-    hyperfine_cmd = f"hyperfine --shell none --warmup 3 --time-unit millisecond '{taskset_cmd}'"
+    if quick:
+        hyperfine_cmd = f"hyperfine --shell none --warmup 0 -M 2 --time-unit millisecond '{taskset_cmd}'"
+    else:
+        hyperfine_cmd = f"hyperfine --shell none --warmup 5 --min-runs 20 --time-unit millisecond '{taskset_cmd}'"
     command = hyperfine_cmd.format(run_command.format(IN=input))
     result = subprocess.run(command, check=True, text=True, capture_output=True, shell=True, cwd=path)
     time_mili = float(re.search(r"Time \(mean ± σ\):\s+(\d+\.\d+) ms", result.stdout).group(1))
