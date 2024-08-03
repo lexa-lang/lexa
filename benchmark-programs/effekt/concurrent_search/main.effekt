@@ -1,0 +1,85 @@
+import list
+import args
+import bench
+
+effect Yield(): Unit
+
+type Tree {
+  Leaf();
+  Node(left: Tree, value: Int, right: Tree)
+}
+
+def operator(x: Int, y: Int): Int =
+  mod(abs(x - (503 * y) + 37), 1009)
+
+def make(n: Int): Tree =
+  if (n == 0) {
+    Leaf()
+  } else {
+    val t = make(n - 1)
+    Node(t, n, t)
+  }
+
+def run(n: Int) = {
+
+  val tree = make(n);
+  var state = 0;
+  var storage = None();
+
+  def yield_f{action: () => Int / {Yield}}: Int =
+    try {
+      action()
+    } with Yield {
+      def Yield() = {
+        val peer = storage;
+        storage = Some(fun() { resume(()) });
+        peer match {
+          case Some(r) => r()
+          case None() => 0
+        }
+      }
+    }
+
+
+  def explore(t: Tree, rev: Bool): Int / Yield = {
+    do Yield();
+    t match {
+      case Leaf() => state
+      case Node(l, v, r) =>
+        state = operator(state, v)
+        if (not(rev)) {
+          v + explore(l, rev) + explore(r, rev)
+        } else {
+          v + explore(r, rev) + explore(l, rev)
+        }
+    }
+  }
+
+  def search() =
+      yield_f{ explore(tree, true) };
+      yield_f{ explore(tree, false) }
+
+  def loop(i: Int): Int =
+    if (i == 0) {
+      state
+    } else {
+      state = search();
+      loop(i - 1)
+    }
+
+  loop(1000)
+}
+
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val i = x.toInt; var r = 0; val t = timed{ r = run(i); };
+    println("Nanosecond used: " ++ show(t))
+    println(r)
+  case Cons(x, Nil()) =>
+    val i = x.toInt; val r = run(i);
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
+}
