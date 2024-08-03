@@ -3,6 +3,7 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 import re
 import argparse
+import pandas as pd
 
 import sys, os
 chemin_actuel = os.path.dirname(os.path.abspath(__file__))
@@ -11,27 +12,39 @@ sys.path.append(chemin_parent)
 
 from utils import *
 
+def plot_df(df):
+    for benchmark in df['benchmark'].unique():
+        plt.figure()
+        for platform in df['platform'].unique():
+            subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
+            if subset['time_mili'].isna().any():
+                plt.plot([], [], label=platform + " (Not Available)", marker='o', alpha=0.8)
+            else:
+                plt.plot(subset['n'], subset['time_mili'], label=platform, marker='o', alpha=0.8)
 
-def plot(result_file, title, plot_file, overhead_sec):
-    plt.figure(figsize=(6,6))
+        plt.xlabel('Input size')
+        plt.ylabel('Runtime (mili-seconds)')
+        plt.title(benchmark)
+        plt.legend()
+        plt.grid(True)
 
-    n_values, runtimes = zip(*parse_output(result_file))
-    runtimes = [r - overhead_sec for r in runtimes]
-    plt.plot(n_values, runtimes, marker='o', alpha=1)
-
-    plt.xlabel('n')
-    plt.ylabel('Runtime (seconds)')
-    plt.title(title)
-    plt.grid(True)
-    plt.savefig(plot_file, dpi=600)
-
-    print_message(f"\"{title}\" saved to {plot_file}")
+        plt.savefig(f"./plots/scaling_plot_{benchmark}.png", dpi=600)
+        print_message(f"\"{benchmark}\" saved to ./plots/scaling_plot_{benchmark}.png")
 
 result_txt = "plotting_runtimes.txt"
+result_csv = "plotting_runtimes.csv"
 
 def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--plot-only", action="store_true")
+    args = parser.parse_args()
+    if args.plot_only:
+        df = pd.read_csv(result_csv)
+        plot_df(df)
+        return
     from config import config, platforms, benchmarks, bench_CPUs
-    config = {(platform, benchmark): params for (platform, benchmark), params in config.items() if benchmark == "tree_explore"}
+    config = {(platform, benchmark): params for (platform, benchmark), params in config.items() }
 
     # Build
     config_tups = [(platform, benchmark, 0, params) for (platform, benchmark), params in config.items()]
@@ -63,24 +76,9 @@ def main():
                 f.flush()
 
     # Plot
-    import pandas as pd
     df = pd.DataFrame(results, columns=["platform", "benchmark", "n", "time_mili"])
-    print(df)
-    for benchmark in df['benchmark'].unique():
-        plt.figure()
-        for platform in df['platform'].unique():
-            subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
-            plt.plot(subset['n'], subset['time_mili'], label=platform, marker='o', alpha=0.9)
-
-        plt.xlabel('n')
-        plt.ylabel('Runtime (mili-seconds)')
-        plt.title(benchmark)
-        plt.legend()
-        plt.grid(True)
-
-        plt.yscale('log')
-
-        plt.savefig(f"./plots/scaling_plot_{benchmark}.png", dpi=600)
+    df.to_csv(result_csv)
+    plot_df(df)
 
 if __name__ == "__main__":
     main()
