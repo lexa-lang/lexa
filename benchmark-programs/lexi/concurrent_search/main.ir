@@ -5,9 +5,13 @@ effect Yield {
 def make(n) {
     if n == 0 then
         ~treeLeaf()
-    else
-        val t = make(n - 1);
-        ~treeNode(n, t, t)
+    else 
+        if n % 10 == 0 then
+            val t = make(n - 1);
+            ~treeNode(n, t, t)
+        else
+            val t = make(n - 1);
+            ~treeNode(n, t, ~treeLeaf())
 }
 
 def operator(x, y) {
@@ -63,7 +67,7 @@ def run(n) {
             loop(i - 1)
             )
     };
-    loop(50)
+    loop(1000)
 }
 
 def main() {

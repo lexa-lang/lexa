@@ -3,7 +3,7 @@
 # uses hyperthreading, so we have 6 physical cores as follow
 bench_CPUs = ["0", "2", "4", "6", "8", "10"]
 
-benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "scheduler", "interruptible_iterator"]
+benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "scheduler", "interruptible_iterator", "concurrent_search"]
 platforms = ["lexi", "effekt", "koka", "koka_named", "ocaml"]
 
 config = {}
@@ -71,3 +71,4 @@ for platform in platforms:
     config[(platform, "handler_sieve")]["bench_input"] = 60000
     config[(platform, "scheduler")]["bench_input"] = 3000
     config[(platform, "interruptible_iterator")]["bench_input"] = 3000
+    config[(platform, "concurrent_search")]["bench_input"] = 70

@@ -9,17 +9,24 @@ type tree
   Leaf
   Node(left : tree, value : int, right : tree)
 
+fun operator(x, y)
+  abs (x - (503 * y) + 37) % 1009
+
 fun make(n: int) : div tree
   if n == 0 then
     Leaf
   else
-    val t = make(n - 1)
-    Node(t, n, t)
+    if n % 10 == 0 then
+      val t = make(n - 1)
+      Node(t, n, t)
+    else
+      val t = make(n - 1)
+      Node(t, n, Leaf)
 
 fun run(n : int)
-  var acc := 0
+  val tree = make(n)
+  val state = ref(0)
   var storage := Nothing
-
   fun yield_f(action)
     with handler
       raw ctl yield()
@@ -33,16 +40,25 @@ fun run(n : int)
   fun explore(t : tree, rev : bool)
     yield()
     match t
-      Leaf -> 0
+      Leaf -> !state
       Node(l, v, r) ->
+        state := operator(!state, v)
         if !rev then
           v + explore(l, rev) + explore(r, rev)
         else
           v + explore(r, rev) + explore(l, rev)
-  val tree = make(n)
   
-  yield_f(fn() explore(tree, True))
-  yield_f(fn() explore(tree, False))
+  fun search()
+    yield_f(fn() explore(tree, True))
+    yield_f(fn() explore(tree, False))
+
+  fun loop(i)
+    if i == 0
+      then !state
+      else
+        state := search()
+        loop(i - 1)
+  loop(1000)
 
 pub fun main()
   val n = get-args().head("").parse-int().default(5)
