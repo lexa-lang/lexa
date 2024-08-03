@@ -15,7 +15,7 @@
   return(({i64 res = (i64)(({closure_t* __c__ = malloc(sizeof(closure_t));
   __c__->func_pointer = (i64)__fun_lifted_3__;
   __c__->env = (i64)malloc(1 * sizeof(i64));
-  ((i64*)(__c__->env))[0] = a;
+  ((i64*)(__c__->env))[0] = (i64)a;
   (i64)__c__;}));
   res;}));
   }

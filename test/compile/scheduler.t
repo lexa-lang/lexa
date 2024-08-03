@@ -143,9 +143,9 @@
   (((i64(*)(i64, i64))__scheduler_lifted_6__)(0,(({closure_t* __c__ = malloc(sizeof(closure_t));
   __c__->func_pointer = (i64)__fun_lifted_15__;
   __c__->env = (i64)malloc(3 * sizeof(i64));
-  ((i64*)(__c__->env))[0] = jobs;
-  ((i64*)(__c__->env))[1] = n_jobs;
-  ((i64*)(__c__->env))[2] = tick_stub;
+  ((i64*)(__c__->env))[0] = (i64)jobs;
+  ((i64*)(__c__->env))[1] = (i64)n_jobs;
+  ((i64*)(__c__->env))[2] = (i64)tick_stub;
   (i64)__c__;}))));});});});}));
   }
   
