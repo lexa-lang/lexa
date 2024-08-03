@@ -218,7 +218,7 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
       in
       let copy_fv : string =
         String.concat "\n" (List.mapi 
-          (fun i x -> sprintf "((i64*)(__c__->env))[%d] = %s;" i x)
+          (fun i x -> sprintf "((i64*)(__c__->env))[%d] = (i64)%s;" i x)
           (Varset.to_list free_vars))
       in
       let closure_creation : string =
