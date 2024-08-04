@@ -33,28 +33,29 @@ def plot_df(df):
         legends = ([], [])
         fig, ax1 = plt.subplots(figsize=(4, 3))
         plt.xlabel('Input size')
-        plt.ylabel('Runtime (mili-seconds)')
+        plt.ylabel('Runtime (s)')
         ax2 = ax1.twinx()
         ax2.set_visible(False)
+        df['time_sec'] = df['time_mili'] / 1000
         for platform in df['platform'].unique():
             subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
-            if subset['time_mili'].isna().any():
+            if subset['time_sec'].isna().any():
                 l, = ax1.plot([], [], label=platform + " (NA)", marker='o', alpha=0.5, color=colors[platform], markersize=5)
                 legends[0].append(l)
                 legends[1].append(platform + " (Not Available)")
             else:
                 if (platform, benchmark) in twinx:
-                    l, = ax2.plot(subset['n'], subset['time_mili'], label=platform, marker='x', alpha=0.5, color=colors[platform], markersize=5)
+                    l, = ax2.plot(subset['n'], subset['time_sec'], label=platform, marker='x', alpha=0.5, color=colors[platform], markersize=5)
                     ax2.set_visible(True)
                     legends[0].append(l)
                     legends[1].append(platform)
                 else:
-                    l, = ax1.plot(subset['n'], subset['time_mili'], label=platform, marker='o', alpha=0.5, color=colors[platform], markersize=5)
+                    l, = ax1.plot(subset['n'], subset['time_sec'], label=platform, marker='o', alpha=0.5, color=colors[platform], markersize=5)
                     legends[0].append(l)
                     legends[1].append(platform)
                     
         print(benchmark)
-        ax1.set_title(benchmark.replace("_", " "), fontsize=28)
+        ax1.set_title(benchmark.replace("_", " "), fontsize=25)
         # plt.legend(legends[0], legends[1], loc='upper left')
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper right')

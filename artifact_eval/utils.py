@@ -60,23 +60,24 @@ def bench(path, run_command, input, adjust_warmup, quick=False):
     result = subprocess.run(command, check=True, text=True, capture_output=True, shell=True, cwd=path)
     time_mili = float(re.search(r"Time \(mean ± σ\):\s+(\d+\.\d+) ms", result.stdout).group(1))
     command = re.search(r"     (.*)     ", command).group(1)
-    print_message("Done benchmarking")
+    print_message(f"Done benchmarking {path}")
 
     if adjust_warmup:
-        warmup_overhead_mili = bench_warnup_overhead(path, run_command)
+        warmup_overhead_mili = bench_warnup_overhead(path, run_command, CPU)
         time_mili -= warmup_overhead_mili
     return time_mili
 
-def build_and_bench(path, build_command, run_command, input, adjust_warmup):
+def build_and_bench(path, build_command, run_command, input, adjust_warmup, quick=False):
     build(path, build_command)
-    return bench(path, run_command, input, adjust_warmup)
+    return bench(path, run_command, input, adjust_warmup, quick)
 
-def bench_warnup_overhead(path, run_command):
+def bench_warnup_overhead(path, run_command, CPU):
     print_message(f"Estimating warmup for {path}")
     run_command = "time " + run_command.replace("{IN}", "0")
+    taskset_cmd = f"taskset -c {CPU} {run_command}"
     overheads_mili = []
     for _ in range(100):
-        out = subprocess.run(run_command, check=True, text=True, shell=True, cwd=path, capture_output=True)
+        out = subprocess.run(taskset_cmd, check=True, text=True, shell=True, cwd=path, capture_output=True)
         internal_nano = int(re.search(r"Nanosecond used: (\d+)", out.stdout).group(1))
         minutes, seconds = map(float, re.search(r"real\s+(\d+)m(\d+\.\d+)s", out.stderr).groups())
         external_sec = minutes * 60 + seconds
@@ -85,42 +86,3 @@ def bench_warnup_overhead(path, run_command):
     overhead = sum(overheads_mili) / len(overheads_mili)
     print_message(f"Estimated warmup overhead: {overhead} ms")
     return overhead
-
-
-def main():
-    config_tups = [(platform, benchmark, params) for (platform, benchmark), params in config.items()]
-    config_tups.sort(key=lambda x: (platforms.index(x[0]), benchmarks.index(x[1])))
-
-    results = []
-
-    result_txt = "runtimes.txt"
-    result_csv = "runtimes.csv"
-    if os.path.exists(result_txt):
-        os.rename(result_txt, result_txt + ".bak")
-    if os.path.exists(result_csv):
-        os.rename(result_csv, result_csv + ".bak")
-
-    with ThreadPoolExecutor(max_workers=len(bench_CPUs)) as executor:
-        results_generator = executor.map(
-            lambda c: 
-                (c[0], 
-                c[1], 
-                int(build_and_bench(f"../benchmark-programs/{c[0]}/{c[1]}", c[2]["build"], c[2]["run"], c[2]["bench_input"], c[2].get("adjust_warmup", False))
-                    * c[2].get("scale", 1))
-                )
-                if "fail_reason" not in c[2] else (c[0], c[1], None),
-            config_tups
-        )
-        with open(result_txt, 'w') as f:
-            for platform, benchmark, time_mili in results_generator:
-                results += [(platform, benchmark, time_mili)]
-                f.write(f"{platform:<15} {benchmark:<30} {time_mili}\n")
-                f.flush()
-
-    import pandas as pd
-    df = pd.DataFrame(results, columns=["platform", "benchmark", "time_mili"])
-    pivoted_df = df.pivot_table(index="benchmark", columns="platform", values="time_mili", sort=False)
-    pivoted_df.to_csv(result_csv)
-
-if __name__ == "__main__":
-    main()
