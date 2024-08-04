@@ -24,7 +24,8 @@ fun repeat(n : int) : pure int
     if (l == 0)
       then s
       else step(l - 1, run(n, s))
-  step(1000, 0)
+  // loop count reduced from 1000
+  step(10, 0)
 
 pub fun main()
   val n = get-args().head("").parse-int().default(5)
