@@ -16,8 +16,8 @@ from utils import *
 def plot_df(df):
     twinx = [
         # ("koka", "concurrent_search"),
-        ("koka", "resume_nontail_with_stack_growth"),
-        ("koka_named", "resume_nontail_with_stack_growth"),
+        ("koka", "resume_nontail_2"),
+        ("koka_named", "resume_nontail_2"),
         ("effekt", "interruptible_iterator"),
         ("effekt", "scheduler"),
         # ("ocaml", "interruptible_iterator")
