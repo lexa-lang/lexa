@@ -10,8 +10,7 @@ chemin_parent = os.path.dirname(chemin_actuel)
 sys.path.append(chemin_parent)
 
 from utils import *
-
-IN_VAL_PLACEHOLDER = "IN"
+from config import config, platforms, benchmarks, bench_CPUs
 
 def plot(result_file, title, plot_file, overhead_sec):
     plt.figure(figsize=(6,6))
@@ -27,83 +26,36 @@ def plot(result_file, title, plot_file, overhead_sec):
     plt.savefig(plot_file, dpi=600)
 
     print_message(f"\"{title}\" saved to {plot_file}")
-    
+
 def main():
-    cmds = {
-        "scheduler" : {
-            "lexi" : {
-                "build" : "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main",
-                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 3000,
-            },
-            "effekt" : {
-                "build" : "effekt_latest.sh --backend js --compile main.effekt",
-                # 0 in the run command is a dummy second argument to tell the program to measure its internal timing
-                "run" : f"node --eval \"require(\'\"\'./out/main.js\'\"\').main()\" -- _ {{{IN_VAL_PLACEHOLDER}}} 0",
-                "max_input" : 3000,
-                "adjust_warmup" : True
-            },
-            "koka" : {
-                "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
-                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 3000,
-            },
-            "koka_named" : {
-                "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
-                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 3000,
-                "fail_reason" : "Koka internal compiler error",
-            },
-            "ocaml" : {
-                "build" : "opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml",
-                "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-                "max_input" : 1000,
-            }
-        },
+    config = {(platform, benchmark): params for (platform, benchmark), params in config.items() if benchmark == "scheduler"}
+    
+    config_tups = [(platform, benchmark, i, params) for i in range(0, params["bench_input"], 10) for (platform, benchmark), params in config.items()]
 
+    # Build
+    with ThreadPoolExecutor(max_workers=len(bench_CPUs)) as executor:
+        executor.map(
+            lambda c: build(f"../benchmark-programs/{c[0]}/{c[1]}", c[3]["build"]),
+            config_tups
+        )
 
-        "resume_nontail_with_stack_growth" : {
-            # "lexi" : {
-            #     "build" : "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main",
-            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-            #     "max_input" : 60000,
-            # },
-            # "effekt" : {
-            #     "build" : "effekt_latest.sh --backend ml --compile main.effekt",
-            #     # 0 in the run command is a dummy second argument to tell the program to measure its internal timing
-            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-            #     "max_input" : 60000,
-            # },
-            # "koka" : {
-            #     "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
-            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-            #     "max_input" : 1000,
-            # },
-            # "koka_named" : {
-            #     "build" : "koka -O3 -v0 -o main main.kk ; chmod +x main",
-            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-            #     "max_input" : 1000,
-            # },
-            # "ocaml" : {
-            #     "build" : "opam exec --switch=4.12.0+domains+effects -- ocamlopt -O3 -o main main.ml",
-            #     "run" : f"./main {{{IN_VAL_PLACEHOLDER}}}",
-            #     "max_input" : 40000,
-            # }
-        }
-    }
-    for bench, sys_cmds in cmds.items():
-        for sys, cmds in sys_cmds.items():
-            if "fail_reason" in cmds:
-                print_message(f"Skipping {sys} {bench} due to {cmds['fail_reason']}")
-                continue
-            path = f"../../benchmark-programs/{sys}/{bench}"
-            result_file = f"{sys}_{bench}.csv"
-            num_input = 10
-            build_and_bench(path, cmds["build"], cmds["run"], cmds["max_input"], num_input, result_file)
-            overhead_sec = 0
-            if "adjust_warmup" in cmds:
-                overhead_sec = bench_warnup_overhead(path, cmds["run"])
-            plot(result_file, f"{sys.capitalize()} {bench}", f"{sys}_{bench}.png", overhead_sec)
+    with ThreadPoolExecutor(max_workers=len(bench_CPUs)) as executor:
+        results_generator = executor.map(
+            lambda c: 
+                (c[0], 
+                c[1],
+                c[2],
+                int(build_and_bench(f"../benchmark-programs/{c[0]}/{c[1]}", c[3]["build"], c[3]["run"], c[3]["bench_input"], c[3].get("adjust_warmup", False))
+                    * c[3].get("scale", 1))
+                )
+                if "fail_reason" not in c[3] else (c[0], c[1], c[2], None),
+            config_tups
+        )
+        with open(result_txt, 'w') as f:
+            for platform, benchmark, time_mili in results_generator:
+                results += [(platform, benchmark, time_mili)]
+                f.write(f"{platform:<15} {benchmark:<30} {time_mili}\n")
+                f.flush()
 
 if __name__ == "__main__":
     main()
