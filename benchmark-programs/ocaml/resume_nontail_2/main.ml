@@ -1,17 +1,19 @@
+open Effect
+open Effect.Deep
 
-effect Operator : int -> unit
+type _ Effect.t += Operator: int -> unit t
 
 let rec loop i s =
   if i = 0
     then s
     else
       let _ = perform (Operator i) in
-      (loop (i - 1) s) + 1
+      loop (i - 1) s + 1
 
 let run n s =
   match loop n s with
   | x -> x
-  | effect (Operator x) k ->
+  | effect (Operator x), k ->
       let y = continue k () in
       abs (x - (503 * y) + 37) mod 1009
 
