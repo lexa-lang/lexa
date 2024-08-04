@@ -265,6 +265,28 @@ i64 __env__ = (i64)(__clo__->env);
           (gen_expr e) cast_func_str (gen_args (Var "__env__" :: args)))
     | Stmt (e1, e2) ->
       sprintf "{%s;\n%s;}" (gen_expr e1) (gen_expr e2 ~is_tail:is_tail)
+    | Recdef (clo_map, e) -> 
+      let malloc_closures = String.concat "" 
+        (List.map 
+          (fun (x, _) -> sprintf "closure_t* %s = malloc(sizeof(closure_t));\n" x) 
+          clo_map)
+      in
+      let closure_creation (name, {entry; fv}) =
+        if Varset.is_empty fv then
+          sprintf "%s->env = (i64)NULL;\n" name
+        else
+          sprintf "%s->env = (i64)malloc(%d * sizeof(i64));\n" name (Varset.cardinal fv)
+        ^
+        String.concat "" (List.mapi 
+          (fun i x -> sprintf "((i64*)(%s->env))[%d] = (i64)%s;\n" name i x)
+          (Varset.to_list fv))
+        ^
+        sprintf "%s->func_pointer = (i64)%s;\n" name entry
+      in
+      sprintf "{%s\n%s\n%s;}"
+        malloc_closures
+        (String.concat "\n" (List.map closure_creation clo_map))
+        (gen_expr e ~is_tail:is_tail)
   )
   in
   (match e with

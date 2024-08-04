@@ -29,6 +29,7 @@ and t = (* expressions AFTER closure conversion *)
   | Let of var * t * t
   | If of t * t * t
   | Stmt of t * t
+  | Recdef of (var * closure) list * t
 
 type top_level =
   | TLAbs of var * var list * t

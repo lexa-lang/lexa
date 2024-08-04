@@ -96,38 +96,23 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
     extra_toplevels := lifted_func :: !extra_toplevels;
     Closure {entry = fresh_name; fv = func_fvs}
   | Syntax.Recdef (funs, e) ->
-    let clo_map = List.map (fun ({name; _} : Syntax.fundef) ->
+    let names = List.map (fun (f : Syntax.fundef) -> f.name) funs in
+    let clo_map = List.map (fun ({name; params; body} : Syntax.fundef) ->
       let fresh_name = gen_lifted_name name in
-      let names = List.map (fun (f : Syntax.fundef) -> f.name) funs in
-      let fvs = Varset.union_map  
-        (fun ({params; body; _} : Syntax.fundef) -> Varset.(diff (free_var body) (of_list (names @ params))))
-      funs in
-      (name, {entry = fresh_name; fv = fvs})
+      let fv = Varset.(diff (free_var body) (of_list params)) in
+      (name, {entry = fresh_name; fv})
       ) funs in
-    (* Binds all functions in recdef at the beginning of body *)
-    let rec bind_closures (clo_map : (var * closure) list) body : Syntax__Closure.t =
-      (match clo_map with
-      | [] -> body
-      | (name, clo) :: clo_map' -> 
-        Let (name, Closure clo, bind_closures clo_map' body)
-      )
-    in
-    let names = List.map (fun (x, _) -> x) clo_map in
-    let rec convert funs =
-      (match funs with
-      | [] -> convert_expr e Varset.(union (of_list names) env)
-      | ({name = name; params = params; body = body} : Syntax.fundef) :: funs' ->
-        let clo = List.assoc name clo_map in
-        let {entry; fv} = clo in
-        let body' = convert_expr body Varset.(union (of_list names) env) in
-        let body' = bind_closures clo_map body' in
-        let body' = open_env (Varset.to_list fv) body' in
-        let params' = "__env__" :: params in
-        let lifted_func = TLAbs (entry, params', body') in
-        extra_toplevels := lifted_func :: !extra_toplevels;
-        Let (name, Closure clo, (convert funs')))
-    in
-    convert funs
+    
+    let convert_fun ({name = name; params = params; body = body} : Syntax.fundef) =
+      let clo = List.assoc name clo_map in
+      let {entry; fv} = clo in
+      let body' = convert_expr body Varset.(union (of_list names) env) in
+      let body' = open_env (Varset.to_list fv) body' in
+      let params' = "__env__" :: params in
+      let lifted_func = TLAbs (entry, params', body') in
+      extra_toplevels := lifted_func :: !extra_toplevels;
+      (name, clo) in
+    Recdef (List.map convert_fun funs, convert_expr e Varset.(union (of_list names) env))
   | Syntax.App (e, es) -> 
     (match e with
     | Var name -> if not (Varset.mem name env) then
