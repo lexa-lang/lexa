@@ -50,16 +50,14 @@ def bench(path, run_command, input, adjust_warmup, quick=False):
     thread_id = int(current_thread().getName().split('_')[1])
     CPU = bench_CPUs[thread_id]
     print_message(f"Benchmarking {path}")
-    # NB: use five spaces so that the command can be parsed out later
-    taskset_cmd = f"taskset -c {CPU}     {{}}     "
     if quick:
-        hyperfine_cmd = f"hyperfine --shell none --warmup 0 -M 2 --time-unit millisecond '{taskset_cmd}'"
+        hyperfine_cmd = f"hyperfine --shell none --warmup 0 -M 2 --time-unit millisecond '{run_command.format(IN=input)}'"
     else:
-        hyperfine_cmd = f"hyperfine --shell none --warmup 5 --min-runs 30 --time-unit millisecond '{taskset_cmd}'"
-    command = hyperfine_cmd.format(run_command.format(IN=input))
-    result = subprocess.run(command, check=True, text=True, capture_output=True, shell=True, cwd=path)
+        hyperfine_cmd = f"hyperfine --shell none --warmup 5 --min-runs 30 --time-unit millisecond '{run_command.format(IN=input)}'"
+    # NB: use five spaces so that the command can be parsed out later
+    taskset_cmd = f"taskset -c {CPU} {hyperfine_cmd} "
+    result = subprocess.run(taskset_cmd, check=True, text=True, capture_output=True, shell=True, cwd=path)
     time_mili = float(re.search(r"Time \(mean ± σ\):\s+(\d+\.\d+) ms", result.stdout).group(1))
-    command = re.search(r"     (.*)     ", command).group(1)
     print_message(f"Done benchmarking {path}")
 
     if adjust_warmup:
@@ -73,14 +71,13 @@ def build_and_bench(path, build_command, run_command, input, adjust_warmup, quic
 
 def bench_warnup_overhead(path, run_command, CPU):
     print_message(f"Estimating warmup for {path}")
-    run_command = "time " + run_command.replace("{IN}", "0")
+    run_command = "time " + run_command.format(IN=0)
     taskset_cmd = f"taskset -c {CPU} {run_command}"
     overheads_mili = []
     for _ in range(100):
         out = subprocess.run(taskset_cmd, check=True, text=True, shell=True, cwd=path, capture_output=True)
         internal_nano = int(re.search(r"Nanosecond used: (\d+)", out.stdout).group(1))
-        minutes, seconds = map(float, re.search(r"real\s+(\d+)m(\d+\.\d+)s", out.stderr).groups())
-        external_sec = minutes * 60 + seconds
+        external_sec = float(re.search(r"(\d+\.\d+)user", out.stderr).group(1))
         overheads_mili.append(external_sec * 1000 - internal_nano / 1e6)
     overheads_mili = overheads_mili[10:] # Discard first 10 runs
     overhead = sum(overheads_mili) / len(overheads_mili)
