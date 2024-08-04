@@ -55,7 +55,7 @@ def bench(path, run_command, input, adjust_warmup, quick=False):
     if quick:
         hyperfine_cmd = f"hyperfine --shell none --warmup 0 -M 2 --time-unit millisecond '{taskset_cmd}'"
     else:
-        hyperfine_cmd = f"hyperfine --shell none --warmup 5 --min-runs 20 --time-unit millisecond '{taskset_cmd}'"
+        hyperfine_cmd = f"hyperfine --shell none --warmup 5 --min-runs 30 --time-unit millisecond '{taskset_cmd}'"
     command = hyperfine_cmd.format(run_command.format(IN=input))
     result = subprocess.run(command, check=True, text=True, capture_output=True, shell=True, cwd=path)
     time_mili = float(re.search(r"Time \(mean ± σ\):\s+(\d+\.\d+) ms", result.stdout).group(1))
