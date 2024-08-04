@@ -56,7 +56,7 @@ config[("koka_named", "scheduler")]["fail_reason"] = "Koka internal compiler err
 # config[("koka_named", "concurrent_search")]["fail_reason"] = "Koka internal compiler error"
 # config[("effekt", "concurrent_search")]["fail_reason"] = "MLton typing error"
 
-config[("effekt", "scheduler")]["scale"] = 100
+config[("effekt", "scheduler")]["scale"] = 1000
 config[("effekt", "interruptible_iterator")]["scale"] = 1000
 config[("ocaml", "interruptible_iterator")]["scale"] = 100
 config[("koka", "resume_nontail_2")]["scale"] = 100
