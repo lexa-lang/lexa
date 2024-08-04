@@ -3,7 +3,7 @@
 # uses hyperthreading, so we have 6 physical cores as follow
 bench_CPUs = ["0", "2", "4", "6", "8", "10"]
 
-benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "concurrent_search", "scheduler", "interruptible_iterator"]
+benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "resume_nontail_2", "scheduler", "interruptible_iterator"]
 platforms = ["lexi", "effekt", "koka", "koka_named", "ocaml"]
 
 config = {}
@@ -53,12 +53,14 @@ config[("effekt", "interruptible_iterator")]["adjust_warmup"] = True
 # Known Failures
 config[("koka", "interruptible_iterator")]["fail_reason"] = "Koka type system limitation"
 config[("koka_named", "scheduler")]["fail_reason"] = "Koka internal compiler error"
-config[("koka_named", "concurrent_search")]["fail_reason"] = "Koka internal compiler error"
-config[("effekt", "concurrent_search")]["fail_reason"] = "MLton typing error"
+# config[("koka_named", "concurrent_search")]["fail_reason"] = "Koka internal compiler error"
+# config[("effekt", "concurrent_search")]["fail_reason"] = "MLton typing error"
 
 config[("effekt", "scheduler")]["scale"] = 100
 config[("effekt", "interruptible_iterator")]["scale"] = 1000
 config[("ocaml", "interruptible_iterator")]["scale"] = 100
+config[("koka", "resume_nontail_2")]["scale"] = 100
+config[("koka_named", "resume_nontail_2")]["scale"] = 100
 
 for platform in platforms:
     config[(platform, "countdown")]["bench_input"] = 200000000
@@ -73,4 +75,5 @@ for platform in platforms:
     config[(platform, "handler_sieve")]["bench_input"] = 60000
     config[(platform, "scheduler")]["bench_input"] = 3000
     config[(platform, "interruptible_iterator")]["bench_input"] = 3000
-    config[(platform, "concurrent_search")]["bench_input"] = 13
+    # config[(platform, "concurrent_search")]["bench_input"] = 13
+    config[(platform, "resume_nontail_2")]["bench_input"] = 14000
