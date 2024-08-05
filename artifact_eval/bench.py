@@ -10,7 +10,7 @@ def main():
     parser.add_argument("--quick", action="store_true")
     args = parser.parse_args()
 
-    config_tups = [(platform, benchmark, params) for (platform, benchmark), params in config.items() if "scheduler" == benchmark]
+    config_tups = [(platform, benchmark, params) for (platform, benchmark), params in config.items()]
     config_tups.sort(key=lambda x: (platforms.index(x[0]), benchmarks.index(x[1])))
 
     results = []

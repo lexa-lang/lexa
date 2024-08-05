@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.axisartist.axislines import AxesZero
 import subprocess
@@ -6,6 +7,8 @@ import re
 import argparse
 import pandas as pd
 import numpy as np
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 import sys, os
 chemin_actuel = os.path.dirname(os.path.abspath(__file__))
@@ -16,6 +19,7 @@ from utils import *
 
 plt.style.use(['science', "no-latex"])
 
+# This plots all benchmarks scaling plots
 def plot_df(df):
     def process_name(name):
         if name == "koka":
@@ -99,18 +103,97 @@ def plot_df(df):
     print_message(f"\"{benchmark}\" scaling plot saved to ./scaling_plots/scaling_plot.eps")
 
 
+# This plots the Effekt vs Lexi scaling plot
+def plot_df2(df):
+    def process_name(name):
+        if name == "koka":
+            name = "Koka (regular)"
+        if name == "koka_named":
+            name = "Koka (named)"
+        if name == "effekt":
+            name = "Effekt"
+        if name == "lexi":
+            name = "Lexi"
+        if name == "ocaml":
+            name = "OCaml"
+        return name
+    fig, axs = plt.subplots(1, 2, figsize=(7, 2.5))
+    for i, platform in enumerate(["effekt", "lexi"]):
+        ax1 = axs[i]
+        df['time_sec'] = df['time_mili'] / 1000
+        for benchmark in ["scheduler_notick", "scheduler"]:
+            subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
+            label = "With Tick" if benchmark == "scheduler" else "Without Tick"
+            l, = ax1.plot(subset['n'], subset['time_sec'], label=label, marker='o', alpha=0.5, markersize=5)
+
+        if i == 0:
+            ax1.set_ylabel('Runtime (s)')
+        ax1.set_xlabel('Input size')
+        ax1.set_title(f"{platform.title()}'s Scheduler with and without Tick", fontsize=12)
+        ax1.legend(loc='upper left')
+
+        plt.ticklabel_format(axis='y', style='plain')
+        ax1.grid(True)
+
+    fig.subplots_adjust(wspace=0.5)
+
+    plt.savefig(f"./scaling_plots/two_scaling_plot.eps", dpi=600)
+    plt.savefig(f"./scaling_plots/two_scaling_plot.png", dpi=600)
+    print_message(f"\"{benchmark}\" scaling plot saved to ./two_scaling_plots/scaling_plot.eps")
+
+
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--plot-only", action="store_true")
+    parser.add_argument("--plot-only", type=str, default=None)
     parser.add_argument("--quick", action="store_true")
     args = parser.parse_args()
+
     if args.plot_only:
-        df = pd.read_csv(result_csv)
+        df = pd.read_csv(args.plot_only)
         plot_df(df)
         return
+
     from config import config, platforms, benchmarks, bench_CPUs
-    config = {(platform, benchmark): params for (platform, benchmark), params in config.items() }
+
+    tick_vs_no_tick = False
+    if tick_vs_no_tick:
+        result_txt = "plotting_runtimes.txt"
+        result_csv = "plotting_runtimes.csv"
+        for benchmark in ["scheduler_notick"]:
+            LEXI_BUILD_COMMAND = "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main"
+            LEXI_RUN_COMMAND = "./main {IN}"
+            config[("lexi", benchmark)] = {
+                "build": LEXI_BUILD_COMMAND, "run": LEXI_RUN_COMMAND,
+            }
+
+            EFFEKT_BUILD_COMMAND = "effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml"
+            EFFEKT_RUN_COMMAND = "./main {IN}"
+            config[("effekt", benchmark)] = {
+                "build": EFFEKT_BUILD_COMMAND, "run": EFFEKT_RUN_COMMAND,
+            }
+
+        for platform in ["lexi", "effekt"]:
+            config[(platform, "scheduler_notick")]["bench_input"] = 3000
+            config[(platform, "scheduler")]["bench_input"] = 3000
+
+        config[("effekt", "scheduler_notick")]["build"] = "effekt_latest.sh --backend js --compile main.effekt"
+        config[("effekt", "scheduler_notick")]["run"] = "node --eval \"require(\'\"\'./out/main.js\'\"\').main()\" -- _ {IN} 0"
+        config[("effekt", "scheduler_notick")]["adjust_warmup"] = True
+        config[("effekt", "scheduler_notick")]["scale"] = 10
+    
+        config = {(platform, benchmark): params for (platform, benchmark), params in config.items() if benchmark in ["scheduler_notick", "scheduler"] and platform in ["lexi", "effekt"]}
+        plot_fun = plot_df
+    else:
+        result_txt = "plotting_runtimes2.txt"
+        result_csv = "plotting_runtimes2.csv"
+        config = {(platform, benchmark): params for (platform, benchmark), params in config.items() }
+        plot_fun = plot_df2
+
+    if os.path.exists(result_txt):
+        os.rename(result_txt, result_txt + ".bak")
+    if os.path.exists(result_csv):
+        os.rename(result_csv, result_csv + ".bak")
 
     # Build
     config_tups = [(platform, benchmark, 0, params) for (platform, benchmark), params in config.items()]
@@ -144,7 +227,7 @@ def main():
     # Plot
     df = pd.DataFrame(results, columns=["platform", "benchmark", "n", "time_mili"])
     df.to_csv(result_csv)
-    plot_df(df)
+    plot_fun(df)
 
 if __name__ == "__main__":
     main()

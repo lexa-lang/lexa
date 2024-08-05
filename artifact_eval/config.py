@@ -4,7 +4,7 @@
 bench_CPUs = ["0", "2", "4", "6", "8", "10"]
 
 benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "resume_nontail_2", "scheduler", "interruptible_iterator"]
-platforms = ["lexi", "effekt", "koka", "koka_named", "ocaml"]
+platforms = ["lexi", "effekt", "koka_named", "koka", "ocaml"]
 
 config = {}
 
