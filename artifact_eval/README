@@ -24,7 +24,7 @@ In short, you can run the following commands and make sure
 that no errors are reported:
 ```
 python bench.py
-python effekt_vs_lexi.py.py
+python effekt_vs_lexi.py
 python run_racket.py
 ```
 
