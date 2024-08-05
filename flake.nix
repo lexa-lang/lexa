@@ -45,7 +45,6 @@
             self.packages.${system}.effekt_0_2_2
             self.packages.${system}.effect_latest
             self.packages.${system}.koka_3_1_1
-            pkgs-unstable.koka
 
             (python3.withPackages (ps: with ps; [
               matplotlib
