@@ -149,14 +149,19 @@ def main():
     parser.add_argument("--quick", action="store_true")
     args = parser.parse_args()
 
+    tick_vs_no_tick = True
+    if tick_vs_no_tick:
+        plot_fun = plot_df
+    else:
+        plot_fun = plot_df2
+
     if args.plot_only:
         df = pd.read_csv(args.plot_only)
-        plot_df(df)
+        plot_fun(df)
         return
 
     from config import config, platforms, benchmarks, bench_CPUs
 
-    tick_vs_no_tick = False
     if tick_vs_no_tick:
         result_txt = "plotting_runtimes.txt"
         result_csv = "plotting_runtimes.csv"
@@ -183,12 +188,10 @@ def main():
         config[("effekt", "scheduler_notick")]["scale"] = 10
     
         config = {(platform, benchmark): params for (platform, benchmark), params in config.items() if benchmark in ["scheduler_notick", "scheduler"] and platform in ["lexi", "effekt"]}
-        plot_fun = plot_df
     else:
         result_txt = "plotting_runtimes2.txt"
         result_csv = "plotting_runtimes2.csv"
         config = {(platform, benchmark): params for (platform, benchmark), params in config.items() }
-        plot_fun = plot_df2
 
     if os.path.exists(result_txt):
         os.rename(result_txt, result_txt + ".bak")
