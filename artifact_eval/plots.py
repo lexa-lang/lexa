@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from mpl_toolkits.axisartist.axislines import AxesZero
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 import re
@@ -13,14 +14,30 @@ sys.path.append(chemin_parent)
 
 from utils import *
 
+plt.style.use(['science', "no-latex"])
+
 def plot_df(df):
+    def process_name(name):
+        if name == "koka":
+            name = "Koka (regular)"
+        if name == "koka_named":
+            name = "Koka (named)"
+        if name == "effekt":
+            name = "Effekt"
+        if name == "lexi":
+            name = "Lexi"
+        if name == "ocaml":
+            name = "OCaml"
+        return name
     twinx = [
         # ("koka", "concurrent_search"),
         ("koka", "resume_nontail_2"),
         ("koka_named", "resume_nontail_2"),
         ("effekt", "interruptible_iterator"),
         ("effekt", "scheduler"),
-        # ("ocaml", "interruptible_iterator")
+    ]
+    twinx2 = [
+        ("ocaml", "interruptible_iterator")
     ]
     colors = {
         "lexi": "blue",
@@ -29,46 +46,58 @@ def plot_df(df):
         "koka_named": "orange",
         "ocaml": "purple"
     }
-    for benchmark in df['benchmark'].unique():
-        legends = ([], [])
-        fig, ax1 = plt.subplots(figsize=(4, 3))
+    fig, axs = plt.subplots(5, 3, figsize=(10, 15))
+    for i, benchmark in enumerate(df['benchmark'].unique()):
+        if i // 3 == 4:
+            # Last row only has one plot
+            ax1 = axs[4, 1]
+            ax1.set_ylabel('Runtime (s)')
+        else:
+            ax1 = axs[i//3, i%3]
+            if i % 3 == 0:
+                ax1.set_ylabel('Runtime (s)')
         plt.xlabel('Input size')
-        plt.ylabel('Runtime (s)')
         ax2 = ax1.twinx()
+        ax3 = ax1.twinx()
         ax2.set_visible(False)
+        ax3.set_visible(False)
+        ax3.spines.right.set_position(("axes", 1.2))
         df['time_sec'] = df['time_mili'] / 1000
         for platform in df['platform'].unique():
             subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
             if subset['time_sec'].isna().any():
-                l, = ax1.plot([], [], label=platform + " (NA)", marker='o', alpha=0.5, color=colors[platform], markersize=5)
-                legends[0].append(l)
-                legends[1].append(platform + " (Not Available)")
+                continue
             else:
                 if (platform, benchmark) in twinx:
-                    l, = ax2.plot(subset['n'], subset['time_sec'], label=platform, marker='x', alpha=0.5, color=colors[platform], markersize=5)
+                    p2, = ax2.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker='x', alpha=0.5, color=colors[platform], markersize=5)
                     ax2.set_visible(True)
-                    legends[0].append(l)
-                    legends[1].append(platform)
+                elif (platform, benchmark) in twinx2:
+                    p3, = ax3.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker='x', alpha=0.5, color=colors[platform], markersize=5)
+                    ax3.set_visible(True)
                 else:
-                    l, = ax1.plot(subset['n'], subset['time_sec'], label=platform, marker='o', alpha=0.5, color=colors[platform], markersize=5)
-                    legends[0].append(l)
-                    legends[1].append(platform)
+                    l, = ax1.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker='o', alpha=0.5, color=colors[platform], markersize=5)
                     
-        print(benchmark)
-        ax1.set_title(benchmark.replace("_", " "), fontsize=25)
-        # plt.legend(legends[0], legends[1], loc='upper left')
+        ax1.set_title(benchmark.replace("_", " ").title(), fontsize=20)
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper right')
+        ax3.legend(loc='lower right')
+
+        if ax3._visible:
+            ax3.tick_params(axis='y', colors=p3.get_color())
+            ax2.tick_params(axis='y', colors=p2.get_color())
+
         plt.ticklabel_format(axis='y', style='plain')
         ax1.grid(True)
-        plt.tight_layout()
 
+    plt.tight_layout(pad=0)
 
-        plt.savefig(f"./scaling_plots/scaling_plot_{benchmark}.png", dpi=600)
-        print_message(f"\"{benchmark}\" saved to ./scaling_plots/scaling_plot_{benchmark}.png")
+    axs[4, 0].remove()
+    axs[4, 2].remove()
 
-result_txt = "plotting_runtimes.txt"
-result_csv = "plotting_runtimes.csv"
+    plt.savefig(f"./scaling_plots/scaling_plot.eps", dpi=600)
+    plt.savefig(f"./scaling_plots/scaling_plot.png", dpi=600)
+    print_message(f"\"{benchmark}\" scaling plot saved to ./scaling_plots/scaling_plot.eps")
+
 
 def main():
     # Parse arguments
