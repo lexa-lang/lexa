@@ -149,11 +149,11 @@ def main():
     parser.add_argument("--quick", action="store_true")
     args = parser.parse_args()
 
-    tick_vs_no_tick = True
+    tick_vs_no_tick = False
     if tick_vs_no_tick:
-        plot_fun = plot_df
-    else:
         plot_fun = plot_df2
+    else:
+        plot_fun = plot_df
 
     if args.plot_only:
         df = pd.read_csv(args.plot_only)
