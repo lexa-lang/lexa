@@ -12,21 +12,12 @@ def print_message(message, short=False):
     else:
         print(f"{'='*len(message)}\n{message}\n{'='*len(message)}")
 
-def run_processes(commands, cwd, seq=False):
-    if seq:
-        results = []
-        for command in commands:
-            print_message(f"Running {command}", short=True)
-            result = subprocess.run(command, check=True, text=True, capture_output=True, shell=True, cwd=cwd)
-            results.append(result)
-        return results
-    else:
-        with ThreadPoolExecutor(max_workers=len(bench_CPUs)) as executor:
-            results = executor.map(
-                lambda c: 
-                    subprocess.run(c, check=True, text=True, capture_output=True, shell=True, cwd=cwd), 
-                commands)
-        return results
+def run_processe(command, cwd):
+    try:
+        return subprocess.run(command, check=True, text=True, capture_output=True, shell=True, cwd=cwd)
+    except subprocess.CalledProcessError as e:
+        print(f"Error {e.returncode}\nCommand: {command}\nAt: {cwd}\n")
+        raise e
 
 def parse_output(output_file):
     pairs = []
@@ -43,7 +34,7 @@ def build(path, build_command):
     CPU = bench_CPUs[thread_id]
     print_message(f"Building {path}")
     taskset_cmd = f"taskset -c {CPU} {build_command}"
-    subprocess.run(taskset_cmd, check=True, text=True, capture_output=True, shell=True, cwd=path)
+    run_processe(taskset_cmd, path)
     print_message("Done building")
 
 def bench(path, run_command, input, adjust_warmup, quick=False):
@@ -56,7 +47,7 @@ def bench(path, run_command, input, adjust_warmup, quick=False):
         hyperfine_cmd = f"hyperfine --shell none --warmup 5 --min-runs 30 --time-unit millisecond '{run_command.format(IN=input)}'"
     # NB: use five spaces so that the command can be parsed out later
     taskset_cmd = f"taskset -c {CPU} {hyperfine_cmd} "
-    result = subprocess.run(taskset_cmd, check=True, text=True, capture_output=True, shell=True, cwd=path)
+    result = run_processe(taskset_cmd, path)
     time_mili = float(re.search(r"Time \(mean ± σ\):\s+(\d+\.\d+) ms", result.stdout).group(1))
     print_message(f"Done benchmarking {path}")
 
@@ -75,7 +66,7 @@ def bench_warnup_overhead(path, run_command, CPU):
     taskset_cmd = f"taskset -c {CPU} {run_command}"
     overheads_mili = []
     for _ in range(100):
-        out = subprocess.run(taskset_cmd, check=True, text=True, shell=True, cwd=path, capture_output=True)
+        out = run_processe(taskset_cmd, path)
         internal_nano = int(re.search(r"Nanosecond used: (\d+)", out.stdout).group(1))
         external_sec = float(re.search(r"(\d+\.\d+)user", out.stderr).group(1))
         overheads_mili.append(external_sec * 1000 - internal_nano / 1e6)

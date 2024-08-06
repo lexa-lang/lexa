@@ -82,8 +82,6 @@ def plot_df(df):
                     ax3.set_visible(True)
                 else:
                     l, = ax1.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker='o', alpha=0.5, color=colors[platform], markersize=5)
-        if benchmark == "nqueens":
-            import pdb; pdb.set_trace()
         ax1.set_title(process_name(benchmark), fontsize=20)
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper right')
@@ -157,13 +155,13 @@ def main():
         result_txt = "plotting_runtimes.txt"
         result_csv = "plotting_runtimes.csv"
         for benchmark in ["scheduler_notick"]:
-            LEXI_BUILD_COMMAND = "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main"
+            LEXI_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.ir -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
             LEXI_RUN_COMMAND = "./main {IN}"
             config[("lexi", benchmark)] = {
                 "build": LEXI_BUILD_COMMAND, "run": LEXI_RUN_COMMAND,
             }
 
-            EFFEKT_BUILD_COMMAND = "effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml"
+            EFFEKT_BUILD_COMMAND = "effekt_latest.sh --backend ml --compile main.effekt && mlton -default-type int64 -output main out/main.sml"
             EFFEKT_RUN_COMMAND = "./main {IN}"
             config[("effekt", benchmark)] = {
                 "build": EFFEKT_BUILD_COMMAND, "run": EFFEKT_RUN_COMMAND,
