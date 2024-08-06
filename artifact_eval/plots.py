@@ -23,16 +23,18 @@ plt.style.use(['science', "no-latex"])
 def plot_df(df):
     def process_name(name):
         if name == "koka":
-            name = "Koka (regular)"
+            return "Koka (regular)"
         if name == "koka_named":
-            name = "Koka (named)"
+            return "Koka (named)"
         if name == "effekt":
-            name = "Effekt"
+            return "Effekt"
         if name == "lexi":
-            name = "Lexi"
+            return "Lexi"
         if name == "ocaml":
-            name = "OCaml"
-        return name
+            return "OCaml"
+        if name == "nqueens":
+            return "NQueens"
+        return name.replace("_", " ").title()
     twinx = [
         # ("koka", "concurrent_search"),
         ("koka", "resume_nontail_2"),
@@ -80,8 +82,9 @@ def plot_df(df):
                     ax3.set_visible(True)
                 else:
                     l, = ax1.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker='o', alpha=0.5, color=colors[platform], markersize=5)
-                    
-        ax1.set_title(benchmark.replace("_", " ").title(), fontsize=20)
+        if benchmark == "nqueens":
+            import pdb; pdb.set_trace()
+        ax1.set_title(process_name(benchmark), fontsize=20)
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper right')
         ax3.legend(loc='lower right')
@@ -105,18 +108,6 @@ def plot_df(df):
 
 # This plots the Effekt vs Lexi scaling plot
 def plot_df2(df):
-    def process_name(name):
-        if name == "koka":
-            name = "Koka (regular)"
-        if name == "koka_named":
-            name = "Koka (named)"
-        if name == "effekt":
-            name = "Effekt"
-        if name == "lexi":
-            name = "Lexi"
-        if name == "ocaml":
-            name = "OCaml"
-        return name
     fig, axs = plt.subplots(1, 2, figsize=(7, 2.5))
     for i, platform in enumerate(["effekt", "lexi"]):
         ax1 = axs[i]
