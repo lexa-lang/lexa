@@ -22,4 +22,4 @@ integration-test-job:
   stage: test
   script:
     - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "dune runtest ./test/integration"
-    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "opam switch create 5.3.0+trunk && cd scripts && python bench.py --quick" # This command builds and runs not only Lexi programs, but also programs in other systems
+    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "opam init && opam switch create 5.3.0+trunk && cd scripts && python bench.py --quick" # This command builds and runs not only Lexi programs, but also programs in other systems
