@@ -1,5 +1,4 @@
 import os
-import subprocess
 import psutil
 import pwd
 
@@ -11,24 +10,19 @@ else:
     # list all the physical cores
     bench_CPUs = list(range(psutil.cpu_count()))
 
-# Build dune, so later we directly use the binaries.
-# This command run in the global scope so that it runs
-# whne others import it.
-subprocess.run("dune build @install", check=True, text=True, shell=True)
-
 benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "resume_nontail_2", "scheduler", "interruptible_iterator"]
 platforms = ["lexi", "effekt", "koka_named", "koka", "ocaml"]
 
 config = {}
 
 for benchmark in benchmarks:
-    LEXI_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.ir -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
+    LEXI_BUILD_COMMAND = "flock /tmp/dune_lockfile -c 'dune exec -- sstal main.ir -o main.c' && clang -O3 -g -I ../../../stacktrek main.c -o main"
     LEXI_RUN_COMMAND = "./main {IN}"
     config[("lexi", benchmark)] = {
         "build": LEXI_BUILD_COMMAND, "run": LEXI_RUN_COMMAND,
     }
 
-    OCAML_BUILD_COMMAND = "opam exec --switch=5.3.0+trunk -- ocamlopt -O3 -o main -I $(opam var lib)/multicont multicont.cmxa main.ml -o main"
+    OCAML_BUILD_COMMAND = "flock /tmp/opam_lockfile -c 'opam exec --switch=5.3.0+trunk -- ocamlopt -O3 -o main -I $(opam var lib)/multicont multicont.cmxa main.ml -o main'"
     OCAML_RUN_COMMAND = "./main {IN}"
     config[("ocaml", benchmark)] = {
         "build": OCAML_BUILD_COMMAND, "run": OCAML_RUN_COMMAND,
