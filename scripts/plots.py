@@ -110,10 +110,10 @@ def plot_df2(df):
     for i, platform in enumerate(["effekt", "lexi"]):
         ax1 = axs[i]
         df['time_sec'] = df['time_mili'] / 1000
-        for benchmark in ["scheduler_notick", "scheduler"]:
+        for color, benchmark in [("blue", "scheduler_notick"), ("red", "scheduler")]:
             subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
             label = "With Tick" if benchmark == "scheduler" else "Without Tick"
-            l, = ax1.plot(subset['n'], subset['time_sec'], label=label, marker='o', alpha=0.5, markersize=5)
+            l, = ax1.plot(subset['n'], subset['time_sec'], label=label, marker='o', alpha=0.5, color=color, markersize=5)
 
         if i == 0:
             ax1.set_ylabel('Runtime (s)')
@@ -135,11 +135,11 @@ def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--plot-only", type=str, default=None)
+    parser.add_argument("--tick-plot", action="store_true")
     parser.add_argument("--quick", action="store_true")
     args = parser.parse_args()
 
-    tick_vs_no_tick = False
-    if tick_vs_no_tick:
+    if args.tick_plot:
         plot_fun = plot_df2
     else:
         plot_fun = plot_df
@@ -151,7 +151,7 @@ def main():
 
     from config import config, platforms, benchmarks, bench_CPUs
 
-    if tick_vs_no_tick:
+    if args.tick_plot:
         result_txt = "plotting_runtimes2.txt"
         result_csv = "plotting_runtimes2.csv"
         for benchmark in ["scheduler_notick"]:
