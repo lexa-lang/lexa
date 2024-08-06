@@ -17,6 +17,7 @@ def run_processe(command, cwd):
         return subprocess.run(command, check=True, text=True, capture_output=True, shell=True, cwd=cwd)
     except subprocess.CalledProcessError as e:
         print(f"Error {e.returncode}\nCommand: {command}\nAt: {cwd}\n")
+        print(e.stderr)
         raise e
 
 def parse_output(output_file):
