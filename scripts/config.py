@@ -1,10 +1,11 @@
 import os
 import subprocess
 import psutil
+import pwd
 
 # On my machine with i5-13600K, the 6 performance cores
 # uses hyperthreading, so we have 6 physical cores as follow
-if os.getlogin() == "congm":
+if pwd.getpwuid(os.geteuid()).pw_name == "congm":
     bench_CPUs = ["0", "2", "4", "6", "8", "10"]
 else:
     # list all the physical cores
