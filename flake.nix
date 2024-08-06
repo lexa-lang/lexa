@@ -47,6 +47,7 @@
             self.packages.${system}.koka_3_1_1
 
             (python3.withPackages (ps: with ps; [
+              psutil
               matplotlib
               numpy
               pandas

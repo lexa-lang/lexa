@@ -1,7 +1,13 @@
+import os
+import psutil
 
 # On my machine with i5-13600K, the 6 performance cores
 # uses hyperthreading, so we have 6 physical cores as follow
-bench_CPUs = ["0", "2", "4", "6", "8", "10"]
+if os.getlogin() == "congm":
+    bench_CPUs = ["0", "2", "4", "6", "8", "10"]
+else:
+    # list all the physical cores
+    bench_CPUs = list(range(psutil.cpu_count()))
 
 benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "resume_nontail_2", "scheduler", "interruptible_iterator"]
 platforms = ["lexi", "effekt", "koka_named", "koka", "ocaml"]
