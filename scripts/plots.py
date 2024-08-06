@@ -152,8 +152,8 @@ def main():
     from config import config, platforms, benchmarks, bench_CPUs
 
     if tick_vs_no_tick:
-        result_txt = "plotting_runtimes.txt"
-        result_csv = "plotting_runtimes.csv"
+        result_txt = "plotting_runtimes2.txt"
+        result_csv = "plotting_runtimes2.csv"
         for benchmark in ["scheduler_notick"]:
             LEXI_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.ir -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
             LEXI_RUN_COMMAND = "./main {IN}"
@@ -178,8 +178,8 @@ def main():
     
         config = {(platform, benchmark): params for (platform, benchmark), params in config.items() if benchmark in ["scheduler_notick", "scheduler"] and platform in ["lexi", "effekt"]}
     else:
-        result_txt = "plotting_runtimes2.txt"
-        result_csv = "plotting_runtimes2.csv"
+        result_txt = "plotting_runtimes.txt"
+        result_csv = "plotting_runtimes.csv"
         config = {(platform, benchmark): params for (platform, benchmark), params in config.items() }
 
     if os.path.exists(result_txt):
