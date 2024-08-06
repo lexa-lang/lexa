@@ -9,7 +9,7 @@ platforms = ["lexi", "effekt", "koka_named", "koka", "ocaml"]
 config = {}
 
 for benchmark in benchmarks:
-    LEXI_BUILD_COMMAND = "dune exec -- sstal main.ir -o main.c; clang -O3 -g -I ../../../stacktrek main.c -o main"
+    LEXI_BUILD_COMMAND = "dune exec -- sstal main.ir -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
     LEXI_RUN_COMMAND = "./main {IN}"
     config[("lexi", benchmark)] = {
         "build": LEXI_BUILD_COMMAND, "run": LEXI_RUN_COMMAND,
@@ -21,19 +21,19 @@ for benchmark in benchmarks:
         "build": OCAML_BUILD_COMMAND, "run": OCAML_RUN_COMMAND,
     }
 
-    KOKA_BUILD_COMMAND = "koka -O3 -v0 -o main main.kk ; chmod +x main"
+    KOKA_BUILD_COMMAND = "koka -O3 -v0 -o main main.kk  && chmod +x main"
     KOKA_RUN_COMMAND = "./main {IN}"
     config[("koka", benchmark)] = {
         "build": KOKA_BUILD_COMMAND, "run": KOKA_RUN_COMMAND,
     }
 
-    KOKA_NAMED_BUILD_COMMAND = "koka -O3 -v0 -o main main.kk ; chmod +x main"
+    KOKA_NAMED_BUILD_COMMAND = "koka -O3 -v0 -o main main.kk  && chmod +x main"
     KOKA_NAMED_RUN_COMMAND = "./main {IN}"
     config[("koka_named", benchmark)] = {
         "build": KOKA_NAMED_BUILD_COMMAND, "run": KOKA_NAMED_RUN_COMMAND,
     }
 
-    EFFEKT_BUILD_COMMAND = "effekt_latest.sh --backend ml --compile main.effekt ; mlton -default-type int64 -output main out/main.sml"
+    EFFEKT_BUILD_COMMAND = "effekt_latest.sh --backend ml --compile main.effekt  && mlton -default-type int64 -output main out/main.sml"
     EFFEKT_RUN_COMMAND = "./main {IN}"
     config[("effekt", benchmark)] = {
         "build": EFFEKT_BUILD_COMMAND, "run": EFFEKT_RUN_COMMAND,
