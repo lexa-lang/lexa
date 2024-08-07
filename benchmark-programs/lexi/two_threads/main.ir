@@ -1,0 +1,41 @@
+effect Thread {
+    dcl yield
+}
+
+def run(n) {
+    val acc = newref {0};
+    val storage = newref {0};
+
+    val work = fun() {
+        handle {
+            rec def step(i) {
+                if i == 0 then
+                    0
+                else
+                    (raise thread_stub.yield 0;
+                    step(i - 1))
+            };
+            step(n)
+        } with thread_stub : Thread {
+            hdl_1 yield(_, k) {
+                acc[0] := acc[0] + 1;
+                val node = ~listNode(k, ~listEnd());
+                val peer = storage[0];
+                storage[0] := node;
+                if ~listIsEmpty(peer) then
+                    0
+                else
+                    resume_final (~listHead(peer)) 0
+            }
+        }
+    };
+
+    work();
+    work();
+    acc[0]
+}
+
+def main() {
+    ~printInt(run(~readInt()));
+    0
+}

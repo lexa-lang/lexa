@@ -1,0 +1,48 @@
+
+import args
+import bench
+
+def abs(i: Int): Int = if (i < 0) { 0 - i } else { i }
+
+effect Operator(x: Int): Unit
+
+def loop(i: Int, s: Int): Int / Operator =
+  if (i == 0) {
+    s
+  } else {
+    do Operator(i);
+    loop(i - 1, s) + 1
+  }
+
+def run(n: Int, s: Int): Int =
+  try {
+    loop(n, s)
+  } with Operator { (x: Int) =>
+    val y = resume(());
+    mod(abs(x - (503 * y) + 37), 1009)
+  }
+
+def repeat(n: Int): Int = {
+  def step(l: Int, s: Int): Int = {
+    if (l == 0) {
+      s
+    } else {
+      step(l - 1, run(n,s))
+    }
+  }
+  step(1000, 0)
+}
+
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val i = x.toInt; var r = 0; val t = timed{ r = repeat(i); };
+    println("Nanosecond used: " ++ show(t))
+    println(r)
+  case Cons(x, Nil()) =>
+    val i = x.toInt; val r = repeat(i);
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
+}

@@ -1,7 +1,7 @@
-import immutable/list
-import immutable/option
-import io/args
-import text/string
+import list
+import args
+import bench
+
 
 effect Emit(e: Int): Unit
 
@@ -24,8 +24,16 @@ def run(n: Int) = {
   }
 }
 
-def main() = {
-  val n = commandLineArgs().headOption.getOrElse { "" }.toInt.getOrElse { 5 };
-  val r = run(n);
-  println(r)
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val i = x.toInt; var r = 0; val t = timed{ r = run(i); };
+    println("Nanosecond used: " ++ show(t))
+    println(r)
+  case Cons(x, Nil()) =>
+    val i = x.toInt; val r = run(i);
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
 }

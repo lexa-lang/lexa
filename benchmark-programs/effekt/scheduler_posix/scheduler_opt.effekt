@@ -10,7 +10,7 @@ interface Tick {
 interface Process {
   def yield(): Unit
   def exit(): Nothing
-  def fork(): Boolean
+  def fork(): Bool
 }
 
 def scheduler { prog: => Unit / Process }: Unit / Tick = region this {

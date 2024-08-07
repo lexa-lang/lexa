@@ -1,0 +1,114 @@
+effect Emit {
+    dcl emit
+}
+
+effect Value {
+    dcl get
+}
+
+def constant() {
+    0
+}
+def newline() {
+    10
+}
+def space() {
+    32
+}
+def star() {
+    42
+}
+def question() {
+    63
+}
+
+def make(n) {
+    if n == 0 then
+        ~treeLeaf()
+    else
+        ~treeNode(0, ~treeLeaf(), make(n - 1))
+}
+
+def indent(n, emit_stub) {
+    raise emit_stub.emit (n*space())
+}
+
+def visit_get_body(env, get_stub) {
+    val n = env[0];
+    val l = env[1];
+    val emit_stub = env[2];
+    (if ~treeIsEmpty(n) then
+        raise emit_stub.emit (constant())
+    else
+        val cond = ~treeLeft(n);
+        val body = ~treeRight(n);
+        raise emit_stub.emit (star());
+        visit(cond, emit_stub, get_stub);
+        raise emit_stub.emit (newline());
+        visit(body, emit_stub, get_stub)
+    );
+    raise emit_stub.emit (newline())
+}
+
+obj visitget(env) {
+    def get() {
+        env[1] + 1
+    }
+}
+
+def visit(n, emit_stub, get_stub) {
+    val l = raise get_stub.get 0;
+    indent(l, emit_stub);
+    handle {n, l, emit_stub}
+        visit_get_body
+    with visitget: Value
+}
+
+def emit_body(env, emit_stub) {
+    val ast = env[0];
+    val result = env[1];
+    val seed = env[2];
+    val get_stub = env[3];
+    visit(ast, emit_stub, get_stub)
+}
+
+obj emitter(env) {
+    def emit(i) {
+        val result = env[1];
+        val seed = env[2];
+        seed[0] := (seed[0] * 1103515245 + 12345) % 2147483648;
+        val rand = (seed[0] / 65536) % 32768;
+        result[0] := result[0] + i * rand
+    }
+}
+
+def get_body(env, get_stub) {
+    val ast = env[0];
+    val result = env[1];
+    val seed = newref {1};
+    handle {ast, result, seed, get_stub}
+        emit_body
+    with emitter: Emit
+}
+
+obj getter(env) {
+    def get() {
+        0
+    }
+}
+
+def run(n) {
+    val result = newref {0};
+    val ast = make(n);
+    handle {ast, result}
+        get_body
+    with getter: Value;
+    result[0]
+}
+
+def main() {
+    val n = ~readInt();
+    val run_result = run(n);
+    ~printInt(run_result);
+    0
+}

@@ -1,0 +1,18 @@
+Command to plot scaling plots for all the benchmarks.
+```
+python plots.py --quick
+# Result file saved at plotting_runtimes.csv
+```
+
+Command to plot scaling plots Effekt vs Lexi
+```
+# change the variable tick_vs_no_tick to True in plots.py
+python plots.py --quick
+# Result file saved at plotting_runtimes2.csv
+```
+
+Command to get runtime of all benchmarks
+```
+python bench.py --quick
+# Result file saved at runtimes.csv
+```

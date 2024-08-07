@@ -1,0 +1,74 @@
+effect Yield {
+  dcl yield
+}
+
+def make(n) {
+    if n == 0 then
+        ~treeLeaf()
+    else 
+        val t = make(n - 1);
+        ~treeNode(n, t, t)
+}
+
+def operator(x, y) {
+    ~mathAbs((x - 503 * y) + 37) % 1009
+}
+
+def explore(t, rev, state, yield_stub) {
+    raise yield_stub.yield 0;
+    if ~treeIsEmpty(t) then
+        state[0]
+    else
+        (
+        state[0] := operator(state[0], ~treeValue(t));
+        if rev then
+            ~treeValue(t) + explore(~treeLeft(t), rev, state, yield_stub) + explore(~treeRight(t), rev, state, yield_stub)
+        else
+            ~treeValue(t) + explore(~treeRight(t), rev, state, yield_stub) + explore(~treeLeft(t), rev, state, yield_stub)
+        )
+}
+
+def run(n) {
+    val tree = make(n);
+    val state = newref {0};
+    val storage = newref {0};
+    val yield_f = fun(action) {
+        handle {
+            action(yield_stub)
+        } with yield_stub: Yield {
+            hdl_1 yield(_, k) {
+                val peer = storage[0];
+                storage[0] := k;
+                if peer != 0 then
+                    resume_final peer 0
+                else
+                    0
+            }
+        }
+    };
+    val search = fun() {
+        yield_f(fun(yield_stub) {
+            explore(tree, true, state, yield_stub)
+        });
+        yield_f(fun(yield_stub) {
+            explore(tree, false, state, yield_stub)
+        })
+    };
+    rec def loop(i) {
+        if i == 0 then
+            state[0]
+        else
+            (
+            state[0] := search();
+            loop(i - 1)
+            )
+    };
+    loop(1000)
+}
+
+def main() {
+    val n = ~readInt();
+    val res = run(n);
+    ~printInt(res);
+    0
+}

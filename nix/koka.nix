@@ -1,8 +1,8 @@
-{ stdenv, pkgsHostTarget, cmake, makeWrapper, mkDerivation, fetchFromGitHub
+{ stdenv, fetchurl, pkgsHostTarget, cmake, makeWrapper, mkDerivation, fetchFromGitHub
 , alex, array, base, bytestring, cond, containers, directory, extra
 , filepath, hpack, hspec, hspec-core, isocline, json, lib, mtl
 , parsec, process, regex-compat, text, time, FloatingHex, aeson
-, async, co-log-core, hashable, lens, lsp_2_4_0_0, network, network-simple, text-rope }:
+, async, co-log-core, hashable, lens, lsp, network, network-simple, text-rope }:
 
 let
   version = "3.1.1";
@@ -41,7 +41,7 @@ mkDerivation rec {
   executableHaskellDepends = [
     array base bytestring cond containers directory isocline mtl
     parsec process text time kklib FloatingHex aeson async
-    co-log-core hashable lens lsp_2_4_0_0 network network-simple text-rope
+    co-log-core hashable lens lsp network network-simple text-rope
   ];
   executableToolDepends = [ alex makeWrapper ];
   postInstall = ''
@@ -54,6 +54,13 @@ mkDerivation rec {
   '';
   doCheck = false;
   prePatch = "hpack";
+
+  patches = [ 
+    (fetchurl {
+      url = "https://patch-diff.githubusercontent.com/raw/koka-lang/koka/pull/560.patch";
+      sha256 = "sha256-kf+lfGqXjiREeDTe2iFCxQ9h2PFbN0JCbCNO/6aSaXc=";
+    })
+   ];
   description = "Koka language compiler and interpreter";
   homepage = "https://github.com/koka-lang/koka";
   changelog = "${homepage}/blob/master/doc/spec/news.mdk";

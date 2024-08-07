@@ -11,7 +11,7 @@ interface Tick {
 interface Process {
   def yield(): Unit
   def exit(): Nothing
-  def fork { p: () => Unit / Process }: Boolean
+  def fork { p: () => Unit / Process }: Bool
 }
 
 extern pure def cast[T, R](x : T): R =
