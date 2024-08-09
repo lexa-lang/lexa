@@ -1,5 +1,6 @@
 import matplotlib
 import matplotlib.pyplot as plt
+import scienceplots
 from mpl_toolkits.axisartist.axislines import AxesZero
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
@@ -7,8 +8,27 @@ import re
 import argparse
 import pandas as pd
 import numpy as np
-matplotlib.rcParams['pdf.fonttype'] = 42
-matplotlib.rcParams['ps.fonttype'] = 42
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
+
+matplotlib.use("pgf")
+preamble = r'\usepackage{fontspec}\setmainfont{Linux Libertine}\setmonofont[Scale=MatchLowercase]{JetBrains Mono}\usepackage{xcolor}'
+params = {
+    'font.family': 'serif',
+    'text.usetex': True,
+    # 'text.latex.unicode': True,
+    'pgf.rcfonts': False,
+    'pgf.texsystem': 'xelatex',
+    'pgf.preamble': preamble,
+    'font.size': 12,
+    'xtick.labelsize': 8,
+    'ytick.labelsize': 8,
+}
+plt.rcParams.update(params)
+
+
+plt.rc('text.latex', preamble=r'\usepackage{amsmath}')
+
 
 import sys, os
 chemin_actuel = os.path.dirname(os.path.abspath(__file__))
@@ -17,10 +37,10 @@ sys.path.append(chemin_parent)
 
 from utils import *
 
-plt.style.use(['science', "no-latex"])
+plt.style.use(['science'])#, "no-latex"])
 
 # This plots all benchmarks scaling plots
-def plot_df(df):
+def plot_df(df, dirname):
     def process_name(name):
         if name == "koka":
             return "Koka (regular)"
@@ -29,106 +49,99 @@ def plot_df(df):
         if name == "effekt":
             return "Effekt"
         if name == "lexi":
-            return "Lexi"
+            return r"\textsc{Lexi}"
         if name == "ocaml":
             return "OCaml"
         if name == "nqueens":
             return "NQueens"
-        return name.replace("_", " ").title()
-    twinx = [
+        return name.replace("_", " ").rstrip("$").title()
+    
+    special = [
         # ("koka", "concurrent_search"),
         ("koka", "resume_nontail_2"),
         ("koka_named", "resume_nontail_2"),
         ("effekt", "interruptible_iterator"),
         ("effekt", "scheduler"),
-    ]
-    twinx2 = [
         ("ocaml", "interruptible_iterator")
     ]
+    for idx, row in df.iterrows():
+        benchmark = row['benchmark']
+        platform = row['platform']
+        if (platform, benchmark) in special:
+            df.loc[idx, 'benchmark'] = benchmark + "$"
+        if platform == "lexi" and benchmark in [t[1] for t in special]:
+            row['benchmark'] = benchmark + "$"
+            df.loc[df.index.max() + 1] = row
+
     colors = {
-        "lexi": "blue",
+        "lexi": "#3572EF",
         "effekt": "green",
         "koka": "red",
         "koka_named": "orange",
         "ocaml": "purple"
     }
-    fig, axs = plt.subplots(5, 3, figsize=(10, 15))
+    markers = {
+        "lexi": ".",
+        "effekt": ".",
+        "koka": ".",
+        "koka_named": "x",
+        "ocaml": "x",
+    }
+    fig, axs = plt.subplots(4, 4, figsize=(10, 12))
+    fig.supxlabel('Input size', fontsize=14)
+    fig.supylabel('Running time (s)', fontsize=14)
     for i, benchmark in enumerate(df['benchmark'].unique()):
-        if i // 3 == 4:
-            # Last row only has one plot
-            ax1 = axs[4, 1]
-            ax1.set_ylabel('Runtime (s)')
-        else:
-            ax1 = axs[i//3, i%3]
-            if i % 3 == 0:
-                ax1.set_ylabel('Runtime (s)')
-        plt.xlabel('Input size')
-        ax2 = ax1.twinx()
-        ax3 = ax1.twinx()
-        ax2.set_visible(False)
-        ax3.set_visible(False)
-        ax3.spines.right.set_position(("axes", 1.2))
+        ax1 = axs[i//4, i%4]
+        # ax2 = ax1.twinx()
+        # ax2.set_visible(False)
         df['time_sec'] = df['time_mili'] / 1000
         for platform in df['platform'].unique():
             subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
-            if subset['time_sec'].isna().any():
-                continue
-            else:
-                if (platform, benchmark) in twinx:
-                    p2, = ax2.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker='x', alpha=0.5, color=colors[platform], markersize=5)
-                    ax2.set_visible(True)
-                elif (platform, benchmark) in twinx2:
-                    p3, = ax3.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker='x', alpha=0.5, color=colors[platform], markersize=5)
-                    ax3.set_visible(True)
-                else:
-                    l, = ax1.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker='o', alpha=0.5, color=colors[platform], markersize=5)
-        ax1.set_title(process_name(benchmark), fontsize=20)
+            if not subset.empty and not pd.isna(subset.iloc[0]['time_sec']):
+                l, = ax1.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker=markers[platform], alpha=0.9, color=colors[platform], markersize=5, linewidth=1.0)
+        if benchmark.endswith("$"):
+            title = r'{\bfseries ' + process_name(benchmark) + '}'
+        else:
+            title = process_name(benchmark)
+        ax1.set_title(title, fontsize=14, pad=10)
         ax1.legend(loc='upper left')
-        ax2.legend(loc='upper right')
-        ax3.legend(loc='lower right')
-
-        if ax3._visible:
-            ax3.tick_params(axis='y', colors=p3.get_color())
-            ax2.tick_params(axis='y', colors=p2.get_color())
+        # ax2.legend(loc='upper right')
 
         plt.ticklabel_format(axis='y', style='plain')
         ax1.grid(True)
 
-    plt.tight_layout(pad=0)
+    plt.tight_layout(pad=0, rect=(0.028,0.025,1,1))
 
-    axs[4, 0].remove()
-    axs[4, 2].remove()
-
-    plt.savefig(f"./scaling_plots/scaling_plot.eps", dpi=600)
-    plt.savefig(f"./scaling_plots/scaling_plot.png", dpi=600)
-    print_message(f"\"{benchmark}\" scaling plot saved to ./scaling_plots/scaling_plot.eps")
+    filename = "scaling_plot.pdf"
+    plt.savefig(dirname + filename, dpi=600)
 
 
 # This plots the Effekt vs Lexi scaling plot
-def plot_df2(df):
-    fig, axs = plt.subplots(1, 2, figsize=(7, 2.5))
+def plot_df2(df, dirname):
+    fig, axs = plt.subplots(1, 2, figsize=(6, 2.5))
+    fig.supylabel('Running time (s)', fontsize=12)
     for i, platform in enumerate(["effekt", "lexi"]):
         ax1 = axs[i]
-        df['time_sec'] = df['time_mili'] / 1000
-        for color, benchmark in [("blue", "scheduler_notick"), ("red", "scheduler")]:
-            subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
-            label = "With Tick" if benchmark == "scheduler" else "Without Tick"
-            l, = ax1.plot(subset['n'], subset['time_sec'], label=label, marker='o', alpha=0.5, color=color, markersize=5)
-
-        if i == 0:
-            ax1.set_ylabel('Runtime (s)')
+        # if i == 0:
+        #     ax1.set_ylabel('Running time (s)')
         ax1.set_xlabel('Input size')
-        ax1.set_title(f"{platform.title()}'s Scheduler with and without Tick", fontsize=12)
+        df['time_sec'] = df['time_mili'] / 1000
+        for color, benchmark in [("#0C1844", "scheduler_notick"), ("#C80036", "scheduler")]:
+            subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
+            label = r"with \texttt{Tick}" if benchmark == "scheduler" else r"without \texttt{Tick}"
+            l, = ax1.plot(subset['n'], subset['time_sec'], label=label, marker='.' if benchmark == "scheduler" else 'x', alpha=0.9, color=color, markersize=5, linewidth=1.10)
+
+        ax1.set_title('Scheduler program in ' + (r'\textsc{Lexi}' if platform == "lexi" else 'Effekt'), fontsize=13, pad=20)
         ax1.legend(loc='upper left')
 
         plt.ticklabel_format(axis='y', style='plain')
         ax1.grid(True)
 
-    fig.subplots_adjust(wspace=0.5)
+    fig.subplots_adjust(wspace=2)
+    plt.tight_layout(pad=0, rect=(0.07,0,1,1))
 
-    plt.savefig(f"./scaling_plots/two_scaling_plot.eps", dpi=600)
-    plt.savefig(f"./scaling_plots/two_scaling_plot.png", dpi=600)
-    print_message(f"\"{benchmark}\" scaling plot saved to ./two_scaling_plots/scaling_plot.eps")
+    filename = "two_scaling_plot.pdf"
+    plt.savefig(dirname + filename, dpi=600)
 
 
 def main():
@@ -137,6 +150,7 @@ def main():
     parser.add_argument("--plot-only", type=str, default=None)
     parser.add_argument("--tick-plot", action="store_true")
     parser.add_argument("--quick", action="store_true")
+    parser.add_argument("--output-dir", type=str, default='./scaling_plots/')
     args = parser.parse_args()
 
     if args.tick_plot:
@@ -146,7 +160,7 @@ def main():
 
     if args.plot_only:
         df = pd.read_csv(args.plot_only)
-        plot_fun(df)
+        plot_fun(df, args.output_dir)
         return
 
     from config import config, platforms, benchmarks, bench_CPUs
