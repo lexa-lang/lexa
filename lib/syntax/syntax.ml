@@ -18,6 +18,7 @@ and handle = { handle_body : expr;
 and expr =
   | Var of var
   | Int of int
+  | Float of float
   | Bool of bool
   | Prim of string
   | Arith of expr * arith * expr

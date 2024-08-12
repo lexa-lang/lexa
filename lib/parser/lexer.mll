@@ -7,6 +7,7 @@
 let white = [' ' '\t']+
 let digit = ['0'-'9']
 let int = '-'? digit+
+let float = '-'? digit+ '.' digit+
 let letter = ['a'-'z' 'A'-'Z']
 let id_s = ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
 let id = ['a'-'z' '_'] id_s
@@ -62,6 +63,7 @@ rule read =
   | "fun" { FUN }
   | "rec" { REC }
   | "and" { AND }
+  | float { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | sig { SIG (Lexing.lexeme lexbuf) }
   | id { VAR (Lexing.lexeme lexbuf) }

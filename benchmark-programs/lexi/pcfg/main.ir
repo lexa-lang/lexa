@@ -87,7 +87,7 @@ obj marginalize(env) {
     }
 
     exc fail(_) {
-        ~floatMake(0, 10)
+        0.1
     }
 }
 
@@ -101,12 +101,12 @@ def parse_S(prob_stub, tokens) {
 def body(env, prob_stub) {
     val tokens = ~stringMake(97, 1);
     parse_S(prob_stub, tokens);
-    ~floatMake(1, 1)
+    1.0
 }
 
 def make_logits() {
-    val f7 = ~floatMake(7, 10);
-    val f3 = ~floatMake(3, 10);
+    val f7 = 0.7;
+    val f3 = 0.3;
     val l0 = ~listEnd();
     val l1 = ~listNode(f7, l0);
     ~listNode(f3, l1)

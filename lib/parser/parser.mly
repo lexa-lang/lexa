@@ -8,6 +8,7 @@
 %token EOF
 
 %token <int> INT
+%token <float> FLOAT
 %token <string> VAR
 %token <string> SIG
 %token <string> PRIM 
@@ -130,6 +131,7 @@ expr:
 simple_expr:
   | VAR { Var $1 }
   | INT { Int $1 }
+  | FLOAT { Float $1 }
   | TRUE { Bool true }
   | FALSE { Bool false }
   | PRIM { Prim $1 }

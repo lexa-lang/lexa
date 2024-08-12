@@ -12,6 +12,7 @@ and handle = { env : var list;
 and t = (* expressions AFTER closure conversion *)
   | Var of var
   | Int of int
+  | Float of float
   | Bool of bool
   | Prim of string
   | Arith of t * arith * t
