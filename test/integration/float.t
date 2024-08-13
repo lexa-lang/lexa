@@ -1,4 +1,7 @@
   $ sstal ../lexi_snippets/float.lexi -o main.c
-  $ clang -O3 -I ../stacktrek main.c -o main &> /dev/null
+  $ clang -O3 -I ../stacktrek main.c -o main -lm &> /dev/null
   $ ./main
-  1.136364
+  1.100000
+  2.200000
+  3.300000
+  -1.100000

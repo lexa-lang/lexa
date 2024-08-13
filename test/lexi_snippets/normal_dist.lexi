@@ -1,0 +1,22 @@
+def normal(mu, sigma) {
+    val u1 = ~floatRand();
+    val u2 = ~floatRand();
+    val r = ~floatSqrt(~floatMul(~I(-2), ~floatLog(u1)));
+    val theta = ~floatMul(~floatMul(~I(2), ~floatPi()), u2);
+    val u3 = ~floatRand();
+    ~printFloat(u1);
+    ~printFloat(u2);
+    ~printFloat(r);
+    ~printFloat(theta);
+    ~printFloat(u3);
+    if ~floatLt(u3, ~I(0.5)) then
+        ~floatAdd(mu, ~floatMul(~floatMul(sigma, r), ~floatCos(theta)))
+    else
+        ~floatAdd(mu, ~floatMul(~floatMul(sigma, r), ~floatSin(theta)))
+}
+
+def main() {
+    val x = normal(~I(0), ~I(1));
+    ~printFloat(x);
+    0
+}

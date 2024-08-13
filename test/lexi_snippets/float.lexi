@@ -1,4 +1,11 @@
 def main() {
-    val _ = ~printFloat(1.5 + 2.5 - 3.5 * 4.5 / 5.5);
+    val x = ~I(1.1);
+    val y = ~I(2.2);
+    val z = ~floatAdd(x, y);
+    val w = ~floatSub(y, z);
+    ~printFloat(x);
+    ~printFloat(y);
+    ~printFloat(z);
+    ~printFloat(w);
     0
 }
