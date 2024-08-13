@@ -4,12 +4,12 @@ effect State {
 }
 
 def countdown(state_stub) {
-    val i = raise state_stub.get 0;
+    val i = raise state_stub.get(0);
     if i == 0 then
         i
     else
         val arg = i - 1;
-        raise state_stub.set arg;
+        raise state_stub.set(arg);
         countdown(state_stub)
 }
 

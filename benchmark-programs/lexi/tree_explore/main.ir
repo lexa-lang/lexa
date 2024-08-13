@@ -19,7 +19,7 @@ def explore(state, tree, choice_stub) {
         state[0]
     else
         val next = 
-            if raise choice_stub.choose 0 then 
+            if raise choice_stub.choose(0) then 
                 ~treeLeft(tree)
             else
                 ~treeRight(tree)

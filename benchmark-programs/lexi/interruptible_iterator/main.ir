@@ -11,7 +11,7 @@ effect Behead {
 def loop(it, yield_stub, behead_stub) {
     handle { 
         val v = ~listHead(it);
-        raise yield_stub.yield v behead_stub replace_stub                
+        raise yield_stub.yield(v, behead_stub, replace_stub)                
     } with replace_stub: Replace {
         def replace(x) {
             ~listSetHead(it, x)
@@ -58,9 +58,9 @@ def run(n) {
             } with yield_stub: Yield {
                 def yield(x, behead_stub, replace_stub) {
                     if x < 0 then
-                        raise behead_stub.behead 0
+                        raise behead_stub.behead(0)
                     else
-                        raise replace_stub.replace (x * 2)
+                        raise replace_stub.replace(x * 2)
                 }
             }            
         } with behead_main_stub: Behead {

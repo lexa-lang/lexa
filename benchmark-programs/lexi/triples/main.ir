@@ -5,9 +5,9 @@ effect Choice {
 
 def choice(n, choice_stub) {
     if n < 1 then
-        raise choice_stub.fail 0
+        raise choice_stub.fail(0)
     else
-        if raise choice_stub.flip 0 then
+        if raise choice_stub.flip(0) then
             n
         else
             choice(n - 1, choice_stub)
@@ -20,7 +20,7 @@ def triple(n, s, choice_stub) {
     if i + j + k == s then
         hash(i, j, k)
     else
-        raise choice_stub.fail 0
+        raise choice_stub.fail(0)
 }
 
 def run(n, s) {

@@ -13,21 +13,21 @@ effect Exn {
 
 def queueDeqExn(q, exn_stub) {
     if ~queueIsEmpty(q) then
-        raise exn_stub.throw 0
+        raise exn_stub.throw(0)
     else
         ~queueDeq(q)
 }
 
 def job(process_stub) {
-    raise process_stub.yield 0
+    raise process_stub.yield(0)
 }
 
 def jobs(i, process_stub, tick_stub) {
     if i == 0 then
         0
     else
-        (raise process_stub.fork job;
-        raise tick_stub.tick 0;
+        (raise process_stub.fork(job);
+        raise tick_stub.tick(0);
         jobs(i - 1, process_stub, tick_stub))
 }
 

@@ -57,7 +57,7 @@ def feed(n, action, stop_stub, emit_stub) {
             val i = i_ref[0];
             val j = j_ref[0];
             if i > n then
-                raise stop_stub.stop 0
+                raise stop_stub.stop(0)
             else
                 (if j == 0 then
                     i_ref[0] := i + 1;
@@ -72,15 +72,15 @@ def feed(n, action, stop_stub, emit_stub) {
 }
 
 def parse(a, read_stub, emit_stub, stop_stub) {
-    val c = raise read_stub.read 0;
+    val c = raise read_stub.read(0);
     if is_dollar(c) then
         parse(a + 1, read_stub, emit_stub, stop_stub)
     else
         if is_newline(c) then
-            raise emit_stub.emit a;
+            raise emit_stub.emit(a);
             parse(0, read_stub, emit_stub, stop_stub)
         else
-            raise stop_stub.stop 0
+            raise stop_stub.stop(0)
 }
 
 def feed_action(read_stub, emit_stub, stop_stub) {

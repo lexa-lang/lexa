@@ -4,7 +4,7 @@ effect Prime {
 
 def primes(prime_stub, i, n, a) {
     if i < n then
-        if raise prime_stub.prime i then
+        if raise prime_stub.prime(i) then
             handle {
                 primes(new_prime_stub, i + 1, n, a + i)
             } with new_prime_stub: Prime {
@@ -12,7 +12,7 @@ def primes(prime_stub, i, n, a) {
                     if (e % i) == 0 then
                         false
                     else
-                        raise prime_stub.prime e
+                        raise prime_stub.prime(e)
                 }                
             }
         else

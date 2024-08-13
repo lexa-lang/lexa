@@ -12,7 +12,7 @@ def f(x) {
     handle {
         handle {
             val p = newref {10,20};
-            raise (if x then left_stub else right_stub).choose p
+            raise (if x then left_stub else right_stub).choose(p)
         } with right_stub: Choose {
             def choose(p) {
                 p[1]
