@@ -10,7 +10,7 @@ def product(xs, abort_stub) {
         val y = ~listHead(xs);
         val ys = ~listTail(xs);
             if y == 0 then
-                raise abort_stub.done 0
+                raise abort_stub.done(0)
             else
                 y * product(ys, abort_stub)
 }

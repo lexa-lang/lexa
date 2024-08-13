@@ -4,7 +4,7 @@ effect State {
 }
 
 def countdown(state_stub) {
-    val i = raise state_stub.get 0;
+    val i = raise state_stub.get(0);
     if i == 0 then
         i
     else

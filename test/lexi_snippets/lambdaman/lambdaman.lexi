@@ -44,9 +44,9 @@ def findStart(i, j, nrow, ncol, outx, outy) {
 }
 
 def walk(row, col, tracer_stub, choice_stub) {
-    val _ = raise tracer_stub.pin row col;
+    val _ = raise tracer_stub.pin(row, col);
     val pair = ~pairMake(row, col);
-    val step = raise choice_stub.choose pair;
+    val step = raise choice_stub.choose(pair);
     if step == 85 then
         walk(row - 1, col, tracer_stub, choice_stub)
     else if step == 82 then
@@ -80,7 +80,7 @@ def body1(env, tracer_stub) {
             val newrow = row - 1;
             val newcol = col;
             val _ = (if newrow > -1 then
-                val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                val _ = (if raise tracer_stub.isPinned(newrow, newcol) == 0 then
                     val _ = raise tracer_stub.record(85);
                     val _ = resume k 85;
                     val _ = raise tracer_stub.record(68);
@@ -93,7 +93,7 @@ def body1(env, tracer_stub) {
             val newrow = row;
             val newcol = col + 1;
             val _ = (if newcol < ncol then
-                val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                val _ = (if raise tracer_stub.isPinned(newrow, newcol) == 0 then
                     val _ = raise tracer_stub.record(82);
                     val _ = resume k 82;
                     val _ = raise tracer_stub.record(76);
@@ -106,7 +106,7 @@ def body1(env, tracer_stub) {
             val newrow = row + 1;
             val newcol = col;
             val _ = (if newrow < nrow then
-                val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                val _ = (if raise tracer_stub.isPinned(newrow, newcol) == 0 then
                     val _ = raise tracer_stub.record(68);
                     val _ = resume k 68;
                     val _ = raise tracer_stub.record(85);
@@ -119,7 +119,7 @@ def body1(env, tracer_stub) {
             val newrow = row;
             val newcol = col - 1;
             val _ = (if newcol > -1 then
-                val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                val _ = (if raise tracer_stub.isPinned(newrow, newcol) == 0 then
                     val _ = raise tracer_stub.record(76);
                     val _ = resume k 76;
                     val _ = raise tracer_stub.record(82);
@@ -154,7 +154,7 @@ def solveLambdaMan(nrow, ncol) {
                 val newrow = row - 1;
                 val newcol = col;
                 val _ = (if newrow > -1 then
-                    val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                    val _ = (if raise tracer_stub.isPinned(newrow, newcol) == 0 then
                         val _ = raise tracer_stub.record(85);
                         val _ = resume k 85;
                         val _ = raise tracer_stub.record(68);
@@ -167,7 +167,7 @@ def solveLambdaMan(nrow, ncol) {
                 val newrow = row;
                 val newcol = col + 1;
                 val _ = (if newcol < ncol then
-                    val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                    val _ = (if raise tracer_stub.isPinned(newrow, newcol) == 0 then
                         val _ = raise tracer_stub.record(82);
                         val _ = resume k 82;
                         val _ = raise tracer_stub.record(76);
@@ -180,7 +180,7 @@ def solveLambdaMan(nrow, ncol) {
                 val newrow = row + 1;
                 val newcol = col;
                 val _ = (if newrow < nrow then
-                    val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                    val _ = (if raise tracer_stub.isPinned(newrow, newcol) == 0 then
                         val _ = raise tracer_stub.record(68);
                         val _ = resume k 68;
                         val _ = raise tracer_stub.record(85);
@@ -193,7 +193,7 @@ def solveLambdaMan(nrow, ncol) {
                 val newrow = row;
                 val newcol = col - 1;
                 val _ = (if newcol > -1 then
-                    val _ = (if raise tracer_stub.isPinned newrow newcol == 0 then
+                    val _ = (if raise tracer_stub.isPinned(newrow, newcol) == 0 then
                         val _ = raise tracer_stub.record(76);
                         val _ = resume k 76;
                         val _ = raise tracer_stub.record(82);

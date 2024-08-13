@@ -12,7 +12,7 @@ def main() {
 def f(x) {
     val r = newref {0};
     handle {
-        raise e_stub.e 0;
+        raise e_stub.e(0);
         ~printInt(x);
         0
     } with e_stub: E {

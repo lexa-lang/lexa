@@ -21,11 +21,11 @@ def place(size, column, search_stub) {
         ~listEnd()
     else
         val rest = place(size, column - 1, search_stub);
-        val next = raise search_stub.pick size;
+        val next = raise search_stub.pick(size);
         if safe(next, 1, rest) then
             ~listNode(next, rest)
         else
-            raise search_stub.fail 0
+            raise search_stub.fail(0)
 }
 
 def run(n) {

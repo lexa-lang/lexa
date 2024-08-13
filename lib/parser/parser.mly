@@ -117,7 +117,7 @@ expr:
   | v1 = simple_expr LSB v2 = expr RSB COLONEQ v3 = expr { Set (v1, v2, v3) }
   | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr %prec HIGHER_THAN_STMT { Let (x, t1, t2) }
   | IF v = expr THEN t1 = expr ELSE t2 = expr { If (v, t1, t2) }
-  | RAISE stub = simple_expr DOT hdl = VAR params = list(simple_expr) { Raise (stub, hdl, params) }
+  | RAISE stub = simple_expr DOT hdl = VAR LPAREN params = separated_list(COMMA, expr) RPAREN { Raise (stub, hdl, params) }
   | RESUME k = simple_expr v = simple_expr { Resume (k, v) }
   | RESUMEFINAL k = simple_expr v = simple_expr { ResumeFinal (k, v) }
   | HANDLE LCB handle_body = expr RCB WITH stub = VAR COLON sig_name = SIG LCB handler_defs = list(hdl_def) RCB 

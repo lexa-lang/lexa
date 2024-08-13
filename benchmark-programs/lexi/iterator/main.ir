@@ -6,7 +6,7 @@ def range(l, u, emit_stub) {
     if l > u then
         0
     else
-        (raise emit_stub.emit l;
+        (raise emit_stub.emit(l);
         range(l + 1, u, emit_stub))
 }
 
