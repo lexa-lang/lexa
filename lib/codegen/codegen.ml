@@ -140,6 +140,7 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
   let s = (match e with
     | Var x -> x
     | Int i -> string_of_int i
+    | Float f -> string_of_float f
     | Bool b -> if b then "1" else "0"
     | Prim prim ->
         String.sub prim 1 ((String.length prim) - 1)

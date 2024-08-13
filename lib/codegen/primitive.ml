@@ -1,6 +1,7 @@
 type prim_type =
   | PTI32 (* int32_t *)
   | PTI64 (* int64_t *)
+  | PTDouble (* double *)
   | PTNodeP (* node_t* *)
   | PTTreeP (* tree_t* *)
   | PTQueueP (* queue_t* *)
@@ -44,15 +45,25 @@ let prim_env = [
   ("queueLen", [PTQueueP]);
   ("readInt", []);
   ("printInt", [PTI64]);
+  ("printFloat", [PTI64]);
   ("printChar", [PTI64]);
   ("stringMake", [PTI64; PTI64]);
   ("stringSubStr", [PTStringP; PTI64; PTI64]);
   ("stringCharAt", [PTStringP; PTI64]);
   ("stringLen", [PTStringP]);
-  ("floatMake", [PTI64; PTI64]);
+  ("I", [PTDouble]);
   ("floatAdd", [PTI64; PTI64]);
+  ("floatSub", [PTI64; PTI64]);
   ("floatMul", [PTI64; PTI64]);
-  ("floatPrint", [PTI64]);
+  ("floatDiv", [PTI64; PTI64]);
+  ("floatNeg", [PTI64]);
+  ("floatRand", []);
+  ("floatPi", []);
+  ("floatCos", [PTI64]);
+  ("floatSin", [PTI64]);
+  ("floatSqrt", [PTI64]);
+  ("floatLog", [PTI64]);
+  ("floatLt", [PTI64; PTI64]);
   ("mathAbs", [PTI64]);
   ("boolAnd", [PTI64; PTI64]);
   ("boolOr", [PTI64; PTI64]);
@@ -73,6 +84,7 @@ let prim_env = [
 let gen_prim_type = function
 | PTI32 -> "(int32_t)"
 | PTI64 -> "(int64_t)"
+| PTDouble -> "(double)"
 | PTNodeP -> "(node_t*)"
 | PTTreeP -> "(tree_t*)"
 | PTQueueP -> "(queue_t*)"

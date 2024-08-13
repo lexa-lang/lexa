@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <math.h>
 
 #define xmalloc(size) ({                \
     void *_ptr = malloc(size);          \
@@ -277,45 +278,73 @@ int64_t stringCharAt(char* s, int64_t pos) {
   return s[pos];
 }
 
+#define I(x) ((union { double d; int64_t i; }){ .d = x }).i
+#define F(x) ((union { double d; int64_t i; }){ .i = x }).d
+
 DEBUG_ATTRIBUTE
-// Since it's not allowed to cast float to integer,
-// we do the cast inside the function using memcpy.
-// To outside, the value is of type int.
-int64_t floatMake(int64_t divideng, int64_t divisor) {
-  double q = (double)divideng / (double)divisor;
-  int64_t result;
-  memcpy(&result, &q, sizeof(int64_t));
-  return result;
+int64_t printFloat(int64_t x) {
+  printf("%f\n", F(x));
+  return 0;
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatAdd(int64_t a, int64_t b) {
-  double x, y;
-  memcpy(&x, &a, sizeof(int64_t));
-  memcpy(&y, &b, sizeof(int64_t));
-  double z = x + y;
-  int64_t result;
-  memcpy(&result, &z, sizeof(int64_t));
-  return result;
+  return I(F(a) + F(b));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatSub(int64_t a, int64_t b) {
+  return I(F(a) - F(b));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatMul(int64_t a, int64_t b) {
-  double x, y;
-  memcpy(&x, &a, sizeof(int64_t));
-  memcpy(&y, &b, sizeof(int64_t));
-  double z = x * y;
-  int64_t result;
-  memcpy(&result, &z, sizeof(int64_t));
-  return result;
+  return I(F(a) * F(b));
 }
 
 DEBUG_ATTRIBUTE
-int64_t floatPrint(int64_t x) {
-  double f;
-  memcpy(&f, &x, sizeof(int64_t));
-  printf("%f\n", f);
-  return 0;
+int64_t floatDiv(int64_t a, int64_t b) {
+  return I(F(a) / F(b));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatNeg(int64_t a) {
+  return I(-F(a));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatRand() {
+  return I((double)rand() / RAND_MAX);
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatPi() {
+  return I(M_PI);
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatCos(int64_t x) {
+  return I(cos(F(x)));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatSin(int64_t x) {
+  return I(sin(F(x)));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatSqrt(int64_t x) {
+  return I(sqrt(F(x)));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatLog(int64_t x) {
+  return I(log(F(x)));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatLt(int64_t a, int64_t b) {
+  return F(a) < F(b);
 }
 
 DEBUG_ATTRIBUTE
