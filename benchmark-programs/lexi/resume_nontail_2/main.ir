@@ -6,7 +6,7 @@ def loop(i, s, operator_stub) {
     if i == 0 then
         s
     else
-        (raise operator_stub.operator i;
+        (raise operator_stub.operator(i);
         loop(i - 1, s, operator_stub) + 1) 
 }
 
