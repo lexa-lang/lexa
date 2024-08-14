@@ -31,8 +31,11 @@ and t = (* expressions AFTER closure conversion *)
   | If of t * t * t
   | Stmt of t * t
   | Recdef of (var * closure) list * t
+  | Typecon of var * t list
+  | Match of t * (var * var list * t) list
 
 type top_level =
   | TLAbs of var * var list * t
   | TLEffSig of var * var list
   | TLObj of var * var list * hdl list
+  | TLType of typedef list

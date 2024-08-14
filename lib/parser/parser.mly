@@ -10,7 +10,7 @@
 %token <int> INT
 %token <float> FLOAT
 %token <string> VAR
-%token <string> SIG
+// %token <string> SIG
 %token <string> PRIM 
 
 %token DOT
@@ -55,6 +55,13 @@
 %token FUN
 %token REC
 %token AND
+%token TYPE
+%token VBAR
+%token OF
+%token MATCH
+%token RARROW
+
+%token <string> CAPITALIZED_VAR
 
 %start <Syntax.top_level list> prog
 
@@ -73,10 +80,18 @@
 prog:
   | list(top_level); EOF { $1 }
 
+type_con:
+  | con_name = CAPITALIZED_VAR { (con_name, []) }
+  | con_name = CAPITALIZED_VAR OF con_args = separated_nonempty_list(MULT, VAR) { (con_name, con_args) }
+
+type_def:
+  | type_name = VAR EQ option(VBAR) type_cons = separated_nonempty_list(VBAR, type_con) { {type_name; type_cons} }
+
 top_level:
   | DEF name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN 
       LCB e = expr RCB { TLAbs (name, params, e) }
-  | EFFECT name = SIG LCB l = list(effect_sig) RCB { TLEffSig (name, l) }
+  | EFFECT name = CAPITALIZED_VAR LCB l = list(effect_sig) RCB { TLEffSig (name, l) }
+  | TYPE l = separated_nonempty_list(AND, type_def) { TLType l }
       
 effect_sig:
   | DCL v = VAR { v }
@@ -97,9 +112,14 @@ recfun:
   | name = VAR LPAREN params = separated_list(COMMA, VAR) RPAREN LCB e = expr RCB 
     { ({name = name; params = params; body = e} : Syntax.fundef) }
 
+match_clause:
+  | con_name = CAPITALIZED_VAR RARROW LCB e = expr RCB { (con_name, [], e) }
+  | con_name = CAPITALIZED_VAR LPAREN con_args = separated_nonempty_list(COMMA, VAR) RPAREN RARROW LCB e = expr RCB { (con_name, con_args, e) }
+
 app_expr:
   | simple_expr { $1 }
   | e1 = app_expr LPAREN args = separated_list(COMMA, expr) RPAREN { App (e1, args) }
+  
 
 expr:
   | app_expr { $1 }
@@ -121,11 +141,14 @@ expr:
   | RAISE stub = simple_expr DOT hdl = VAR LPAREN params = separated_list(COMMA, expr) RPAREN { Raise (stub, hdl, params) }
   | RESUME k = simple_expr v = simple_expr { Resume (k, v) }
   | RESUMEFINAL k = simple_expr v = simple_expr { ResumeFinal (k, v) }
-  | HANDLE LCB handle_body = expr RCB WITH stub = VAR COLON sig_name = SIG LCB handler_defs = list(hdl_def) RCB 
+  | HANDLE LCB handle_body = expr RCB WITH stub = VAR COLON sig_name = CAPITALIZED_VAR LCB handler_defs = list(hdl_def) RCB 
     { Handle {handle_body; stub; sig_name; handler_defs} }
   | FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB { Fun (params, body) }
   | REC DEF fs = separated_list(AND, recfun) SEMICOLON e = expr { Recdef (fs, e) }
   | e1 = expr SEMICOLON e2 = expr %prec STMT { Stmt (e1, e2) }
+  | MATCH e = expr WITH VBAR l = separated_nonempty_list(VBAR, match_clause) { Match (e, l) }
+  | con_name = CAPITALIZED_VAR LPAREN args = separated_list(COMMA, expr) RPAREN { Typecon (con_name, args) }
+  | con_name = CAPITALIZED_VAR { Typecon (con_name, []) }
   // | VALDEF x = VAR EQ FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB SEMICOLON e2 = expr { Recdef (x, params, body, e2) }
 
 simple_expr:
@@ -137,3 +160,4 @@ simple_expr:
   | PRIM { Prim $1 }
   | LPAREN e = expr RPAREN { e }
   | v = simple_expr LSB v2 = expr RSB { Get (v, v2) }    
+  

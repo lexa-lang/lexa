@@ -1,0 +1,115 @@
+// See https://effekt-lang.org/docs/casestudies/anf
+
+// source language
+type tree =
+    | Lit of int
+    | Var of string // var is x, y, z, ...
+    | Let of string * tree * tree 
+    | App of string * tree
+
+// target language
+type expr =
+    | CLit of int
+    | CVar of string
+
+type stmt =
+    | CLet of string * stmt * stmt
+    | CApp of string * expr
+    | CRet of expr
+
+// utility effect
+effect Fresh {
+    dcl fresh
+}
+
+def fresh_vars(prog) {
+    val i = newref {64}; // fresh var is A B C ...
+    handle {
+        prog(fresh_stub)
+    } with fresh_stub : Fresh {
+        def fresh(_) {
+            i[0] := i[0] + 1;
+            i[0]
+        }
+    }
+}
+
+// the bind effect
+effect Bind {
+    dcl bind
+}
+
+def bind_here(prog, fresh_stub) {
+    handle { 
+        prog(bind_stub, fresh_stub)
+    }
+    with bind_stub : Bind {
+        hdl_1 bind(e, k) {
+            val id = raise fresh_stub.fresh(0);
+            CLet(id, e, resume_final k (CVar(id)))
+        }
+    }
+}
+
+def traverse(e, bind_stub, fresh_stub) {
+    match e with 
+    | Lit(n) -> { CRet(CLit(n)) }
+    | Var(n) -> { CRet(CVar(n)) }
+    | App(name, arg) -> { 
+        CApp(name, raise bind_stub.bind(traverse(arg, bind_stub, fresh_stub))) 
+    }
+    | Let(x, b, body) -> {
+        CLet(x, 
+             bind_here(fun(bind_stub, fresh_stub) {traverse(b, bind_stub, fresh_stub)}, fresh_stub),
+             bind_here(fun(bind_stub, fresh_stub) {traverse(body, bind_stub, fresh_stub)}), fresh_stub)
+    }
+}
+
+def main() {
+    val example = Let(120, App(102, App(103, Lit(42))), Var(120));
+    // val example = Let(120, Lit(1), Var(120));
+
+    val res = fresh_vars(fun(fresh_stub) {
+        bind_here(
+            fun(bind_stub, fresh_stub) {
+                traverse(example, bind_stub, fresh_stub)
+            }, 
+            fresh_stub
+        )
+    });
+    pp_stmt(res);
+    0
+} 
+
+def pp_stmt(e) {
+    match e with 
+    | CLet (s, stmt, body) -> {
+        ~printChar(40); // (
+        ~printChar(s);
+        ~printChar(61); // =
+        pp_stmt(stmt);
+        ~printChar(59); // ;
+        pp_stmt(body);
+        ~printChar(41)
+    }
+    | CRet (e) -> {
+        pp_expr(e)
+    }
+    | CApp (s, e) -> {
+        ~printChar(40);
+        ~printChar(s);
+        pp_expr(e);
+        ~printChar(41)
+    }
+}
+
+def pp_expr(e) {
+    match e with
+    | CLit (i) -> {
+        ~printInt(i)
+    }
+    | CVar (s) -> {
+        ~printChar(s)
+    }
+}
+

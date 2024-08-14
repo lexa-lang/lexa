@@ -1,0 +1,29 @@
+type tree = 
+    | Nil
+    | Node of int * tree * tree
+
+def main() {
+    val t = make(~readInt());
+    traverse(t);
+    0
+}
+
+def make(i) {
+    if i == 0 then
+        Nil()
+    else
+        Node(i, make(i - 1), make(i - 1))
+}
+
+def traverse(t) {
+    match t with
+    | Nil -> {
+        0
+    }
+    | Node (i, l, r) -> {
+        ~printInt(i);
+        traverse(l);
+        traverse(r);
+        0
+    }
+}

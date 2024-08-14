@@ -1,0 +1,42 @@
+type list = 
+    | Nil
+    | Cons of int * list
+
+def make(x) {
+    if x == 0 then Nil
+    else Cons(x, make(x - 1))
+}
+
+def print_list(l) {
+    match l with
+    | Nil -> { 0 }
+    | Cons (h, t) -> {
+        ~printInt(h);
+        print_list(t)
+    }
+}
+
+def map(f, l) {
+    match l with
+    | Nil -> { Nil }
+    | Cons (h, t) -> {
+        Cons (f(h), map(f, t))
+    }
+}
+
+def append(l1, l2) {
+    match l1 with
+    | Nil -> { l2 }
+    | Cons (h, t) -> {
+        Cons (h, append(t, l2))
+    }
+}
+
+def main() {
+    val l1 = make(~readInt());
+    val l2 = make(~readInt());
+
+    val ll = map(fun (x) { x * 2 }, append(l1, l2));
+    print_list(ll);
+    0
+}

@@ -18,3 +18,10 @@ type hdl_anno =
   | HExc
   | HHdl1 (* Singleshot *)
   | HHdls (* Multishot*)
+
+type type_expr = var
+
+type typedef = {
+  type_name : var;
+  type_cons : (var * type_expr list) list
+}

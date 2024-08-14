@@ -10,9 +10,10 @@ let int = '-'? digit+
 let float = '-'? digit+ '.' digit+
 let letter = ['a'-'z' 'A'-'Z']
 let id_s = ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
-let id = ['a'-'z' 'A'-'Z' '_'] id_s
-let prim = ['~'] id
+let id = ['a'-'z' '_'] id_s
+let prim = ['~'] id_s
 let sig = ['A'-'Z'] id?
+let capitalized_var = ['A' - 'Z'] id_s
 
 rule read =
   parse
@@ -63,11 +64,17 @@ rule read =
   | "fun" { FUN }
   | "rec" { REC }
   | "and" { AND }
+  
+  | "|" { VBAR }
+  | "type" { TYPE }
+  | "of" { OF }
+  | "match" { MATCH }
+  | "->" { RARROW }
   | float { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
-  | sig { SIG (Lexing.lexeme lexbuf) }
   | id { VAR (Lexing.lexeme lexbuf) }
   | prim { PRIM (Lexing.lexeme lexbuf) }
+  | capitalized_var { CAPITALIZED_VAR (Lexing.lexeme lexbuf) }
   | eof { EOF }
   | _ as c { failwith (Printf.sprintf "unexpected character: %C" c) }
   

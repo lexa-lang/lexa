@@ -42,6 +42,11 @@ let rec free_var (e : Syntax.expr) : Varset.t =
       (fun ({params; body; _} : Syntax.fundef) -> Varset.(diff (free_var body) (union (of_list names) (of_list params))))
       fundefs in
     Varset.(fvs @@@ (diff (free_var e) (of_list names)))
+  | Syntax.Typecon (_, args) -> Varset.(union_map free_var args)
+  | Syntax.Match (e, clauses) -> 
+    let fv_match_clause (_, args, clause_body) = Varset.(diff (free_var clause_body) (of_list args)) in
+    Varset.((union_map fv_match_clause clauses) @@@ (free_var e))
+    
 
 (* Open the environment at the start of a function body *)
 let open_env (fv : var list) (body : Syntax__Closure.t) : Syntax__Closure.t = 
@@ -124,6 +129,12 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
       else
         AppClosure(convert_expr e env, List.map (fun x -> convert_expr x env) es)
     | _ -> AppClosure(convert_expr e env, List.map (fun x -> convert_expr x env) es))
+  | Syntax.Typecon (con_name, args) ->
+    Typecon (con_name, List.map (fun x -> convert_expr x env) args)
+  | Syntax.Match (e, clauses) -> 
+    let convert_clause (con_name, args, clause_body) = 
+      (con_name, args, (convert_expr clause_body Varset.(env @@@ (of_list args)))) in
+    Match ((convert_expr e env), List.map convert_clause clauses)
     
 let closure_convert_toplevels (tls : Syntax.top_level list) =
   let toplevel_closures = ref [] in
@@ -142,6 +153,7 @@ let closure_convert_toplevels (tls : Syntax.top_level list) =
         TLAbs (lifted_name, ("__env__" :: params), convert_expr body (Varset.of_list params))
     | Syntax.TLEffSig (name, dcls) ->
       TLEffSig (name, dcls)
+    | Syntax.TLType typedefs -> TLType typedefs
   in
   let converted_original_toplevels = (List.map closure_convert_toplevel tls) in
   (converted_original_toplevels @ !extra_toplevels, !toplevel_closures)

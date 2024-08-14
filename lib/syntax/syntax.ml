@@ -3,6 +3,7 @@ open Common
 type top_level =
   | TLAbs of var * var list * expr
   | TLEffSig of var * var list
+  | TLType of typedef list
 
 and fundef = { name : var;
                params : var list;
@@ -36,3 +37,5 @@ and expr =
   | Let of var * expr * expr
   | If of expr * expr * expr
   | Stmt of expr * expr
+  | Typecon of var * expr list
+  | Match of expr * (var * var list * expr) list

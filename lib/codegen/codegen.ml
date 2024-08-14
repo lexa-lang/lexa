@@ -13,12 +13,17 @@ type eff_type_env = (eff_type_env_key * operation_type) list
 type fun_type_env = var list (* list of functions that are handler bodies *)
 type env = {eff_sig : eff_sig_env; eff_type : eff_type_env; fun_type : fun_type_env; toplevel_closure : (string * string) list}
 
+(* Map the constructors to the name of the type *)
+type type_con_map = (var * var list) list
+
 exception UndefinedOperation of string
 exception UndefinedSignature of string
 exception ParameterMismatch of string
 exception NestedFunction of string
 exception UnexpectedResume of string
 exception InvalidHandleBody of string
+
+exception UndefinedTypeCon of string
 
 let get_eff_sig_env (e : env) = e.eff_sig
 let get_eff_type_env (e : env) = e.eff_type
@@ -31,6 +36,8 @@ let tail_call_opt : bool ref = ref false
 
 (* Not sure if this is a good way... *)
 let cur_toplevel : var ref = ref ""
+
+let type_con_map : type_con_map ref = ref []
 
 (* Get the annotation of a handler operation *)
 let lookup_operation_type (obj_name : var) (op_name : var) (env : eff_type_env) : string =
@@ -50,6 +57,12 @@ let lookup_eff_sig_dcls (sig_name : var) (sig_env : eff_sig_env) : string list =
   match (List.find_opt (fun (s, _) -> s = sig_name) sig_env) with
     | None -> raise (UndefinedSignature sig_name)
     | Some (_, dcl_list) -> dcl_list
+
+let lookup_type_name (con_name : var) : var =
+  let res = List.find_opt (fun (_, cons) -> List.mem con_name cons) !type_con_map in
+  match res with
+  | Some (type_name, _) -> type_name
+  | None -> raise (UndefinedTypeCon con_name)
 
 let rec list_repeat n s =
   if n = 0 then [] else
@@ -184,13 +197,16 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
         if do_tail then sprintf "({__attribute__((musttail))\n return %s; 0;})" s else s
     | If (v, e1, e2) ->
         sprintf "%s ? %s : %s" (gen_expr v) (gen_expr e1 ~is_tail:is_tail) (gen_expr e2 ~is_tail:is_tail)
-    | New value_list ->
-        let size = List.length value_list in
-        let init = sprintf "i64 temp = (i64)malloc(%d * sizeof(i64));" size
-          ^ "\n"
-          ^ String.concat "\n" (List.mapi (fun i v -> sprintf "((i64*)temp)[%d] = (i64)%s;" i (gen_expr v)) value_list)
-          ^ "\ntemp;\n" in
-        sprintf "({%s})" init
+    | New fields ->
+        let size = List.length fields in
+        (* Strictly follow the order of evaluation *)
+        let init_fields = String.concat "" 
+          (List.mapi (fun i v -> sprintf "i64 __field_%d__ = (i64)%s;" i (gen_expr v)) fields)
+        in let assign_fields = String.concat "" 
+          (List.mapi (fun i _ -> sprintf "__newref__[%d] = __field_%d__;" i i) fields)
+        in
+        sprintf "({%s\ni64* __newref__ = malloc(%d * sizeof(i64));\n%s\n(i64)__newref__;})"
+          init_fields size assign_fields
     | Get (e1, e2) ->
         sprintf "((i64*)%s)[%s]" (gen_expr e1) (gen_expr e2)
     | Set (e1, e2, e3) ->
@@ -288,6 +304,49 @@ i64 __env__ = (i64)(__clo__->env);
         malloc_closures
         (String.concat "\n" (List.map closure_creation clo_map))
         (gen_expr e ~is_tail:is_tail)
+    | Typecon (con_name, args) ->
+      (* Find the type name *)
+      let type_name = lookup_type_name con_name in
+      (* Strictly follow the order of evaluation *)
+      let compute_args = String.concat "" 
+        (List.mapi (fun i arg -> sprintf "i64 __arg_%d__ = (i64)%s;\n" i (gen_expr arg)) args)
+      in
+      let assign_args = String.concat 
+        ""
+        (List.mapi 
+          (fun i _ -> sprintf "__t__->%s[%d] = __arg_%d__;\n" con_name i i)
+          args)
+      in
+      sprintf
+{|({
+%s
+%s* __t__ = (%s*)xmalloc(sizeof(%s));
+__t__->tag = %s;
+%s
+(i64)__t__;})
+|} compute_args type_name type_name type_name con_name assign_args
+    | Match (expr, clauses) ->
+      let type_name = (match clauses with
+      | [] -> failwith "Unreachable"
+      | (x, _, _) :: _ -> lookup_type_name x) in
+      (* generate for a single clause *)
+      let gen_match_clause (i : int) (con_name, args, clause_body) =
+        let clause_body_str = 
+          (* __expr_res__ is already casted *)
+          let bind_args_str = String.concat ""
+            (List.mapi (fun i arg_name -> sprintf "i64 %s = (i64)(__expr_res__->%s[%d]);\n" arg_name con_name i) args) in
+          sprintf "{%s\n%s;}"
+            bind_args_str
+            (gen_expr clause_body)
+        in
+        if i = 0 then
+          sprintf "if (__expr_res__->tag == %s) {__match_res__=(%s);}" con_name clause_body_str
+        else
+          sprintf "else if (__expr_res__->tag == %s) {__match_res__=(%s);}" con_name clause_body_str
+      in
+      let match_cases_str = String.concat "\n" (List.mapi gen_match_clause clauses) in
+      sprintf "({i64 __match_res__;%s* __expr_res__=(%s*)%s;\n%s\n__match_res__;})" 
+      type_name type_name (gen_expr expr) match_cases_str
   )
   in
   (match e with
@@ -324,6 +383,18 @@ let rec fun_type_pass (toplevel : top_level list) : fun_type_env =
   | (TLAbs (_, _, t)) :: tail ->
     get_handle_bodies t @ (fun_type_pass tail)
   | _ :: tail -> fun_type_pass tail
+
+let type_con_map_pass (toplevels : top_level list) : unit =
+  let update_map tl =
+    (match tl with
+    | TLType typedefs ->
+        List.iter (fun {type_name; type_cons} -> 
+          let cons_list = List.map (fun (x, _) -> x) type_cons in
+          type_con_map := (type_name, cons_list) :: !type_con_map;
+        ) typedefs
+    | _ -> ())
+  in
+  List.iter update_map toplevels
 
 let gen_top_level (tl : top_level) =
   match tl with 
@@ -371,6 +442,29 @@ return((int)__res__);}|}
       gen_c_def c_def
     in
     String.concat "\n" (List.map (fun x -> gen_hdl x) hdls)
+  | TLType typedefs ->
+    let gen_tag ({type_name; type_cons}: typedef) = 
+      sprintf "enum %s {\n%s};\n" 
+        (sprintf "__%s_tag__" type_name)
+        (String.concat "" (List.map (fun (cons_name, _) -> cons_name ^ ",\n") type_cons))
+    in
+    let gen_cons (type_cons : (var * type_expr list) list) =
+      let gen_con (con_name, con_args) =
+        sprintf "i64 %s[%d];\n" con_name (List.length con_args)
+      in
+      String.concat "" (List.map gen_con type_cons)
+    in
+    let gen_struct ({type_name; type_cons} : typedef) =
+      sprintf "typedef struct %s {\nenum %s tag;\nunion {\n%s};\n} %s;\n" 
+        type_name 
+        (sprintf "__%s_tag__" type_name) 
+        (gen_cons type_cons)
+        type_name
+    in
+    let gen_typedef (typedef : typedef) =
+      sprintf "%s\n\n%s" (gen_tag typedef) (gen_struct typedef)
+    in
+    String.concat "\n" (List.map gen_typedef typedefs)
 
 let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (string * string) list)) ~tail =
   tail_call_opt := tail;
@@ -381,6 +475,9 @@ let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (strin
   let fun_type_env = fun_type_pass toplevels in
   let toplevel_func_env = toplevel_closures in
   env := {eff_sig = eff_sig_env; eff_type = eff_type_env; fun_type = fun_type_env; toplevel_closure = toplevel_func_env};
+
+  type_con_map_pass toplevels;
+
   let declare_closures = String.concat "\n" (List.map (fun (x, _) -> sprintf "static closure_t* %s;" x) toplevel_func_env) in
   let prog = (String.concat "\n" 
     (List.map 

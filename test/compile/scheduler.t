@@ -73,10 +73,10 @@
   }
   
   static i64 __run_lifted_7__(i64 __env__,i64 n_jobs,i64 init) {
-  return(({i64 c = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
-  ((i64*)temp)[0] = (i64)init;
-  temp;
-  }));
+  return(({i64 c = (i64)(({i64 __field_0__ = (i64)init;
+  i64* __newref__ = malloc(1 * sizeof(i64));
+  __newref__[0] = __field_0__;
+  (i64)__newref__;}));
   ({(HANDLE(__handle_body_lifted_16__, ({TAIL, __tick_stub_lifted_17___tick}), ((i64)c, (i64)jobs, (i64)n_jobs, (i64)scheduler)));
   (((i64*)c)[0]);});}));
   }

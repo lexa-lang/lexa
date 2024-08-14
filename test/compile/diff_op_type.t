@@ -37,10 +37,10 @@
   }
   
   static i64 __run_lifted_3__(i64 __env__,i64 n) {
-  return(({i64 s = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
-  ((i64*)temp)[0] = (i64)n;
-  temp;
-  }));
+  return(({i64 s = (i64)(({i64 __field_0__ = (i64)n;
+  i64* __newref__ = malloc(1 * sizeof(i64));
+  __newref__[0] = __field_0__;
+  (i64)__newref__;}));
   ({(HANDLE(__handle_body_lifted_7__, ({TAIL, __state1_stub_lifted_8___get}, {TAIL, __state1_stub_lifted_8___set}), ((i64)countdown, (i64)s)));
   (HANDLE(__handle_body_lifted_5__, ({SINGLESHOT, __state2_stub_lifted_6___get}, {SINGLESHOT, __state2_stub_lifted_6___set}), ((i64)countdown, (i64)s)));});}));
   }
