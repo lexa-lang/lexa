@@ -2,59 +2,89 @@ effect Choice {
   dcl choose
 }
 
+type list =
+    | Nil
+    | Cons of int * list
+
+type tree = 
+    | Leaf
+    | Node of int * tree * tree
+
+def append(l1, l2) {
+    match l1 with
+    | Nil -> { l2 }
+    | Cons (h, t) -> {
+        Cons (h, append(t, l2))
+    }
+}
+
+def list_max(l) {
+    rec def list_max_rec(l, acc) {
+        match l with
+        | Nil -> { acc }
+        | Cons (h, t) -> { 
+            // ~printInt(h);
+            if h > acc then
+                list_max_rec(t, h)
+            else
+                list_max_rec(t, acc)
+        } 
+    };
+    list_max_rec(l, 0)
+}
+
+
 def operator(x, y) {
     ~mathAbs((x - 503 * y) + 37) % 1009
 }
 
 def make(n) {
     if n == 0 then
-        ~treeLeaf()
+        Leaf
     else
         val t = make(n - 1);
-        ~treeNode(n, t, t)
+        Node(n, t, t)
 }
 
-def explore(state, tree, choice_stub) {
-    if ~treeIsEmpty(tree) then
-        state[0]
-    else
+def explore(state, tre, choice_stub) {
+    match tre with
+    | Leaf -> { state[0] }
+    | Node (value, left, right) -> {
         val next = 
             if raise choice_stub.choose(0) then 
-                ~treeLeft(tree)
+                left
             else
-                ~treeRight(tree)
+                right
         ;
-        val arg1 = state[0];
-        val arg2 = ~treeValue(tree);
-        state[0] := operator(arg1, arg2);
-        val arg3 = explore(state, next, choice_stub);
-        operator(arg2, arg3)
+        state[0] := operator(state[0], value);
+        operator(value, explore(state, next, choice_stub))
+    }
 }
 
-def paths(state, tree) {
+def paths(state, tre) {
     handle {
-            ~listNode(explore(state, tree, choice_stub), ~listEnd())
+        Cons (explore(state, tre, choice_stub), Nil)
     } with choice_stub: Choice {
         hdl_s choose(_, k) {
             val arg1 = resume k true;
             val arg2 = resume_final k false;
-            ~listAppend(arg1, arg2)
+            append(arg1, arg2)
         }        
     }
 }
 
-def loop(state, tree, i) {
+def loop(state, tre, i) {
     if i == 0 then
         state[0]
     else
-        (state[0] := ~listMax(paths(state, tree));
-        loop(state, tree, i - 1))
+        (state[0] := list_max(paths(state, tre));
+        loop(state, tre, i - 1))
 }
 
 def run(n) {
-    val tree = make(n);
+    val tre = make(n);
     val state = newref {0};
-        loop(state, tree, 10)
+        loop(state, tre, 10)
 }
 
 def main() {

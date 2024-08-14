@@ -35,10 +35,10 @@
   static i64 __loop_lifted_1__(i64 __env__,i64 it,i64 yield_stub,i64 behead_stub) {
   return(({(HANDLE(__handle_body_lifted_9__, ({TAIL, __replace_stub_lifted_10___replace}), ((i64)behead_stub, (i64)it, (i64)yield_stub)));
   ({i64 it_tail = (i64)(((i64)(listTail((node_t*)it))));
-  ({i64 beheaded = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
-  ((i64*)temp)[0] = (i64)0;
-  temp;
-  }));
+  ({i64 beheaded = (i64)(({i64 __field_0__ = (i64)0;
+  i64* __newref__ = malloc(1 * sizeof(i64));
+  __newref__[0] = __field_0__;
+  (i64)__newref__;}));
   ({i64 newtl = (i64)((((i64)(listIsEmpty((node_t*)it_tail)))) ? (((i64)(listEnd()))) : (HANDLE(__handle_body_lifted_7__, ({TAIL, __behead_stub_lifted_8___behead}), ((i64)beheaded, (i64)it_tail, (i64)loop, (i64)yield_stub))));
   ({i64 tobehead = (i64)(((i64*)beheaded)[0]);
   ({i64 _ = (i64)(tobehead ? ({i64 tailtail = (i64)(((i64)(listTail((node_t*)newtl))));
@@ -53,10 +53,10 @@
   
   static i64 __run_lifted_3__(i64 __env__,i64 n) {
   return(({i64 l = (i64)(((i64)(listRange((int64_t)(0 - n), (int64_t)n))));
-  ({i64 beheaded = (i64)(({i64 temp = (i64)malloc(1 * sizeof(i64));
-  ((i64*)temp)[0] = (i64)0;
-  temp;
-  }));
+  ({i64 beheaded = (i64)(({i64 __field_0__ = (i64)0;
+  i64* __newref__ = malloc(1 * sizeof(i64));
+  __newref__[0] = __field_0__;
+  (i64)__newref__;}));
   ({i64 newtl = (i64)(HANDLE(__handle_body_lifted_13__, ({TAIL, __behead_main_stub_lifted_14___behead}), ((i64)beheaded, (i64)l, (i64)loop)));
   ({i64 tobehead = (i64)(((i64*)beheaded)[0]);
   ({i64 res = (i64)(tobehead ? (((i64)(listTail((node_t*)newtl)))) : newtl);
