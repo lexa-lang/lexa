@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stack_pool.h>
+#include "gc.h"
 
+#define malloc(n) GC_malloc(n)
 #define i64 intptr_t
 
 typedef enum {
