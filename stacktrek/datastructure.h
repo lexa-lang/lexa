@@ -8,7 +8,10 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include "gc.h"
 
+#define malloc(n) GC_malloc(n)
+#define realloc(obj, size) GC_realloc(obj, size)
 #define xmalloc(size) ({                \
     void *_ptr = malloc(size);          \
     if (_ptr == NULL) {                 \
@@ -224,7 +227,7 @@ int64_t queueDeq(queue_t* q) {
   int64_t value = q->front->value;
   node_t* old_front = q->front;
   q->front = q->front->next;
-  free(old_front);
+  // free(old_front);
   return value;
 }
 

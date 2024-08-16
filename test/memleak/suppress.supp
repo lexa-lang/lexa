@@ -1,0 +1,6 @@
+{
+   ignore_invalid_read_of_size_8
+   Memcheck:Addr8
+   ...
+   fun:*
+}
