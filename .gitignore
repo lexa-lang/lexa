@@ -59,4 +59,3 @@ parser.conflicts
 
 .direnv
 node_modules/
-compilation_errors.log
