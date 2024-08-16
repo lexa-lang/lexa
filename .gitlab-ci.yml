@@ -9,7 +9,7 @@ build-job:
     - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "echo OK"
 
 c-lib-test-job:
-  stage: build
+  stage: test
   script:
     - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "cd stacktrek && clang -g -O1 -I . test.c -o test -lm && ./test"
 
