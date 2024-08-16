@@ -58,3 +58,4 @@ plot.png
 parser.conflicts
 
 .direnv
+node_modules/
