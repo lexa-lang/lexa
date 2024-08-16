@@ -2,62 +2,23 @@ effect Hello {
     dcl hello
 }
 
-obj hdl(env) {
-    def hello(_) { 
-        val _ = ~printChar(104);
-        val _ = ~printChar(101);
-        val _ = ~printChar(108);
-        val _ = ~printChar(108);
-        val _ = ~printChar(111);
-        val _ = ~printChar(44);
-        val _ = ~printChar(32);
-        val _ = ~printInt(env[0][0]);
-        0
-    }
-}
-
-def body(env, hello_stub) {
-    raise hello_stub.hello
-}
-
 def run(n) {
     val s = newref {42};
-    handle {s}
-        body
-    with hdl: Hello
-}
-
-def main() {
-    run(~readInt())
-}
-
-effect Hello {
-    dcl hello
-}
-
-obj hdl(env) {
-    def hello(_) { 
-        val _ = ~printChar(104);
-        val _ = ~printChar(101);
-        val _ = ~printChar(108);
-        val _ = ~printChar(108);
-        val _ = ~printChar(111);
-        val _ = ~printChar(44);
-        val _ = ~printChar(32);
-        val _ = ~printInt(env[0][0]);
-        0
+    handle {
+        raise hello_stub.hello 
+    } with hello_stub: Hello {
+        def hello(_) { 
+            val _ = ~printChar(104);
+            val _ = ~printChar(101);
+            val _ = ~printChar(108);
+            val _ = ~printChar(108);
+            val _ = ~printChar(111);
+            val _ = ~printChar(44);
+            val _ = ~printChar(32);
+            val _ = ~printInt(s[0]);
+            0
+        }        
     }
-}
-
-def body(env, hello_stub) {
-    raise hello_stub.hello
-}
-
-def run(n) {
-    val s = newref {42};
-    handle {s}
-        body
-    with hdl: Hello
 }
 
 def main() {
