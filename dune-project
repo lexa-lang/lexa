@@ -20,8 +20,7 @@
  (depends 
   ocaml
   dune 
-  ppx_inline_test
-  menhir)
+  ppx_inline_test)
  (allow_empty)
  (tags
   (topics "to describe" your project)))
