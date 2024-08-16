@@ -1,8 +1,8 @@
 const vscode = require('vscode');
 const { exec } = require('child_process');
-const os = require('os'); // Import the os module
-const fs = require('fs'); // Import the fs module
-const path = require('path'); // Import the path module
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -10,14 +10,38 @@ const path = require('path'); // Import the path module
 function activate(context) {
     console.log('Congratulations, your extension "lexi-vscode-extension" is now active!');
 
-    const helloWorldCommand = vscode.commands.registerCommand('lexi-vscode-extension.helloWorld', function () {
-        vscode.window.showInformationMessage('Hello World from lexi-vscode-extension!');
+    let binaryPath = ''; // Variable to store the binary path
+
+    // Command to set or update the binary path
+    const setBinaryPathCommand = vscode.commands.registerCommand('lexi-vscode-extension.setBinaryPath', async function () {
+        const newBinaryPath = await vscode.window.showInputBox({
+            prompt: 'Enter the path to your binary for the build',
+            value: binaryPath || `/u/${os.userInfo().username}/sstal/_build/default/bin/main.exe`
+        });
+
+        if (newBinaryPath) {
+            binaryPath = newBinaryPath;
+            vscode.window.showInformationMessage(`Binary path set to: ${binaryPath}`);
+        } else {
+            vscode.window.showWarningMessage('Binary path not set');
+        }
     });
 
-    context.subscriptions.push(helloWorldCommand);
+    context.subscriptions.push(setBinaryPathCommand);
 
+    // Command to check the current binary path
+    const checkBinaryPathCommand = vscode.commands.registerCommand('lexi-vscode-extension.checkBinaryPath', function () {
+        if (binaryPath) {
+            vscode.window.showInformationMessage(`Current binary path: ${binaryPath}`);
+        } else {
+            vscode.window.showWarningMessage('Binary path not set. Please set it using the appropriate command.');
+        }
+    });
+
+    context.subscriptions.push(checkBinaryPathCommand);
+
+    // Command to compile a selected file
     const compileFileCommand = vscode.commands.registerCommand('lexi-vscode-extension.compileFile', async function () {
-        // Prompt user to select a file
         const fileUri = await vscode.window.showOpenDialog({
             canSelectMany: false,
             openLabel: 'Select a file to compile',
@@ -30,14 +54,17 @@ function activate(context) {
         if (fileUri && fileUri[0]) {
             const filePath = fileUri[0].fsPath;
 
-            // Get the current user's username
-            const username = os.userInfo().username;
+            if (!binaryPath) {
+                vscode.window.showWarningMessage('Binary path not set. Please set it using the appropriate command.');
+                return;
+            }
 
-            // Specify the compiler command
-            const compilerCommand = `/u/${username}/sstal/_build/default/bin/main.exe ${filePath} -o /dev/null`;
+            // Use a temporary directory for the error log file
+            const tempDir = os.tmpdir();
+            const errorLogPath = path.join(tempDir, 'compilation_errors.log');
 
-            // Define the path to the error log file
-            const errorLogPath = `/u/${username}/sstal/compilation_errors.log`;
+            // Specify the compiler command using the binary path
+            const compilerCommand = `${binaryPath} ${filePath} -o /dev/null`;
 
             // Execute the compilation command
             exec(compilerCommand, (compileError, compileStdout, compileStderr) => {
