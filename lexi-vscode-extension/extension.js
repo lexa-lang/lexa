@@ -45,10 +45,6 @@ function activate(context) {
         const fileUri = await vscode.window.showOpenDialog({
             canSelectMany: false,
             openLabel: 'Select a file to compile',
-            filters: {
-                'Text files': ['txt'],
-                'All files': ['*']
-            }
         });
 
         if (fileUri && fileUri[0]) {
