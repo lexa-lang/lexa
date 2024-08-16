@@ -12,14 +12,21 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "lexi-vscode-extension.helloWorld",
-      "title": "Hello World"
-    },{
-        "command": "lexi-vscode-extension.compileFile",
-        "title": "Compile File"
-    }]
-  },
+    "commands": [
+        {
+            "command": "lexi-vscode-extension.setBinaryPath",
+            "title": "Set Binary Path"
+        },
+        {
+            "command": "lexi-vscode-extension.checkBinaryPath",
+            "title": "Check Binary Path"
+        },
+        {
+            "command": "lexi-vscode-extension.compileFile",
+            "title": "Compile File"
+        }
+    ]
+},
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
