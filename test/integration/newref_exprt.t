@@ -1,5 +1,5 @@
-  $ sstal ../lexi_snippets/tail_if.lexi -o main.c
+  $ sstal ../lexi_snippets/newref_expr.lexi -o main.c
   $ clang -O3 -I ../stacktrek main.c -o main -lm &> /dev/null
   $ ./main
-  2
-  1
+  3
+  5

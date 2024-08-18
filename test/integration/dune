@@ -4,5 +4,4 @@
   (glob_files_rec ../lexi/*.ir)
   (glob_files_rec ../lexi_snippets/*.lexi)
   (glob_files_rec ../stacktrek/*.h)
-  (glob_files_rec ../gc/*)
   (glob_files_rec ../lexi_snippets/*)))
