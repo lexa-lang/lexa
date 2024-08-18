@@ -14,6 +14,7 @@ and t = (* expressions AFTER closure conversion *)
   | Int of int
   | Float of float
   | Bool of bool
+  | Str of string
   | Prim of string
   | Arith of t * arith * t
   | Cmp of t * cmp * t 

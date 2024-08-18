@@ -1,0 +1,11 @@
+def main() {
+    ~strPrint("hello\nworld\n");
+    ~strPrint("escape sequences:\n\f\t\"\\");
+    ~strPrint(~strConcat("foo", "bar"));
+    if ~strEq("foo", "foo") then
+        ~strPrint("\nlength of foo is: ");
+        ~printInt(~strlen("foo"))
+    else
+        ~strPrint("unreachable");
+    0
+}

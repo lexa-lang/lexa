@@ -458,3 +458,22 @@ DEBUG_ATTRIBUTE
 int32_t pairSnd(int64_t p) {
   return (int32_t)p;
 }
+
+DEBUG_ATTRIBUTE
+int64_t strPrint(char* s) {
+  printf("%s", s);
+  return 0;
+}
+
+DEBUG_ATTRIBUTE
+int64_t strConcat(char* s1, char* s2) {
+    char *result = malloc(strlen(s1) + strlen(s2) + 1);
+    strcpy(result, s1);
+    strcat(result, s2);
+    return (int64_t)result;
+}
+
+DEBUG_ATTRIBUTE
+int64_t strEq(char* s1, char* s2) {
+  return (strcmp(s1, s2) == 0);
+}

@@ -79,6 +79,11 @@ let prim_env = [
   ("pairMake", [PTI32; PTI32]);
   ("pairFst", [PTI64]);
   ("pairSnd", [PTI64]);
+  ("strPrint", [PTStringP]);
+  ("strConcat", [PTStringP; PTStringP]);
+  ("strEq", [PTStringP; PTStringP]);
+  ("strcmp", [PTStringP; PTStringP]);
+  ("strlen", [PTStringP])
 ]
 
 let gen_prim_type = function

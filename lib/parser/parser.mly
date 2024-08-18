@@ -60,7 +60,7 @@
 %token OF
 %token MATCH
 %token RARROW
-
+%token <string> STRING
 %token <string> CAPITALIZED_VAR
 
 %start <Syntax.top_level list> prog
@@ -157,6 +157,7 @@ simple_expr:
   | FLOAT { Float $1 }
   | TRUE { Bool true }
   | FALSE { Bool false }
+  | s = STRING { Str s } 
   | PRIM { Prim $1 }
   | LPAREN e = expr RPAREN { e }
   | v = simple_expr LSB v2 = expr RSB { Get (v, v2) }    

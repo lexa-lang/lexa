@@ -70,6 +70,7 @@ rule read =
   | "of" { OF }
   | "match" { MATCH }
   | "->" { RARROW }
+  | '"' { read_string (Buffer.create 17) lexbuf }
   | float { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | id { VAR (Lexing.lexeme lexbuf) }
@@ -88,3 +89,21 @@ and read_multi_line_comment = parse
   | "\n" { new_line lexbuf; read_multi_line_comment lexbuf }
   | eof { raise (SyntaxError ("Lexer - Unexpected EOF - please terminate your comment.")) }
   | _ { read_multi_line_comment lexbuf }
+  
+and read_string buf =
+  parse
+  | '"'       { STRING (Buffer.contents buf) }
+  | '\\' '/'  { Buffer.add_string buf "/"; read_string buf lexbuf }
+  | '\\' '\\' { Buffer.add_string buf "\\\\"; read_string buf lexbuf }
+  | '\\' 'b'  { Buffer.add_string buf "\\b"; read_string buf lexbuf }
+  | '\\' 'f'  { Buffer.add_string buf "\\012"; read_string buf lexbuf }
+  | '\\' 'n'  { Buffer.add_string buf "\\n"; read_string buf lexbuf }
+  | '\\' 'r'  { Buffer.add_string buf "\\r"; read_string buf lexbuf }
+  | '\\' 't'  { Buffer.add_string buf "\\t"; read_string buf lexbuf }
+  | '\\' '"'  { Buffer.add_string buf "\\\""; read_string buf lexbuf }
+  | [^ '"' '\\']+
+    { Buffer.add_string buf (Lexing.lexeme lexbuf);
+      read_string buf lexbuf
+    }
+  | _ { raise (SyntaxError ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
+  | eof { raise (SyntaxError ("String is not terminated")) }
