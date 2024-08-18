@@ -155,6 +155,7 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
     | Int i -> string_of_int i
     | Float f -> string_of_float f
     | Bool b -> if b then "1" else "0"
+    | Str s -> sprintf "({i64* __s__ = (i64*) malloc(%d*sizeof(char));strcpy((char*)__s__, \"%s\"); __s__;})" ((String.length s) + 1) s
     | Prim prim ->
         String.sub prim 1 ((String.length prim) - 1)
     | Arith (e1, op, e2) ->

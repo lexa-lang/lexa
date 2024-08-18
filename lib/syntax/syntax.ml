@@ -21,6 +21,7 @@ and expr =
   | Int of int
   | Float of float
   | Bool of bool
+  | Str of string
   | Prim of string
   | Arith of expr * arith * expr
   | Cmp of expr * cmp * expr 
