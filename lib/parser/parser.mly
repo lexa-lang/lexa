@@ -119,7 +119,7 @@ match_clause:
 app_expr:
   | simple_expr { $1 }
   | e1 = app_expr LPAREN args = separated_list(COMMA, expr) RPAREN { App (e1, args) }
-  
+  | v = app_expr LSB v2 = expr RSB { Get (v, v2) }
 
 expr:
   | app_expr { $1 }
@@ -135,12 +135,12 @@ expr:
 	| e1 = expr LTS e2 = expr { Cmp(e1, CLt, e2) }
 	
   | NEWREF heap_value { New $2 }
-  | v1 = simple_expr LSB v2 = expr RSB COLONEQ v3 = expr { Set (v1, v2, v3) }
+  | v1 = app_expr LSB v2 = expr RSB COLONEQ v3 = expr { Set (v1, v2, v3) }
   | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr %prec HIGHER_THAN_STMT { Let (x, t1, t2) }
   | IF v = expr THEN t1 = expr ELSE t2 = expr { If (v, t1, t2) }
   | RAISE stub = simple_expr DOT hdl = VAR LPAREN params = separated_list(COMMA, expr) RPAREN { Raise (stub, hdl, params) }
-  | RESUME k = simple_expr v = simple_expr { Resume (k, v) }
-  | RESUMEFINAL k = simple_expr v = simple_expr { ResumeFinal (k, v) }
+  | RESUME k = simple_expr v = app_expr { Resume (k, v) }
+  | RESUMEFINAL k = simple_expr v = app_expr { ResumeFinal (k, v) }
   | HANDLE LCB handle_body = expr RCB WITH stub = VAR COLON sig_name = CAPITALIZED_VAR LCB handler_defs = list(hdl_def) RCB 
     { Handle {handle_body; stub; sig_name; handler_defs} }
   | FUN LPAREN params = separated_list(COMMA, VAR) RPAREN LCB body = expr RCB { Fun (params, body) }
@@ -160,5 +160,4 @@ simple_expr:
   | s = STRING { Str s } 
   | PRIM { Prim $1 }
   | LPAREN e = expr RPAREN { e }
-  | v = simple_expr LSB v2 = expr RSB { Get (v, v2) }    
   
