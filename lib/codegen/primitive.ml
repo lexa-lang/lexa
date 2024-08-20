@@ -14,6 +14,7 @@ exception UndefinedPrimitive of string
 exception InvalidPrimitiveCall of string
 
 let prim_env = [
+  ("check", [PTI64]);
   ("error", [PTStringP]);
   ("lambdaManInit", []); (* TODO: remove lambdamans *)
   ("lambdaManGetWidth", []);
@@ -51,11 +52,14 @@ let prim_env = [
   ("stringSubStr", [PTStringP; PTI64; PTI64]);
   ("stringCharAt", [PTStringP; PTI64]);
   ("stringLen", [PTStringP]);
-  ("I", [PTDouble]);
+  ("boxFloat", [PTDouble]);
+  ("unboxFloat", [PTI64]);
   ("floatAdd", [PTI64; PTI64]);
   ("floatSub", [PTI64; PTI64]);
   ("floatMul", [PTI64; PTI64]);
   ("floatDiv", [PTI64; PTI64]);
+  ("floatPow", [PTI64; PTI64]);
+  ("floatExp", [PTI64]);
   ("floatNeg", [PTI64]);
   ("floatRand", []);
   ("floatPi", []);
@@ -64,6 +68,7 @@ let prim_env = [
   ("floatSqrt", [PTI64]);
   ("floatLog", [PTI64]);
   ("floatLt", [PTI64; PTI64]);
+  ("floatLeq", [PTI64; PTI64]);
   ("mathAbs", [PTI64]);
   ("boolAnd", [PTI64; PTI64]);
   ("boolOr", [PTI64; PTI64]);

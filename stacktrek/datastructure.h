@@ -42,6 +42,12 @@ typedef struct array_t {
 #define readInt() (argc == 2) ? atoi(argv[1]) : (printf("Usage: %s <int>\n", argv[0]), exit(EXIT_FAILURE), 0)
 
 DEBUG_ATTRIBUTE
+int64_t check(int64_t x) {
+  assert(x);
+  return 0;
+}
+
+DEBUG_ATTRIBUTE
 int64_t printInt(int64_t x) {
   printf("%ld\n", x);
   return 0;
@@ -278,73 +284,88 @@ int64_t stringCharAt(char* s, int64_t pos) {
   return s[pos];
 }
 
-#define I(x) ((union { double d; int64_t i; }){ .d = x }).i
-#define F(x) ((union { double d; int64_t i; }){ .i = x }).d
+#define boxFloat(x) ((union { double d; int64_t i; }){ .d = x }).i
+#define unboxFloat(x) ((union { double d; int64_t i; }){ .i = x }).d
 
 DEBUG_ATTRIBUTE
 int64_t printFloat(int64_t x) {
-  printf("%f\n", F(x));
+  printf("%f\n", unboxFloat(x));
   return 0;
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatAdd(int64_t a, int64_t b) {
-  return I(F(a) + F(b));
+  return boxFloat(unboxFloat(a) + unboxFloat(b));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatSub(int64_t a, int64_t b) {
-  return I(F(a) - F(b));
+  return boxFloat(unboxFloat(a) - unboxFloat(b));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatMul(int64_t a, int64_t b) {
-  return I(F(a) * F(b));
+  return boxFloat(unboxFloat(a) * unboxFloat(b));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatDiv(int64_t a, int64_t b) {
-  return I(F(a) / F(b));
+  return boxFloat(unboxFloat(a) / unboxFloat(b));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatPow(int64_t a, int64_t b) {
+  return boxFloat(pow(unboxFloat(a), unboxFloat(b)));
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatExp(int64_t a) {
+  return boxFloat(exp(unboxFloat(a)));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatNeg(int64_t a) {
-  return I(-F(a));
+  return boxFloat(-unboxFloat(a));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatRand() {
-  return I((double)rand() / RAND_MAX);
+  return boxFloat((double)rand() / RAND_MAX);
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatPi() {
-  return I(M_PI);
+  return boxFloat(M_PI);
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatCos(int64_t x) {
-  return I(cos(F(x)));
+  return boxFloat(cos(unboxFloat(x)));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatSin(int64_t x) {
-  return I(sin(F(x)));
+  return boxFloat(sin(unboxFloat(x)));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatSqrt(int64_t x) {
-  return I(sqrt(F(x)));
+  return boxFloat(sqrt(unboxFloat(x)));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatLog(int64_t x) {
-  return I(log(F(x)));
+  return boxFloat(log(unboxFloat(x)));
 }
 
 DEBUG_ATTRIBUTE
 int64_t floatLt(int64_t a, int64_t b) {
-  return F(a) < F(b);
+  return unboxFloat(a) < unboxFloat(b);
+}
+
+DEBUG_ATTRIBUTE
+int64_t floatLeq(int64_t a, int64_t b) {
+  return unboxFloat(a) <= unboxFloat(b);
 }
 
 DEBUG_ATTRIBUTE

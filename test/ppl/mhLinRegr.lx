@@ -1,0 +1,32 @@
+open "mh.lx"
+open "linRegr.lx"
+
+def inferMhLinRegr(n) {
+    val xs = range(0, n);
+    val envs = map(fun(x) {
+        val env0 = Nil();
+        val env1 = set(env0, 'x', Pair(~boxFloat(x), ~boxFloat(0)));
+        val env2 = set(env1, 'y', Pair(~boxFloat(3*x), ~boxFloat(0)), Nil());
+        env2
+    }, xs);
+
+    val traces = map(fun(env) {
+        val sampleSites = Cons('m', Cons('c', Nil()));
+        mh(linRegr, 10000, env, sampleSites)
+    }, envs);
+    val mus = map(fun(trace) {
+        fst(get(get_opt(trace, 'm')))
+    }, traces);
+
+    mus
+}
+
+def main() {
+    val n = ~readInt();
+    val mus = inferMhLinRegr(n);
+
+    val sum = foldl(fun(x, y) { ~floatAdd(x, y) }, ~boxFloat(0), mus);
+    val avg = ~floatDiv(sum, ~boxFloat(length(mus)));
+    ~printFloat(avg)
+    // printList(mus, fun(x) { ~printFloat(x) })
+}

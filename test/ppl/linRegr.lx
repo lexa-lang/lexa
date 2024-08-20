@@ -1,0 +1,10 @@
+open "probability.lx"
+
+def linRegr(core_stub) {
+    val x = constant('x', core_stub);
+    val m = normal(~boxFloat(0), ~boxFloat(3), 'm', core_stub);
+    val c = normal(~boxFloat(0), ~boxFloat(5), 'c', core_stub);
+    val sigma = uniform(~boxFloat(1), ~boxFloat(3), 's', core_stub);
+    val y = normal(~floatAdd(~floatMul(m, x), c), sigma, 'y', core_stub);
+    y
+}

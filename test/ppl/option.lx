@@ -1,0 +1,10 @@
+
+type option = 
+    | None
+    | Some of int
+
+def get(o) {
+    match o with
+    | None -> { ~error(1) }
+    | Some(x) -> { x }
+}
