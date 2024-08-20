@@ -1,0 +1,31 @@
+open "sim.lx"
+open "linRegr.lx"
+
+def simulateLinRegr(n) {
+    val xs = range(0, n);
+    val envs = map(fun(x) {
+        val env0 = Nil();
+        val env1 = set(env0, 'x', Pair(~boxFloat(x), ~boxFloat(0)));
+        val env2 = set(env1, 'm', Pair(~boxFloat(3), ~boxFloat(0)));
+        val env3 = set(env2, 'c', Pair(~boxFloat(0), ~boxFloat(0)));
+        val env4 = set(env3, 's', Pair(~boxFloat(1), ~boxFloat(0)));
+        env4
+    }, xs);
+
+    val res_and_traces = map(fun(env) {
+        simulate(linRegr, env)
+    }, envs);
+    val ys = map(fun(x) {
+        fst(x)
+    }, res_and_traces);
+
+    zip(xs, ys)
+}
+
+def main() {
+    val n = ~readInt();
+    val res = simulateLinRegr(n);
+    val y_sum = foldl(fun(x, y) { ~floatAdd(x, y) }, ~boxFloat(0), map(fun(x) { snd(x) }, res));
+    ~printFloat(~floatDiv(y_sum, ~boxFloat(n))) // this value doesn't make sense, it's just for testing
+    // printList(res, fun(x) { ~printInt(fst(x)); ~printFloat(snd(x)); ~printChar(10) })
+}

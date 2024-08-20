@@ -1,0 +1,72 @@
+open "common.lx"
+open "list.lx"
+open "assoc_list.lx"
+open "probability.lx"
+
+def handleCore(action, env, obsv_stub, sample_stub) {
+    handle {
+        action(core_stub)
+    } with core_stub: Core {
+        def dist(d, name, maybe_y) {
+            match maybe_y with
+            | Some(y) -> { raise obsv_stub.observe(d, name, y) }
+            | None -> { raise sample_stub.sample(d, name) }
+        }
+        def read(name) {
+            match get_opt(env, name) with
+            | Some(p) -> { Some(fst(p)) }
+            | None -> { None }
+        }
+    }
+}
+
+def traceSamples(action, sample_stub_outer) {
+    val assocs = newref{Nil()};
+    val y = 
+        handle {
+            action(sample_stub)
+        } with sample_stub: Sample {
+            def sample(d, name) {
+                val x = raise sample_stub_outer.sample(d, name);
+                val logp = ~floatLog(probLib(d, x));
+                assocs[0] := set(assocs[0], name, Pair(x, logp));
+                x
+            }
+        };
+    Pair(y, assocs[0])
+}
+
+def handleObs(action) {
+    val logp = newref{~boxFloat(0)};
+    val res = handle {
+        action(obsv_stub)
+    } with obsv_stub: Observe {
+        def observe(d, name, y) {
+            val p = ~floatLog(probLib(d, y));
+            logp[0] := ~floatAdd(logp[0], p);
+            y
+        }
+    };
+    Pair(res, ~floatExp(logp[0]))
+}
+
+def handleSample(action) {
+    handle {
+        action(sample_stub)
+    } with sample_stub: Sample {
+        def sample(d, name) {
+            val x = sampleLib(d);
+            x
+        }
+    }
+}
+
+def lw(action, env) {
+    handleSample(fun(sample_stub) {
+        handleObs(fun(obsv_stub) {
+            traceSamples(fun(sample_stub) { // intentional shadowing
+                handleCore(action, env, obsv_stub, sample_stub)
+            }, sample_stub)
+        })
+    })
+}

@@ -1,0 +1,134 @@
+open "option.lx"
+open "pair.lx"
+
+type list = 
+    | Nil
+    | Cons of int * list
+
+def length(l) {
+    match l with
+    | Nil -> { 0 }
+    | Cons (h, t) -> { 1 + length(t) }
+}
+
+def hd(l) {
+    match l with
+    | Nil -> { ~error(1) }
+    | Cons (h, t) -> { h }
+}
+
+def tl(l) {
+    match l with
+    | Nil -> { ~error(1) }
+    | Cons (h, t) -> { t }
+}
+
+def nth(l, n) {
+    match l with
+    | Nil -> { ~error(1) }
+    | Cons (h, t) -> {
+        if n == 0 then
+            h
+        else
+            nth(t, n - 1)
+    }
+}
+
+def safeHead(l) {
+    match l with
+    | Nil -> { None }
+    | Cons (h, t) -> { Some(h) }
+}
+
+def safeTail(l) {
+    match l with
+    | Nil -> { None }
+    | Cons (h, t) -> { Some(t) }
+}
+
+def zip(l1, l2) {
+    match l1 with
+    | Nil -> { Nil }
+    | Cons (h1, t1) -> {
+        match l2 with
+        | Nil -> { Nil }
+        | Cons (h2, t2) -> {
+            Cons (Pair (h1, h2), zip(t1, t2))
+        }
+    }
+}
+
+def map(f, l) {
+    match l with
+    | Nil -> { Nil }
+    | Cons (h, t) -> {
+        Cons (f(h), map(f, t))
+    }
+}
+
+def foldl(f, acc, l) {
+    match l with
+    | Nil -> { acc }
+    | Cons (h, t) -> { foldl(f, f(h, acc), t) }
+}
+
+def range(l, r) {
+    if l > r then
+        Nil
+    else
+        Cons (l, range(l + 1, r))
+}
+
+def printList(l, print_fn) {
+    match l with
+    | Nil -> { 0 }
+    | Cons (h, t) -> {
+        print_fn(h);
+        printList(t, print_fn)
+    }
+}
+
+def printIntList(l) {
+    printList(l, fun(x) { ~printInt(x) })
+}
+
+def printCharList(l) {
+    printList(l, fun(x) { ~printChar(x) })
+}
+
+def printFloatList(l) {
+    printList(l, fun(x) { ~printFloat(x) })
+}
+
+def listIn(l, x) {
+    match l with
+    | Nil -> { false }
+    | Cons (h, t) -> {
+        if h == x then
+            true
+        else
+            listIn(t, x)
+    }
+}
+
+def intersection(l1, l2) {
+    match l1 with
+    | Nil -> { Nil }
+    | Cons (h, t) -> {
+        if listIn(l2, h) then
+            Cons (h, intersection(t, l2))
+        else
+            intersection(t, l2)
+    }
+}
+
+def subtract(l1, l2) {
+    match l1 with
+    | Nil -> { Nil }
+    | Cons (h, t) -> {
+        if listIn(l2, h) then
+            subtract(t, l2)
+        else
+            Cons (h, subtract(t, l2))
+    }
+}

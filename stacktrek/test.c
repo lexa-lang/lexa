@@ -22,11 +22,11 @@ int main() {
   assert(queueIsEmpty(q));
   free(q);
 
-  int64_t f1 = I(1.1);
-  int64_t f2 = I(0.1);
-  assert(eq_floats(F(floatAdd(f1, f2)), 1.2));
-  assert(eq_floats(F(floatSub(f1, f2)), 1.0));
-  assert(eq_floats(F(floatMul(f1, f2)), 0.11));
-  assert(eq_floats(F(floatDiv(f1, f2)), 11.0));
+  int64_t f1 = boxFloat(1.1);
+  int64_t f2 = boxFloat(0.1);
+  assert(eq_floats(unboxFloat(floatAdd(f1, f2)), 1.2));
+  assert(eq_floats(unboxFloat(floatSub(f1, f2)), 1.0));
+  assert(eq_floats(unboxFloat(floatMul(f1, f2)), 0.11));
+  assert(eq_floats(unboxFloat(floatDiv(f1, f2)), 11.0));
   return 0;
 }

@@ -1,0 +1,55 @@
+open "list.lx"
+open "assoc_list.lx"
+open "pair.lx"
+open "probability.lx"
+
+def main() {
+    // assocList.lx
+    val ass0 = Nil();
+    val ass1 = set(ass0, 0, 0);
+    val ass2 = set(ass1, 1, 1);
+    val ass = set(ass2, 0, 2);
+    val d = dom(ass);
+    ~check(length(d) == 2);
+    ~check(nth(d, 0) == 0);
+    ~check(nth(d, 1) == 1);
+    printIntList(vals(ass));
+    ~check(get(get_opt(ass, 0)) == 2);
+    ~check(get(get_opt(ass, 1)) == 1);
+    ~check(get_or_default(ass, 1, 42) == 1);
+    ~check(get_or_default(ass, 3, 42) == 42);
+    ~printInt(length(dom(filter(ass, Nil))));
+    printList(dom(filter(ass, Cons(2, Nil))), fun(x) { ~printInt(x) });
+
+
+    val ass0 = Nil();
+    val vs = get_or_default(ass0, 0, Nil());
+    val ass1 = set(ass0, 0, Cons(42, vs));
+    ~check(hd(get(get_opt(ass1, 0))) == 42);
+
+    // list.lx
+    val l = Cons(0, Cons(1, Cons(2, Nil)));
+    ~check(get(safeHead(l)) == 0);
+    val z = zip(l, l);
+    val pair = get(safeHead(z));
+    ~check(fst(pair) == 0);
+    ~check(snd(pair) == 0);
+    val l1 = map(fun(x) { x + 1 }, l);
+    ~check(get(safeHead(l1)) == 1);
+    ~check(get(safeHead(get(safeTail(l1)))) == 2);
+    ~check(nth(l, 0) == 0);
+    ~check(nth(l, 2) == 2);
+    printList(intersection(l, Cons(1, Nil)), fun(x) { ~printInt(x) });
+
+    // probability.lx
+    ~check(sampleLib(DiscrUniform(10)) < 10);
+    ~check(sampleLib(DiscrUniform(10)) < 10);
+    ~check(sampleLib(DiscrUniform(10)) < 10);
+    ~check(sampleLib(DiscrUniform(10)) < 10);
+    ~check(sampleLib(DiscrUniform(10)) < 10);
+    ~check(sampleLib(DiscrUniform(10)) < 10);
+    ~check(sampleLib(DiscrUniform(10)) < 10);
+    ~check(sampleLib(DiscrUniform(10)) < 10);
+    ~check(sampleLib(DiscrUniform(10)) < 10)
+
+}

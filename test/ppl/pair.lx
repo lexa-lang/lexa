@@ -1,0 +1,13 @@
+
+type pair = 
+    | Pair of int * int
+
+def fst(p) {
+    match p with
+    | Pair(x, y) -> { x }
+}
+
+def snd(p) {
+    match p with
+    | Pair (x, y) -> { y }
+}

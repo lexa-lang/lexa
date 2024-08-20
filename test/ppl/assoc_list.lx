@@ -1,0 +1,69 @@
+open "list.lx"
+open "pair.lx"
+
+def in(ass, k) {
+    match ass with
+    | Nil -> { false }
+    | Cons (p, t) -> {
+        if fst(p) == k then
+            true
+        else
+            in(t, k)
+    }
+}
+
+def get_opt(ass, k) {
+    match ass with
+    | Nil -> { None }
+    | Cons (p, t) -> {
+        if fst(p) == k then
+            Some (snd(p))
+        else
+            get_opt(t, k)
+    }
+}
+
+def get_or_default(ass, k, d) {
+    val res = get_opt(ass, k);
+    match res with
+    | None -> { d }
+    | Some(x) -> { x }
+}
+
+def set(ass, k, v) {
+    match ass with
+    | Nil -> { Cons(Pair(k, v), Nil()) }
+    | Cons(p, t) -> {
+        if k == fst(p) then
+            Cons(Pair(k, v), t)
+        else
+            Cons(p, set(t, k, v))
+    }
+}
+
+def dom(ass) {
+    match ass with
+    | Nil -> { Nil() }
+    | Cons (p, t) -> {
+        Cons(fst(p), dom(t))
+    }
+}
+
+def vals(ass) {
+    match ass with
+    | Nil -> { Nil() }
+    | Cons(p, t) -> {
+        Cons(snd(p), vals(t))
+    }
+}
+
+def filter(ass, keys) {
+    match ass with
+    | Nil -> { Nil() }
+    | Cons(p, t) -> {
+        if listIn(keys, fst(p)) then
+            Cons(p, filter(t, keys))
+        else
+            filter(t, keys)
+    }
+}

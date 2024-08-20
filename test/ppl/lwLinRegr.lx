@@ -1,0 +1,32 @@
+open "lw.lx"
+open "linRegr.lx"
+
+
+def inferLwLinRegr(n) {
+    val xs = range(0, n);
+    val envs = map(fun(x) {
+        val env0 = Nil();
+        val env1 = set(env0, 'x', Pair(~boxFloat(x), ~boxFloat(0)));
+        val env2 = set(env1, 'y', Pair(~boxFloat(3*x), ~boxFloat(0)));
+        env2
+    }, xs);
+    val res_and_traces = map(fun(env) {
+        lw(linRegr, env)
+    }, envs);
+    val mus = map(fun(x) {
+        fst(get(get_opt(snd(fst(x)), 'm')))
+    }, res_and_traces);
+    val ps = map(fun(x) {
+        snd(x)
+    }, res_and_traces);
+
+    zip(mus, ps)
+}
+
+def main() {
+    val n = ~readInt();
+    val res = inferLwLinRegr(n);
+    val sample_sum = foldl(fun(x, y) { ~floatAdd(x, y) }, ~boxFloat(0), map(fun(x) { fst(x) }, res));
+    ~printFloat(~floatDiv(sample_sum, ~boxFloat(n))) // this value doesn't make sense, it's just for testing
+    // printList(res, fun(x) { ~printFloat(fst(x)); ~printFloat(snd(x)); ~printChar(10) })
+}

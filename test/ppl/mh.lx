@@ -1,0 +1,101 @@
+open "common.lx"
+open "list.lx"
+open "assoc_list.lx"
+open "probability.lx"
+
+def handleCore(action, trace, sampleSite, sample_stub, obsv_stub) {
+    handle {
+        action(core_stub)
+    } with core_stub: Core {
+        def dist(d, name, maybe_y) {
+            match maybe_y with
+            | Some(y) -> { raise obsv_stub.observe(d, name, y) }
+            | None -> { raise sample_stub.sample(d, name) }
+        }
+        def read(name) {
+            if name == sampleSite then
+                None
+            else
+                match get_opt(trace, name) with
+                | Some(p) -> { Some(fst(p)) }
+                | None -> { None }
+        }
+    }
+}
+
+def traceSampleAndObserver(action, sample_stub0) {
+    val assocs = newref{Nil()};
+    val res = 
+    handle {
+        handle {
+            action(sample_stub, obsv_stub)
+        } with obsv_stub: Observe {
+            def observe(d, name, x) {
+                val logp = ~floatLog(probLib(d, x));
+                assocs[0] := set(assocs[0], name, Pair(x, logp));
+                x
+            }
+        }
+    } with sample_stub: Sample {
+        def sample(d, name) {
+            val x = raise sample_stub0.sample(d, name);
+            val logp = ~floatLog(probLib(d, x));
+            assocs[0] := set(assocs[0], name, Pair(x, logp));
+            x
+        }
+    };
+    Pair(res, assocs[0])
+}
+
+def handleSample(action) {
+    handle {
+        action(sample_stub)
+    } with sample_stub: Sample {
+        def sample(d, name) {
+            val x = sampleLib(d);
+            x
+        }
+    }
+}
+
+def mhStep(action, trace, sampleSites, always_accept) {
+    val i = sampleLib(DiscrUniform(length(sampleSites)));
+    val sampleSite = nth(sampleSites, i);
+
+    val pair = handleSample(fun(sample_stub) {
+        traceSampleAndObserver(fun(sample_stub0, obsv_stub) {
+            handleCore(action, trace, sampleSite, sample_stub0, obsv_stub)
+        }, sample_stub)
+    });
+    val trace_prime = snd(pair);
+
+    val same_dom = subtract(intersection(dom(trace), dom(trace_prime)), Cons(sampleSite, Nil()));
+    val trace_xlogp = vals(filter(trace, same_dom));
+    val logp = foldl(fun(x, acc) { ~floatAdd(acc, snd(x)) }, ~boxFloat(0), trace_xlogp);
+
+    val trace_prime_xlogp = vals(filter(trace_prime, same_dom));
+    val logp_prime = foldl(fun(x, acc) { ~floatAdd(acc, snd(x)) }, ~boxFloat(0), trace_prime_xlogp);
+    val accept_prob = ~floatExp(~floatSub(logp_prime, logp));
+    val u = sampleLib(Uniform(~boxFloat(0), ~boxFloat(1)));
+    if always_accept then
+        trace_prime
+    else (
+        if ~floatLt(u, accept_prob) then
+            trace_prime
+        else (
+            trace
+        )
+    )
+}
+
+def mh(action, n, env, sampleSites) {
+    val traceInit = mhStep(action, env, sampleSites, true);
+    rec def iter(trace, n) {
+        if n == 0 then
+            trace
+        else
+            val new_trace = mhStep(action, trace, sampleSites, false);
+            iter(new_trace, n - 1)
+    };
+    iter(traceInit, n)
+}

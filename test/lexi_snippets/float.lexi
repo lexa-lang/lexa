@@ -1,6 +1,6 @@
 def main() {
-    val x = ~I(1.1);
-    val y = ~I(2.2);
+    val x = ~boxFloat(1.1);
+    val y = ~boxFloat(2.2);
     val z = ~floatAdd(x, y);
     val w = ~floatSub(y, z);
     ~printFloat(x);
