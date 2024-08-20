@@ -1,0 +1,23 @@
+type tree = 
+    | Leaf
+    | Node of int * tree * tree
+
+def make_tree(i) {
+    if i == 0 then
+        Leaf()
+    else
+        Node(i, make(i - 1), make(i - 1))
+}
+
+def traverse(t) {
+    match t with
+    | Leaf -> {
+        0
+    }
+    | Node (i, l, r) -> {
+        ~printInt(i);
+        traverse(l);
+        traverse(r);
+        0
+    }
+}

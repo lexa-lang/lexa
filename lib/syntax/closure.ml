@@ -40,3 +40,4 @@ type top_level =
   | TLEffSig of var * var list
   | TLObj of var * var list * hdl list
   | TLType of typedef list
+  | TLOpen of var

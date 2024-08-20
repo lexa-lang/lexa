@@ -70,6 +70,7 @@ rule read =
   | "of" { OF }
   | "match" { MATCH }
   | "->" { RARROW }
+  | "open" { OPEN }
   | '"' { read_string (Buffer.create 17) lexbuf }
   | float { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }

@@ -3,6 +3,8 @@ open Syntax__Common
 
 module Varset = Syntax__Varset
 
+exception UnboundVariable of string
+
 let extra_toplevels = ref []
 
 (* Map toplevel functions' original name to lifted name *)
@@ -124,7 +126,11 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
     (match e with
     | Var name -> if not (Varset.mem name env) then
         (* Function name is not in the environment, callee must be a top level function *)
-        let lifted_name = (List.assoc name !toplevel_lifted_name_map) in
+        let lifted_name = 
+          (match (List.assoc_opt name !toplevel_lifted_name_map) with
+          | Some n -> n
+          | None -> raise (UnboundVariable name))
+        in
         (* Pass 0 as the closure environment argument *)
         App (Var lifted_name, Int 0 :: (List.map (fun x -> convert_expr x env) es))
       else
@@ -155,6 +161,7 @@ let closure_convert_toplevels (tls : Syntax.top_level list) =
     | Syntax.TLEffSig (name, dcls) ->
       TLEffSig (name, dcls)
     | Syntax.TLType typedefs -> TLType typedefs
+    | Syntax.TLOpen filename -> TLOpen filename
   in
   let converted_original_toplevels = (List.map closure_convert_toplevel tls) in
   (converted_original_toplevels @ !extra_toplevels, !toplevel_closures)

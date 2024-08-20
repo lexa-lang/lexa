@@ -1,0 +1,23 @@
+open "../adt/lib_list.lx"
+open "../adt/lib_tree.lx"
+
+effect Choice {
+  dcl choose
+}
+
+def main() {
+    val example = Node(4, Node(3, Node(2, Leaf, Leaf), Node(1, Leaf, Leaf)), Node(5, Leaf, Leaf));
+    print_list(explore(example, Nil));
+    0
+}
+
+
+def explore(tre, acc) {
+    match tre with
+    | Leaf -> { acc }
+    | Node (value, left, right) -> {
+        val acc1 = explore(left, acc);
+        val acc2 = explore(right, acc);
+        append(acc1, Cons(value, acc2))
+    }
+}
