@@ -62,6 +62,8 @@
 %token RARROW
 %token <string> STRING
 %token <string> CAPITALIZED_VAR
+%token <string> PATH
+%token OPEN
 
 %start <Syntax.top_level list> prog
 
@@ -92,6 +94,7 @@ top_level:
       LCB e = expr RCB { TLAbs (name, params, e) }
   | EFFECT name = CAPITALIZED_VAR LCB l = list(effect_sig) RCB { TLEffSig (name, l) }
   | TYPE l = separated_nonempty_list(AND, type_def) { TLType l }
+  | OPEN filename = STRING { TLOpen filename }
       
 effect_sig:
   | DCL v = VAR { v }

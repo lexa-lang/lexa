@@ -1,0 +1,7 @@
+open "../adt/lib_list.lx"
+
+def main() {
+    val example = Cons(make(3), Cons(make(2), Cons(make(1), Nil)));
+    map(fun(x) {print_list(x)}, example);
+    0
+}

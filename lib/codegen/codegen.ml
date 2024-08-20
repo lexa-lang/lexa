@@ -466,6 +466,7 @@ return((int)__res__);}|}
       sprintf "%s\n\n%s" (gen_tag typedef) (gen_struct typedef)
     in
     String.concat "\n" (List.map gen_typedef typedefs)
+  | TLOpen _ -> ""
 
 let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (string * string) list)) ~tail =
   tail_call_opt := tail;
