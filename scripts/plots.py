@@ -49,7 +49,7 @@ def plot_df(df, dirname):
         if name == "effekt":
             return "Effekt"
         if name == "lexi":
-            return r"\textsc{Lexi}"
+            return r"\textsc{Lexa}"
         if name == "ocaml":
             return "OCaml"
         if name == "nqueens":
@@ -87,7 +87,7 @@ def plot_df(df, dirname):
         "koka_named": "x",
         "ocaml": "x",
     }
-    fig, axs = plt.subplots(4, 4, figsize=(10, 12))
+    fig, axs = plt.subplots(4, 4, figsize=(10, 13))
     fig.supxlabel('Input size', fontsize=14)
     fig.supylabel('Running time (s)', fontsize=14)
     for i, benchmark in enumerate(df['benchmark'].unique()):
@@ -98,7 +98,7 @@ def plot_df(df, dirname):
         for platform in df['platform'].unique():
             subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
             if not subset.empty and not pd.isna(subset.iloc[0]['time_sec']):
-                l, = ax1.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker=markers[platform], alpha=0.9, color=colors[platform], markersize=5, linewidth=1.0)
+                l, = ax1.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker=markers[platform], alpha=0.8, color=colors[platform], markersize=5, linewidth=1.0)
         if benchmark.endswith("$"):
             title = r'{\bfseries ' + process_name(benchmark) + '}'
         else:
@@ -116,7 +116,7 @@ def plot_df(df, dirname):
     plt.savefig(dirname + filename, dpi=600)
 
 
-# This plots the Effekt vs Lexi scaling plot
+# This plots the effekt vs lexa scaling plot
 def plot_df2(df, dirname):
     fig, axs = plt.subplots(1, 2, figsize=(6, 2.5))
     fig.supylabel('Running time (s)', fontsize=12)
@@ -129,9 +129,9 @@ def plot_df2(df, dirname):
         for color, benchmark in [("#0C1844", "scheduler_notick"), ("#C80036", "scheduler")]:
             subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
             label = r"with \texttt{Tick}" if benchmark == "scheduler" else r"without \texttt{Tick}"
-            l, = ax1.plot(subset['n'], subset['time_sec'], label=label, marker='.' if benchmark == "scheduler" else 'x', alpha=0.9, color=color, markersize=5, linewidth=1.10)
+            l, = ax1.plot(subset['n'], subset['time_sec'], label=label, marker='.' if benchmark == "scheduler" else 'x', alpha=0.8, color=color, markersize=5, linewidth=1.10)
 
-        ax1.set_title('Scheduler program in ' + (r'\textsc{Lexi}' if platform == "lexi" else 'Effekt'), fontsize=13, pad=20)
+        ax1.set_title('Scheduler program in ' + (r'\textsc{Lexa}' if platform == "lexi" else 'Effekt'), fontsize=13, pad=20)
         ax1.legend(loc='upper left')
 
         plt.ticklabel_format(axis='y', style='plain')
