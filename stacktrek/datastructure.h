@@ -474,3 +474,8 @@ DEBUG_ATTRIBUTE
 int64_t strEq(char* s1, char* s2) {
   return (strcmp(s1, s2) == 0);
 }
+
+DEBUG_ATTRIBUTE
+int64_t strCharAt(char* s, int64_t i) {
+  return (int64_t)(s[i]);
+}

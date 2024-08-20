@@ -62,7 +62,7 @@
 %token RARROW
 %token <string> STRING
 %token <string> CAPITALIZED_VAR
-%token <string> PATH
+%token <char> CHAR
 %token OPEN
 
 %start <Syntax.top_level list> prog
@@ -161,6 +161,7 @@ simple_expr:
   | TRUE { Bool true }
   | FALSE { Bool false }
   | s = STRING { Str s } 
+  | c = CHAR { Char c }
   | PRIM { Prim $1 }
   | LPAREN e = expr RPAREN { e }
   
