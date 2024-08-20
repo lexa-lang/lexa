@@ -19,7 +19,8 @@ let gen_lifted_name name =
 let rec free_var (e : Syntax.expr) : Varset.t = 
   match e with
   | Syntax.Var x -> Varset.singleton x
-  | Syntax.Int _ | Syntax.Float _ | Syntax.Bool _ | Syntax.Prim _ | Syntax.Str _ -> Varset.empty
+  | Syntax.Int _ | Syntax.Float _ | Syntax.Bool _ | Syntax.Prim _ 
+  | Syntax.Str _ | Syntax.Char _ -> Varset.empty
   | Syntax.Arith (e1, _, e2) -> Varset.union (free_var e1) (free_var e2)
   | Syntax.Cmp (e1, _, e2) -> Varset.union (free_var e1) (free_var e2)
   | Syntax.Let (x, e1, e2) -> Varset.(diff ((free_var e1) @@@ (free_var e2)) (singleton x))
@@ -66,6 +67,7 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
   | Syntax.Float f -> Float f
   | Syntax.Bool b -> Bool b
   | Syntax.Str s -> Str s
+  | Syntax.Char c -> Char c
   | Syntax.Prim p -> Prim p
   | Syntax.Arith (e1, op, e2) -> Arith (convert_expr e1 env, op, convert_expr e2 env)
   | Syntax.Cmp (e1, op, e2) -> Cmp (convert_expr e1 env, op, convert_expr e2 env)

@@ -1,0 +1,14 @@
+def loop(s, i) {
+    if i == ~strlen(s) then
+        0
+    else
+        (~printChar(~strCharAt(s, i));
+        loop(s, i + 1))
+}
+
+def main() {
+    ~printChar('\n'); ~printChar('\''); ~printChar('\t'); ~printChar('\\');
+    val s = "abcdefg";
+    loop(s, 0);
+    0
+}

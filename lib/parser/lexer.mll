@@ -72,6 +72,7 @@ rule read =
   | "->" { RARROW }
   | "open" { OPEN }
   | '"' { read_string (Buffer.create 17) lexbuf }
+  | '\'' { read_char (Buffer.create 17) lexbuf }
   | float { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | id { VAR (Lexing.lexeme lexbuf) }
@@ -91,6 +92,22 @@ and read_multi_line_comment = parse
   | eof { raise (SyntaxError ("Lexer - Unexpected EOF - please terminate your comment.")) }
   | _ { read_multi_line_comment lexbuf }
   
+and read_char buf =
+  parse
+  | '\\' '\\' '\'' { CHAR '\\' }
+  | '\\' 'b' '\'' { CHAR '\b' }
+  | '\\' 'f' '\'' { CHAR '\012' }
+  | '\\' 'n' '\'' { CHAR '\n' }
+  | '\\' 'r' '\'' { CHAR '\r' }
+  | '\\' 't' '\'' { CHAR '\t' }
+  | '\\' '\'' '\'' { CHAR '\'' }
+  | [^ '"' '\\'] '\''
+    { Buffer.add_char buf (Lexing.lexeme_char lexbuf 0);
+      CHAR (Buffer.nth buf 0)
+    }
+  | _ { raise (SyntaxError ("Illegal char character: " ^ Lexing.lexeme lexbuf)) }
+  | eof { raise (SyntaxError ("Char is not terminated")) }
+
 and read_string buf =
   parse
   | '"'       { STRING (Buffer.contents buf) }

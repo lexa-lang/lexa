@@ -83,7 +83,8 @@ let prim_env = [
   ("strConcat", [PTStringP; PTStringP]);
   ("strEq", [PTStringP; PTStringP]);
   ("strcmp", [PTStringP; PTStringP]);
-  ("strlen", [PTStringP])
+  ("strlen", [PTStringP]);
+  ("strCharAt", [PTStringP; PTI64])
 ]
 
 let gen_prim_type = function
