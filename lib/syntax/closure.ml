@@ -18,6 +18,8 @@ and t = (* expressions AFTER closure conversion *)
   | Char of char
   | Prim of string
   | Arith of t * arith * t
+  | Neg of t
+  | BArith of t * barith * t
   | Cmp of t * cmp * t 
   | New of t list
   | Get of t * t

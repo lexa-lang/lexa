@@ -1,0 +1,30 @@
+def main() {
+        (if !!!!true then
+            ~printInt(42)
+        else
+            ~printInt(0));
+
+
+        (if true || false then
+            ~printInt(42)
+        else
+            ~printInt(0));
+
+        (if true && false || true then
+            ~printInt(42)
+        else
+            ~printInt(0));
+
+
+        (if ! true && false then
+            ~printInt(42)
+        else
+            ~printInt(0));
+
+        (if ! (true && false) == !true || !false then
+            ~printInt(42)
+        else
+            ~printInt(0));
+
+        0
+}

@@ -26,7 +26,7 @@
   return(({i64 is_empty = (i64)(((i64)(listIsEmpty((node_t*)xs))));
   (is_empty ? 1 : ({i64 q = (i64)(((i64)(listHead((node_t*)xs))));
   ({i64 qs = (i64)(((i64)(listTail((node_t*)xs))));
-  ((((i64)(boolAnd((int64_t)(((i64)(boolAnd((int64_t)(queen != q), (int64_t)(queen != (q + diag)))))), (int64_t)(queen != (q - diag)))))) ? (({__attribute__((musttail))
+  ((((queen != q) && (queen != (q + diag))) && (queen != (q - diag))) ? (({__attribute__((musttail))
    return ((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)(0,queen,(diag + 1),qs); 0;})) : 0);});}));}));
   }
   
