@@ -244,6 +244,18 @@
       (define-values (nlet cb)
        (compile-statement (cons x env) t))
      (values (add1 nlet) `(,@result (push ($ 1)) ,@cb))]
+    ;;
+    ;; exits
+    [`(let ([,x (exits ,v)]) ,t)
+      (define result (compile-value env v))
+      (define-values (nlet cb)
+       (compile-statement (cons x env) t))
+           (values (add1 nlet) 
+              `(,@result 
+                (push ($ 1)) 
+                (halt)
+                ,@cb))]
+
     ;; value
     [x (values 0 (compile-value env x))]))
     
@@ -251,7 +263,9 @@
 (define (compile-program pgrm)
    (match pgrm
      ;; nothing
-    [`() `((call main) (halt))]
+    [`() `((call main) 
+           (push ($ 1))
+           (halt))]
      ;; ( (fun name (args) body) ... )
     [`((fun ,name (,@params) ,body) ,rest ...)
      (define-values (num-let compiled-body)

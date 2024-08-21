@@ -88,7 +88,7 @@
 ;;     let _ = {
 ;;         handle <s>
 ;;             body
-;;         with MULTISHOT inc
+;;         with SINGLESHOT inc
 ;;     } in
 ;;     s[0]
 ;; }
@@ -104,8 +104,6 @@
       )
       (fun inc (env _ k)
         (let ([_ (resume k 0)]) 0)
-           ;; (let ([_ (resume k 0)])
-            ;;    0))
       )
       (fun main ()
         (let ([s (newref 42)])

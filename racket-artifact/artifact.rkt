@@ -1,8 +1,8 @@
 #lang racket
 (require racket/pretty)
-(require "a-sstal.rkt")
-(require "t-sstal.rkt")
-(require "sstal.rkt")
+(require "a-salt.rkt")
+(require "t-salt.rkt")
+(require "salt.rkt")
 (require "programs.rkt")
 
 (define compiled-program-1 (compile-program program1))
@@ -18,9 +18,9 @@
 (printf "Assembled program 1: ~n")
 (pretty-print assembled-program-1)
 (printf "Running program 1...~n")
-(run-sstal! assembled-program-1)
+(run-salt! assembled-program-1)
 ;; Check the result makes sense
-(unless (equal? (vector-ref R 1) 43)
+(unless (equal? (load-memory sp) 43)
   (error "Program 1 result did not match expected"))
 (printf "================================~n")
 
@@ -30,9 +30,9 @@
 (printf "Assembled program 2: ~n")
 (pretty-print assembled-program-2)
 (printf "Running program 2...~n")
-(run-sstal! assembled-program-2)
+(run-salt! assembled-program-2)
 ;; Check the result makes sense
-(unless (equal? (vector-ref R 1) 42)
+(unless (equal? (load-memory sp) 42)
   (error "Program 1 result did not match expected"))
 (printf "================================~n")
 
@@ -42,8 +42,8 @@
 (printf "Assembled program 3: ~n")
 (pretty-print assembled-program-3)
 (printf "Running program 3...~n")
-(run-sstal! assembled-program-3)
+(run-salt! assembled-program-3)
 ;; Check the result makes sense
-(unless (equal? (vector-ref R 1) 43)
+(unless (equal? (load-memory sp) 43)
   (error "Program 1 result did not match expected"))
 (printf "================================~n")
