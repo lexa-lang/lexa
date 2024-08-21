@@ -27,6 +27,8 @@ and expr =
   | Prim of string
   | Arith of expr * arith * expr
   | Cmp of expr * cmp * expr 
+  | Neg of expr
+  | BArith of expr * barith * expr
   | App of expr * expr list
   | New of expr list
   | Get of expr * expr

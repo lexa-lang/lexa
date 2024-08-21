@@ -75,6 +75,10 @@ let gen_arith = function
 | ADiv -> "/"
 | AMod -> "%"
 
+let gen_barith = function
+| BConj -> "&&"
+| BDisj -> "||"
+
 let gen_cmp = function
 | CEq -> "=="
 | CNeq -> "!="
@@ -161,6 +165,9 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
         String.sub prim 1 ((String.length prim) - 1)
     | Arith (e1, op, e2) ->
       sprintf "%s %s %s" (gen_expr e1 ~is_tail:false) (gen_arith op) (gen_expr e2 ~is_tail:false)
+    | BArith (e1, op, e2) ->
+      sprintf "%s %s %s" (gen_expr e1 ~is_tail:false) (gen_barith op) (gen_expr e2 ~is_tail:false)
+    | Neg e -> sprintf "!%s" (gen_expr e)
     | Cmp (e1, op, e2) ->
       sprintf "%s %s %s" (gen_expr e1 ~is_tail:false) (gen_cmp op) (gen_expr e2 ~is_tail:false)
     | Let (x, e1, e2) ->

@@ -22,6 +22,8 @@ let rec free_var (e : Syntax.expr) : Varset.t =
   | Syntax.Int _ | Syntax.Float _ | Syntax.Bool _ | Syntax.Prim _ 
   | Syntax.Str _ | Syntax.Char _ -> Varset.empty
   | Syntax.Arith (e1, _, e2) -> Varset.union (free_var e1) (free_var e2)
+  | Syntax.BArith (e1, _, e2) -> Varset.union (free_var e1) (free_var e2)
+  | Syntax.Neg e -> free_var e
   | Syntax.Cmp (e1, _, e2) -> Varset.union (free_var e1) (free_var e2)
   | Syntax.Let (x, e1, e2) -> Varset.(diff ((free_var e1) @@@ (free_var e2)) (singleton x))
   | Syntax.If (e1, e2, e3) -> Varset.((free_var e1) @@@ (free_var e2) @@@ (free_var e3))
@@ -70,6 +72,8 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
   | Syntax.Char c -> Char c
   | Syntax.Prim p -> Prim p
   | Syntax.Arith (e1, op, e2) -> Arith (convert_expr e1 env, op, convert_expr e2 env)
+  | Syntax.BArith (e1, op, e2) -> BArith (convert_expr e1 env, op, convert_expr e2 env)
+  | Syntax.Neg e -> Neg (convert_expr e env)
   | Syntax.Cmp (e1, op, e2) -> Cmp (convert_expr e1 env, op, convert_expr e2 env)
   | Syntax.New es -> New (List.map (fun x -> convert_expr x env) es)
   | Syntax.Get (e1, e2) -> Get (convert_expr e1 env, convert_expr e2 env)

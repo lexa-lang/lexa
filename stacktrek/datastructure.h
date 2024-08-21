@@ -369,16 +369,6 @@ int64_t floatLeq(int64_t a, int64_t b) {
 }
 
 DEBUG_ATTRIBUTE
-int64_t boolAnd(int64_t a, int64_t b) {
-  return a && b;
-}
-
-DEBUG_ATTRIBUTE
-int64_t boolOr(int64_t a, int64_t b) {
-  return a || b;
-}
-
-DEBUG_ATTRIBUTE
 array_t* arrayMake(int64_t size) {
   array_t* a = (array_t*)xmalloc(sizeof(array_t));
   a->data = (int64_t*)xmalloc(size * sizeof(int64_t));

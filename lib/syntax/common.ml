@@ -13,6 +13,10 @@ type cmp =
   | CLt
   | CGt
 
+type barith =
+  | BConj
+  | BDisj
+
 type hdl_anno =
   | HDef
   | HExc

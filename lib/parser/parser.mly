@@ -64,6 +64,9 @@
 %token <string> CAPITALIZED_VAR
 %token <char> CHAR
 %token OPEN
+%token CONJ
+%token DISJ
+%token NEG
 
 %start <Syntax.top_level list> prog
 
@@ -71,8 +74,11 @@
 %nonassoc HIGHER_THAN_STMT
 %left SEMICOLON
 %nonassoc ELSE
-%nonassoc NEQ CMPEQ LTS GTS
 %nonassoc COLONEQ
+%left CONJ
+%left DISJ 
+%right NEG
+%nonassoc NEQ CMPEQ LTS GTS
 %left ADD SUB
 %left MULT DIV PERC
 %%
@@ -137,6 +143,9 @@ expr:
 	| e1 = expr GTS e2 = expr { Cmp(e1, CGt, e2) }
 	| e1 = expr LTS e2 = expr { Cmp(e1, CLt, e2) }
 	
+  | NEG e = expr { Neg(e) }
+  | e1 = expr CONJ e2 = expr { BArith (e1, BConj, e2) }
+  | e1 = expr DISJ e2 = expr { BArith (e1, BDisj, e2) }
   | NEWREF heap_value { New $2 }
   | v1 = app_expr LSB v2 = expr RSB COLONEQ v3 = expr { Set (v1, v2, v3) }
   | VALDEF x = VAR EQ t1 = expr SEMICOLON t2 = expr %prec HIGHER_THAN_STMT { Let (x, t1, t2) }

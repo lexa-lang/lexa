@@ -215,7 +215,7 @@ def solveLambdaMan(nrow, ncol) {
 
         def isPinned(row, col) {
             val rowData = ~arrayAt(pinMap, row);
-            ~boolOr(~arrayAt(rowData, col), ~lambdaManGetField(row, col) == 35)
+            ~arrayAt(rowData, col) || ~lambdaManGetField(row, col) == 35
         }
 
         def record(action) {

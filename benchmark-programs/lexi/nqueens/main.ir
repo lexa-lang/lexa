@@ -10,7 +10,7 @@ def safe(queen, diag, xs) {
     else
         val q = ~listHead(xs);
         val qs = ~listTail(xs);
-        if ~boolAnd(~boolAnd(queen != q, queen != q + diag), queen != q - diag) then
+        if queen != q && queen != q + diag && queen != q - diag then
             safe(queen, diag + 1, qs)
         else
             false

@@ -70,8 +70,6 @@ let prim_env = [
   ("floatLt", [PTI64; PTI64]);
   ("floatLeq", [PTI64; PTI64]);
   ("mathAbs", [PTI64]);
-  ("boolAnd", [PTI64; PTI64]);
-  ("boolOr", [PTI64; PTI64]);
   ("arrayMake", [PTI64]);
   ("arrayMakeInit", [PTI64; PTI64]);
   ("arrayLen", [PTArrayP]);
