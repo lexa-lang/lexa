@@ -1,7 +1,8 @@
 #lang racket
 (require racket/exn)
-(provide run-sstal!)
-(provide R)
+(provide run-salt!)
+(provide load-memory)
+(provide sp)
 ;; simulator state
 
 ;; Register file R + PC + SP
@@ -179,7 +180,7 @@
 (define (load-program! l)
   (set! IM (list->vector l)))
 
-(define (run-sstal! l)
+(define (run-salt! l)
   (load-program! l)
   (set! R (make-vector 32))
   (set! M (make-vector 32 empty))

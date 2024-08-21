@@ -1,0 +1,7 @@
+Directory structure:
+
+programs.rkt : the example programs written in Lexa
+salt.rkt : the operational semantics of the Salt
+t-salt : the translation from Lexa to Salt
+a-salt : the assembly process of Salt
+artifact : the entrypoint of the pipeline, containing translation, assembly, and execution
