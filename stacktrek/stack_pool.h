@@ -60,7 +60,8 @@ char* dup_stack(char* sp) {
 
 static char* buffer = 0;
 static uint64_t bitmap;
-static void *main_stack_lower, *main_stack_upper;
+static void *system_stack_lower, *system_stack_upper;
+static const int SYSTEM_STACK_SIZE = 8 * 1024 * 1024;
 
 void init_stack_pool() {
     buffer = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE * PREALLOCATED_STACKS);
@@ -73,8 +74,9 @@ void init_stack_pool() {
     }
     char line[256];
     while (fgets(line, sizeof(line), fp)) {
-        if (strstr(line, "[stack]")) {  // Search for the line containing the stack information
-            sscanf(line, "%lx-%lx", &main_stack_lower, &main_stack_upper);  // Parse the start and end addresses
+        if (strstr(line, "[stack]")) { 
+            sscanf(line, "%lx-%lx", &system_stack_lower, &system_stack_upper); 
+            system_stack_lower = (void*)((intptr_t)system_stack_upper - SYSTEM_STACK_SIZE);
             break;
         }
     }
@@ -114,7 +116,7 @@ void free_stack(char* stack) {
 }
 
 void free_stack_on_abort(char* curr_stack, char* target_stack) {
-    if (main_stack_lower <= curr_stack && curr_stack < main_stack_upper) {
+    if (system_stack_lower <= curr_stack && curr_stack < system_stack_upper) {
         // We are currently on the main stack, no need to free
         return;
     }
