@@ -1,4 +1,4 @@
-  $ sstal ../lexi_snippets/normal_dist.lexi -o main.c
+  $ sstal ../lexi_snippets/normal_dist.lx -o main.c
   $ clang -O3 -I ../stacktrek main.c -o main -lm &> /dev/null
   $ ./main
   0.840188

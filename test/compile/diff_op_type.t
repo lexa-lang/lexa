@@ -1,4 +1,4 @@
-  $ sstal ../lexi_snippets/diff_op_type.lexi -o main.c
+  $ sstal ../lexi_snippets/diff_op_type.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

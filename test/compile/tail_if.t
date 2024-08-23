@@ -1,4 +1,4 @@
-  $ sstal ../lexi_snippets/tail_if.lexi -o main.c
+  $ sstal ../lexi_snippets/tail_if.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>
