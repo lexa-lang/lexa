@@ -1,5 +1,5 @@
   $ sstal ../lexi_snippets/float.lx -o main.c
-  $ clang -O3 -I ../stacktrek main.c -o main -lm &> /dev/null
+  $ clang -O3 -I ../../src/stacktrek main.c -o main -lm &> /dev/null
   $ ./main
   1.100000
   2.200000

@@ -1,5 +1,5 @@
   $ sstal ../lexi_snippets/bool.lx -o main.c
-  $ clang -O3 -I ../stacktrek main.c -o main -lm &> /dev/null
+  $ clang -O3 -I ../../src/stacktrek main.c -o main -lm &> /dev/null
   $ ./main
   42
   42

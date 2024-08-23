@@ -27,7 +27,7 @@ def main():
             lambda c: 
                 (c[0], 
                 c[1], 
-                int(build_and_bench(f"../benchmark-programs/{c[0]}/{c[1]}", c[2]["build"], c[2]["run"], c[2]["bench_input"], adjust_warmup=c[2].get("adjust_warmup", False), quick=args.quick)
+                int(build_and_bench(f"../benchmarks/{c[0]}/{c[1]}", c[2]["build"], c[2]["run"], c[2]["bench_input"], adjust_warmup=c[2].get("adjust_warmup", False), quick=args.quick)
                     * c[2].get("scale", 1))
                 )
                 if "fail_reason" not in c[2] else (c[0], c[1], None),
