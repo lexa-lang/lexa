@@ -2,9 +2,6 @@ import list
 import args
 import bench
 
-def ignoring0[E] { prog: => List[Int] / Exception[E] }: List[Int] =
-  try { prog() } with Exception[E] { def raise(exception: E, msg: String) = [] }
-
 effect Yield(value: Int): Unit / { Replace, Behead }
 effect Replace(value: Int): Unit
 effect Behead(): Unit
@@ -15,44 +12,25 @@ def range(lo: Int, hi: Int): List[Int] = {
 
 def iter(l: List[Int]): List[Int] / { Yield, Behead } =  {
 
-    def loop(it: List[Int]): List[Int] / { Yield, Behead } = {
-        var out: List[Int] = Nil();
-        ignore[MissingValue] {
-          var hd = it.head;
-          var tl = it.tail;
-          var beheaded = false;
-          try { 
-              do Yield(hd); 
-          } with Replace { n =>
-              hd = n;
-              resume(())
-          }
-          val newtl =
-              if (isEmpty(tl)) {
-                  []
-              } else {
-                  try {
-                      loop(tl)
-                  } with Behead {
-                      beheaded = true
-                      resume(())
-                  }
-              }
-          if (beheaded) {
-              out = Cons(hd, newtl.drop(1))
-          } else {
-              out = Cons(hd, newtl)
-          }
+    def loop(it: List[Int]): List[Int] / { Yield, Behead } = it match {
+      case Cons(hd, tl) =>
+        val newHd = try {
+          do Yield(hd); hd
+        } with Replace { n =>
+          n
         }
-        out
+        try { Cons(newHd, loop(tl)) } with Behead {
+          resume(()).drop(1)
+        }
+      case Nil() => Nil()
     }
     loop(l)
 }
 
 def run(n: Int) : Int = {
-    var lst = range(0-n, n);
+    val lst = range(0 - n, n);
     var beheaded = false;
-    var res = try { lst.iter }
+    val res = try { lst.iter }
         with Yield { x =>
         resume { if (x < 0) do Behead() else do Replace(x * 2) }
         }
@@ -67,7 +45,7 @@ def step(i: Int, acc: Int, n_jobs: Int): Int = {
   if (i == 0) {
     acc
   } else {
-    step(i - 1, run(n_jobs)+acc, n_jobs)
+    step(i - 1, run(n_jobs) + acc, n_jobs)
   }
 }
 
@@ -78,7 +56,7 @@ def repeat(n_jobs: Int): Int = {
 
 def main() = ignore[WrongFormat] {commandLineArgs() match {
   case Nil() => println("Expects one argument")
-  case Cons(x, Cons(y, Nil())) => 
+  case Cons(x, Cons(y, Nil())) =>
     println("Measuring internal running time")
     val i = x.toInt; var r = 0; val t = timed{ r = repeat(i); };
     println("Nanosecond used: " ++ show(t))

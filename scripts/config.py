@@ -10,7 +10,7 @@ else:
     # list all the physical cores
     bench_CPUs = list(range(psutil.cpu_count()))
 
-benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "resume_nontail_2", "scheduler", "interruptible_iterator"]
+benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "generator", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "resume_nontail_2", "scheduler", "interruptible_iterator"]
 platforms = ["lexi", "effekt", "koka_named", "koka", "ocaml"]
 
 config = {}
@@ -50,6 +50,9 @@ for benchmark in benchmarks:
 config[("effekt", "handler_sieve")]["build"] = "effekt_latest.sh --backend chez-lift --compile main.effekt"
 config[("effekt", "handler_sieve")]["run"] = "scheme --script out/main.ss {IN} 0"
 config[("effekt", "handler_sieve")]["adjust_warmup"] = True
+config[("effekt", "generator")]["build"] = "effekt_latest.sh --backend chez-lift --compile main.effekt"
+config[("effekt", "generator")]["run"] = "scheme --script out/main.ss {IN} 0"
+config[("effekt", "generator")]["adjust_warmup"] = True
 config[("effekt", "scheduler")]["build"] = "effekt_latest.sh --backend js --compile main.effekt"
 config[("effekt", "scheduler")]["run"] = "node --eval \"require(\'\"\'./out/main.js\'\"\').main()\" -- _ {IN} 0"
 config[("effekt", "scheduler")]["adjust_warmup"] = True
@@ -75,6 +78,7 @@ for platform in platforms:
     config[(platform, "product_early")]["bench_input"] = 100000
     config[(platform, "iterator")]["bench_input"] = 40000000
     config[(platform, "nqueens")]["bench_input"] = 12
+    config[(platform, "generator")]["bench_input"] = 25
     config[(platform, "tree_explore")]["bench_input"] = 16
     config[(platform, "triples")]["bench_input"] = 300
     config[(platform, "resume_nontail")]["bench_input"] = 10000
