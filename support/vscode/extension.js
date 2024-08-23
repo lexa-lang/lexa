@@ -8,12 +8,12 @@ const path = require('path');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-    console.log('Congratulations, your extension "lexi-vscode-extension" is now active!');
+    console.log('Congratulations, your extension "lexa-lsp" is now active!');
 
     let binaryPath = ''; // Variable to store the binary path
 
     // Command to set or update the binary path
-    const setBinaryPathCommand = vscode.commands.registerCommand('lexi-vscode-extension.setBinaryPath', async function () {
+    const setBinaryPathCommand = vscode.commands.registerCommand('lexa-lsp.setBinaryPath', async function () {
         const newBinaryPath = await vscode.window.showInputBox({
             prompt: 'Enter the path to your binary for the build',
             value: binaryPath || `/u/${os.userInfo().username}/sstal/_build/default/bin/main.exe`
@@ -30,7 +30,7 @@ function activate(context) {
     context.subscriptions.push(setBinaryPathCommand);
 
     // Command to check the current binary path
-    const checkBinaryPathCommand = vscode.commands.registerCommand('lexi-vscode-extension.checkBinaryPath', function () {
+    const checkBinaryPathCommand = vscode.commands.registerCommand('lexa-lsp.checkBinaryPath', function () {
         if (binaryPath) {
             vscode.window.showInformationMessage(`Current binary path: ${binaryPath}`);
         } else {
@@ -41,7 +41,7 @@ function activate(context) {
     context.subscriptions.push(checkBinaryPathCommand);
 
     // Command to compile a selected file
-    const compileFileCommand = vscode.commands.registerCommand('lexi-vscode-extension.compileFile', async function () {
+    const compileFileCommand = vscode.commands.registerCommand('lexa-lsp.compileFile', async function () {
         const fileUri = await vscode.window.showOpenDialog({
             canSelectMany: false,
             openLabel: 'Select a file to compile',

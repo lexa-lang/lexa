@@ -12,11 +12,11 @@
             "stopOnEntry": false
         },
         {
-			"name": "Run Extension",
+			"name": "Lexa LSP",
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}/lexi-vscode-extension"
+				"--extensionDevelopmentPath=${workspaceFolder}/support/vscode"
 			]
 		}
     ]
