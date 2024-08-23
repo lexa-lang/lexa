@@ -217,7 +217,7 @@ def main():
     config_tups = [(platform, benchmark, 0, params) for (platform, benchmark), params in config.items()]
     with ThreadPoolExecutor(max_workers=len(bench_CPUs)) as executor:
         executor.map(
-            lambda c: build(f"../benchmark-programs/{c[0]}/{c[1]}", c[3]["build"]),
+            lambda c: build(f"../benchmarks/{c[0]}/{c[1]}", c[3]["build"]),
             config_tups
         )
 
@@ -230,7 +230,7 @@ def main():
                 (c[0], 
                 c[1],
                 c[2],
-                int(bench(f"../benchmark-programs/{c[0]}/{c[1]}", c[3]["run"], c[2], c[3].get("adjust_warmup", False), quick=args.quick)
+                int(bench(f"../benchmarks/{c[0]}/{c[1]}", c[3]["run"], c[2], c[3].get("adjust_warmup", False), quick=args.quick)
                     * c[3].get("scale", 1))
                 )
                 if "fail_reason" not in c[3] else (c[0], c[1], c[2], None),

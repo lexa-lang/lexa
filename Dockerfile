@@ -11,7 +11,7 @@ COPY bin bin
 COPY stacktrek stacktrek
 COPY test test
 COPY racket-artifact racket-artifact
-COPY benchmark-programs benchmark-programs
+COPY benchmarks benchmarks
 COPY artifact_eval artifact_eval
 COPY nix nix
 COPY artifact_eval/README README

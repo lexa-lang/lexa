@@ -22,8 +22,7 @@
   dune 
   ppx_inline_test)
  (allow_empty)
- (tags
-  (topics "to describe" your project)))
+ )
 
 (using menhir 2.1)
 (map_workspace_root false)
