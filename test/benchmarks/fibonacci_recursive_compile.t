@@ -1,4 +1,4 @@
-  $ sstal ../../benchmarks/lexi/fibonacci_recursive/main.lx -o main.c
+  $ sstal ../../benchmarks/lexa/fibonacci_recursive/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

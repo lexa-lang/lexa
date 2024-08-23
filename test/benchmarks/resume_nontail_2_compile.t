@@ -1,4 +1,4 @@
-  $ sstal ../../benchmarks/lexi/resume_nontail_2/main.lx -o main.c
+  $ sstal ../../benchmarks/lexa/resume_nontail_2/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

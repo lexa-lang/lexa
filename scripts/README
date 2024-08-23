@@ -4,7 +4,7 @@ python plots.py --quick
 # Result file saved at plotting_runtimes.csv
 ```
 
-Command to plot scaling plots Effekt vs Lexi
+Command to plot scaling plots Effekt vs Lexa
 ```
 # change the variable tick_vs_no_tick to True in plots.py
 python plots.py --quick

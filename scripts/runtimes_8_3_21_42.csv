@@ -1,4 +1,4 @@
-benchmark,lexi,effekt,koka,koka_named,ocaml
+benchmark,lexa,effekt,koka,koka_named,ocaml
 countdown,3.0,61.0,2058.0,3705.0,2989.0
 fibonacci_recursive,733.0,1657.0,1352.0,1404.0,1409.0
 product_early,149.0,458.0,1694.0,1719.0,153.0

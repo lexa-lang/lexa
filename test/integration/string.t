@@ -1,4 +1,4 @@
-  $ sstal ../lexi_snippets/string.lexa -o main.c
+  $ sstal ../lexa_snippets/string.lx -o main.c
   $ clang -O3 -I ../../src/stacktrek main.c -o main -lm &> /dev/null
   $ ./main
   hello

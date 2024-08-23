@@ -30,8 +30,8 @@ The repository is setup with Ocamlearlybird, a debugger for OCaml with nice inte
 
 ## Test
 We have three kinds of tests, each serving a different purpose. For `Compiler Test` and `Integration Test` we uses Cram Test framework; for `Unit Test` we use ppx_inline_test. Read more in [Writing and Running Tests — Dune documentation](https://dune.readthedocs.io/en/stable/tests.html#)
-1. `Compiler Test` runs Lexi complier on a set of simple programs, and compare the generated C code with a previous recorded version. This suite of tests are expected to fail if you are making changes to the code generation logic; when it happens, run `dune promote` to update the tests.
-2. `Integration Test` runs Lexi compiler followed by Clang, and checks correctness of the produced binary.
+1. `Compiler Test` runs Lexa complier on a set of simple programs, and compare the generated C code with a previous recorded version. This suite of tests are expected to fail if you are making changes to the code generation logic; when it happens, run `dune promote` to update the tests.
+2. `Integration Test` runs Lexa compiler followed by Clang, and checks correctness of the produced binary.
 3. `Unit Test` checks correctness of individual OCaml functions.
 ### Running Compiler Tests
 ```

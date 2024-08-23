@@ -1,4 +1,4 @@
-  $ sstal ../../benchmarks/lexi/handler_sieve/main.lx -o main.c
+  $ sstal ../../benchmarks/lexa/handler_sieve/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>
