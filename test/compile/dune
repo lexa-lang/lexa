@@ -1,5 +1,5 @@
 (cram
  (deps 
   %{bin:sstal} 
-  (:ir (glob_files_rec ../lexi/*.ir)
-  (glob_files_rec ../lexi_snippets/*.lexi))))
+  (:ir (glob_files_rec ../lexi/*.lx)
+  (glob_files_rec ../lexi_snippets/*.lx))))

@@ -1,4 +1,4 @@
-  $ sstal ../lexi/scheduler/main.ir -o main.c
+  $ sstal ../lexi/scheduler/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

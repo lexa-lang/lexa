@@ -1,4 +1,4 @@
-  $ sstal ../lexi/countdown/main.ir -o main.c
+  $ sstal ../lexi/countdown/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

@@ -1,4 +1,4 @@
-  $ sstal ../lexi/interruptible_iterator/main.ir -o main.c
+  $ sstal ../lexi/interruptible_iterator/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

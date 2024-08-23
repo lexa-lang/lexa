@@ -1,4 +1,4 @@
-  $ sstal ../lexi_snippets/tail_fact.lexi -o main.c
+  $ sstal ../lexi_snippets/tail_fact.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

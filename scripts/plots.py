@@ -181,7 +181,7 @@ def main():
         result_txt = "plotting_runtimes2.txt"
         result_csv = "plotting_runtimes2.csv"
         for benchmark in ["scheduler_notick"]:
-            LEXI_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.ir -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main -lm"
+            LEXI_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.lx -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main -lm"
             LEXI_RUN_COMMAND = "./main {IN}"
             config[("lexi", benchmark)] = {
                 "build": LEXI_BUILD_COMMAND, "run": LEXI_RUN_COMMAND,

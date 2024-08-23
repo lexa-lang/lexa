@@ -1,4 +1,4 @@
-  $ sstal ../lexi_snippets/closure_rec2.lexi -o main.c
+  $ sstal ../lexi_snippets/closure_rec2.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>
