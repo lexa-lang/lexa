@@ -11,15 +11,15 @@ else:
     bench_CPUs = list(range(psutil.cpu_count()))
 
 benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "generator", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "resume_nontail_2", "scheduler", "interruptible_iterator"]
-platforms = ["lexi", "effekt", "koka_named", "koka", "ocaml"]
+platforms = ["lexa", "effekt", "koka_named", "koka", "ocaml"]
 
 config = {}
 
 for benchmark in benchmarks:
-    LEXI_BUILD_COMMAND = "flock /tmp/dune_lockfile -c 'dune exec -- sstal main.lx -o main.c' && clang -O3 -g -I ../../../stacktrek main.c -o main -lm"
-    LEXI_RUN_COMMAND = "./main {IN}"
-    config[("lexi", benchmark)] = {
-        "build": LEXI_BUILD_COMMAND, "run": LEXI_RUN_COMMAND,
+    LEXA_BUILD_COMMAND = "flock /tmp/dune_lockfile -c 'dune exec -- sstal main.lx -o main.c' && clang -O3 -g -I ../../../stacktrek main.c -o main -lm"
+    LEXA_RUN_COMMAND = "./main {IN}"
+    config[("lexa", benchmark)] = {
+        "build": LEXA_BUILD_COMMAND, "run": LEXA_RUN_COMMAND,
     }
 
     OCAML_BUILD_COMMAND = "flock /tmp/opam_lockfile -c 'opam exec --switch=5.3.0+trunk -- ocamlopt -O3 -o main -I $(opam var lib)/multicont multicont.cmxa main.ml -o main'"

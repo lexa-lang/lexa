@@ -1,4 +1,4 @@
-  $ sstal ../../benchmarks/lexi/triples/main.lx -o main.c
+  $ sstal ../../benchmarks/lexa/triples/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

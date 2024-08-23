@@ -1,4 +1,4 @@
-  $ sstal ../lexi_snippets/resume_expr_arg.lx -o main.c
+  $ sstal ../lexa_snippets/resume_expr_arg.lx -o main.c
   $ clang -O3 -I ../../src/stacktrek main.c -o main -lm &> /dev/null
   $ ./main 0
   20

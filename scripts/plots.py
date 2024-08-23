@@ -56,7 +56,7 @@ def plot_df(df, dirname):
             if benchmark.rstrip("$") in ["scheduler", "interruptible_iterator"]:
                 return "Effekt (JS)"
             return "Effekt"
-        if name == "lexi":
+        if name == "lexa":
             return r"\textsc{Lexa}"
         if name == "ocaml":
             return "OCaml"
@@ -81,19 +81,19 @@ def plot_df(df, dirname):
         platform = row['platform']
         if (platform, benchmark) in special:
             df.loc[idx, 'benchmark'] = benchmark + "$"
-        if platform == "lexi" and benchmark in [t[1] for t in special]:
+        if platform == "lexa" and benchmark in [t[1] for t in special]:
             row['benchmark'] = benchmark + "$"
             df.loc[df.index.max() + 1] = row
 
     colors = {
-        "lexi": "#3572EF",
+        "lexa": "#3572EF",
         "effekt": "green",
         "koka": "red",
         "koka_named": "orange",
         "ocaml": "purple"
     }
     markers = {
-        "lexi": ".",
+        "lexa": ".",
         "effekt": ".",
         "koka": ".",
         "koka_named": "x",
@@ -132,7 +132,7 @@ def plot_df(df, dirname):
 def plot_df2(df, dirname):
     fig, axs = plt.subplots(1, 2, figsize=(6, 2.5))
     fig.supylabel('Running time (s)', fontsize=12)
-    for i, platform in enumerate(["effekt", "lexi"]):
+    for i, platform in enumerate(["effekt", "lexa"]):
         ax1 = axs[i]
         # if i == 0:
         #     ax1.set_ylabel('Running time (s)')
@@ -143,7 +143,7 @@ def plot_df2(df, dirname):
             label = r"with \texttt{Tick}" if benchmark == "scheduler" else r"without \texttt{Tick}"
             l, = ax1.plot(subset['n'], subset['time_sec'], label=label, marker='.' if benchmark == "scheduler" else 'x', alpha=0.8, color=color, markersize=5, linewidth=1.10)
 
-        ax1.set_title('Scheduler program in ' + (r'\textsc{Lexa}' if platform == "lexi" else 'Effekt'), fontsize=13, pad=20)
+        ax1.set_title('Scheduler program in ' + (r'\textsc{Lexa}' if platform == "lexa" else 'Effekt'), fontsize=13, pad=20)
         ax1.legend(loc='upper left')
 
         plt.ticklabel_format(axis='y', style='plain')
@@ -181,10 +181,10 @@ def main():
         result_txt = "plotting_runtimes2.txt"
         result_csv = "plotting_runtimes2.csv"
         for benchmark in ["scheduler_notick"]:
-            LEXI_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.lx -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main -lm"
-            LEXI_RUN_COMMAND = "./main {IN}"
-            config[("lexi", benchmark)] = {
-                "build": LEXI_BUILD_COMMAND, "run": LEXI_RUN_COMMAND,
+            LEXA_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.lx -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main -lm"
+            LEXA_RUN_COMMAND = "./main {IN}"
+            config[("lexa", benchmark)] = {
+                "build": LEXA_BUILD_COMMAND, "run": LEXA_RUN_COMMAND,
             }
 
             EFFEKT_BUILD_COMMAND = "effekt_latest.sh --backend ml --compile main.effekt && mlton -default-type int64 -output main out/main.sml"
@@ -193,7 +193,7 @@ def main():
                 "build": EFFEKT_BUILD_COMMAND, "run": EFFEKT_RUN_COMMAND,
             }
 
-        for platform in ["lexi", "effekt"]:
+        for platform in ["lexa", "effekt"]:
             config[(platform, "scheduler_notick")]["bench_input"] = 3000
             config[(platform, "scheduler")]["bench_input"] = 3000
 
@@ -202,7 +202,7 @@ def main():
         config[("effekt", "scheduler_notick")]["adjust_warmup"] = True
         config[("effekt", "scheduler_notick")]["scale"] = 10
     
-        config = {(platform, benchmark): params for (platform, benchmark), params in config.items() if benchmark in ["scheduler_notick", "scheduler"] and platform in ["lexi", "effekt"]}
+        config = {(platform, benchmark): params for (platform, benchmark), params in config.items() if benchmark in ["scheduler_notick", "scheduler"] and platform in ["lexa", "effekt"]}
     else:
         result_txt = "plotting_runtimes.txt"
         result_csv = "plotting_runtimes.csv"

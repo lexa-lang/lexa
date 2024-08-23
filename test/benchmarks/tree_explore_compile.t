@@ -1,4 +1,4 @@
-  $ sstal ../../benchmarks/lexi/tree_explore/main.lx -o main.c
+  $ sstal ../../benchmarks/lexa/tree_explore/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

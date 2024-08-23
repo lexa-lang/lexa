@@ -1,7 +1,7 @@
 {
   "name": "lexa-lsp",
   "displayName": "lexa-lsp",
-  "description": "this is an extension for lexi on vscode",
+  "description": "this is an extension for lexa on vscode",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.91.0"

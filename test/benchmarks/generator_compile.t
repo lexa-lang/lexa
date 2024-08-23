@@ -1,4 +1,4 @@
-  $ sstal ../../benchmarks/lexi/generator/main.lx -o main.c
+  $ sstal ../../benchmarks/lexa/generator/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>

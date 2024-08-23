@@ -1,4 +1,4 @@
-  $ sstal ../lexi_snippets/comments.lx -o main.c
+  $ sstal ../lexa_snippets/comments.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>
