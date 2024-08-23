@@ -157,14 +157,16 @@ i64 save_and_restore(i64 arg, void** exc, void* rsp_sp) {
     handler_mode_t mode = 0; \
     _Pragma("clang diagnostic push") \
     _Pragma("clang diagnostic ignored \"-Warray-bounds\"") \
-    if (defs[0].mode == TAIL || (n_defs > 1 && defs[1].mode == TAIL)) { \
+    if (n_defs > 3) { \
+        printf("%d handlers are not supported(currently 2 max)\n", n_defs); \
+        exit(EXIT_FAILURE); \
+    } \
+    if (defs[0].mode == TAIL && (n_defs > 1 && defs[1].mode == TAIL) && (n_defs > 2 && defs[2].mode == TAIL)) { \
         mode = TAIL; \
-    } else if (((defs[0].mode == SINGLESHOT) || (defs[0].mode == MULTISHOT)) || (n_defs > 1 && ((defs[1].mode == SINGLESHOT) || (defs[1].mode == MULTISHOT)))) { \
-        if (((defs[0].mode == MULTISHOT)) || (n_defs > 1 && (defs[1].mode == MULTISHOT))) { \
-            mode |= MULTISHOT; \
-        } else { \
-            mode |= SINGLESHOT; \
-        } \
+    } else if ((defs[0].mode == SINGLESHOT || defs[0].mode == MULTISHOT) || \
+                (n_defs > 1 && (defs[1].mode == SINGLESHOT || defs[1].mode == MULTISHOT)) || \
+                (n_defs > 2 && (defs[2].mode == SINGLESHOT || defs[2].mode == MULTISHOT))) { \
+        mode = MULTISHOT; \
     } else { \
         mode = ABORT; \
     } \
