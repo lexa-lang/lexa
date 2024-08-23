@@ -1,6 +1,9 @@
 import matplotlib
 import matplotlib.pyplot as plt
-import scienceplots
+try:
+    import scienceplots # In nix, it is installed through a manual installation
+except ImportError:
+    pass
 from mpl_toolkits.axisartist.axislines import AxesZero
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
@@ -12,7 +15,7 @@ plt.rcParams['pdf.fonttype'] = 42
 plt.rcParams['ps.fonttype'] = 42
 
 matplotlib.use("pgf")
-preamble = r'\usepackage{fontspec}\setmainfont{Linux Libertine}\setmonofont[Scale=MatchLowercase]{JetBrains Mono}\usepackage{xcolor}'
+preamble = r'\usepackage{fontspec}\setmainfont{Linux Libertine O}\setmonofont[Scale=MatchLowercase]{JetBrains Mono}\usepackage{xcolor}'
 params = {
     'font.family': 'serif',
     'text.usetex': True,
@@ -41,12 +44,17 @@ plt.style.use(['science'])#, "no-latex"])
 
 # This plots all benchmarks scaling plots
 def plot_df(df, dirname):
-    def process_name(name):
+
+    def process_platform_name(name, benchmark):
         if name == "koka":
             return "Koka (regular)"
         if name == "koka_named":
             return "Koka (named)"
         if name == "effekt":
+            if benchmark.rstrip("$") in ["generator", "handler_sieve"]:
+                return "Effekt (Scheme)"
+            if benchmark.rstrip("$") in ["scheduler", "interruptible_iterator"]:
+                return "Effekt (JS)"
             return "Effekt"
         if name == "lexi":
             return r"\textsc{Lexa}"
@@ -55,11 +63,15 @@ def plot_df(df, dirname):
         if name == "nqueens":
             return "NQueens"
         return name.replace("_", " ").rstrip("$").title()
+
+    def process_benchmark_name(name):
+        if name == "nqueens":
+            return "NQueens"
+        return name.replace("_", " ").rstrip("$").title()
     
     special = [
-        # ("koka", "concurrent_search"),
-        ("koka", "resume_nontail_2"),
-        ("koka_named", "resume_nontail_2"),
+        # ("koka", "resume_nontail_2"),
+        # ("koka_named", "resume_nontail_2"),
         ("effekt", "interruptible_iterator"),
         ("effekt", "scheduler"),
         ("ocaml", "interruptible_iterator")
@@ -98,11 +110,11 @@ def plot_df(df, dirname):
         for platform in df['platform'].unique():
             subset = df[(df['benchmark'] == benchmark) & (df['platform'] == platform)]
             if not subset.empty and not pd.isna(subset.iloc[0]['time_sec']):
-                l, = ax1.plot(subset['n'], subset['time_sec'], label=process_name(platform), marker=markers[platform], alpha=0.8, color=colors[platform], markersize=5, linewidth=1.0)
+                l, = ax1.plot(subset['n'], subset['time_sec'], label=process_platform_name(platform, benchmark), marker=markers[platform], alpha=0.8, color=colors[platform], markersize=5, linewidth=1.0)
         if benchmark.endswith("$"):
-            title = r'{\bfseries ' + process_name(benchmark) + '}'
+            title = r'{\bfseries ' + process_benchmark_name(benchmark) + '}'
         else:
-            title = process_name(benchmark)
+            title = process_benchmark_name(benchmark)
         ax1.set_title(title, fontsize=14, pad=10)
         ax1.legend(loc='upper left')
         # ax2.legend(loc='upper right')
@@ -169,7 +181,7 @@ def main():
         result_txt = "plotting_runtimes2.txt"
         result_csv = "plotting_runtimes2.csv"
         for benchmark in ["scheduler_notick"]:
-            LEXI_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.ir -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main"
+            LEXI_BUILD_COMMAND = "../../../_build/default/bin/main.exe main.ir -o main.c && clang -O3 -g -I ../../../stacktrek main.c -o main -lm"
             LEXI_RUN_COMMAND = "./main {IN}"
             config[("lexi", benchmark)] = {
                 "build": LEXI_BUILD_COMMAND, "run": LEXI_RUN_COMMAND,
@@ -233,7 +245,7 @@ def main():
     # Plot
     df = pd.DataFrame(results, columns=["platform", "benchmark", "n", "time_mili"])
     df.to_csv(result_csv)
-    plot_fun(df)
+    plot_fun(df, args.output_dir)
 
 if __name__ == "__main__":
     main()

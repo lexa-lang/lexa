@@ -1,0 +1,77 @@
+import list
+import args
+import bench
+interface Yield {
+  def yield(num: Int): Unit
+}
+
+type Tree {
+  Leaf();
+  Node(left: Tree, value: Int, right: Tree)
+}
+
+interface Generator {
+  def value(): Option[Int]
+  def next(): Unit
+}
+
+def makeTree(n: Int): Tree =
+  if (n == 0) { Leaf() } else {
+    val sub = makeTree(n - 1)
+    Node(sub, n, sub)
+  }
+
+def generator { prog: => Unit / Yield } {r: Region}: Generator at {prog, r} = {
+  var v: Option[Int] in r = None();
+  var cont: () => Unit at {prog, r} in r = box { () };
+
+  try { prog(); v = None() } with Yield {
+    def yield(x) = {
+      v = Some(x);
+      cont = box { resume(()) }
+    }
+  }
+  new Generator {
+    def value() = v
+    def next() = cont()
+  }
+}
+
+def run(n: Int): Int = region r {
+  val tree = makeTree(n)
+
+  def iterate(tree: Tree): Unit / Yield = tree match {
+    case Leaf() => ()
+    case Node(left, v, right) =>
+      iterate(left)
+      do yield(v)
+      iterate(right)
+  }
+
+  def gen = generator { iterate(tree) } {r}
+
+  def consumer(acc: Int): Int =
+    gen.value() match {
+      case None() => acc
+      case Some(v) =>
+        gen.next();
+        consumer(acc + v)
+    }
+
+  consumer(0)
+}
+
+
+def main() = ignore[WrongFormat] {commandLineArgs() match {
+  case Nil() => println("Expects one argument")
+  case Cons(x, Cons(y, Nil())) => 
+    println("Measuring internal running time")
+    val i = x.toInt; var r = 0; val t = timed{ r = run(i); };
+    println("Nanosecond used: " ++ show(t))
+    println(r)
+  case Cons(x, Nil()) =>
+    val i = x.toInt; val r = run(i);
+    println(r)
+  case other => println("Expects one argument, not '" ++ show(size(other)) ++ "'")
+}
+}

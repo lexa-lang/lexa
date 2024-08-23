@@ -38,8 +38,9 @@ def scheduler { prog: => Unit / Process }: Unit / Tick = region this {
         queue = queue.pushFront(fun() { resume(()) })
       }
       def fork() = {
-        queue = queue.pushFront(fun() { resume { {_: () => Unit / Process } => false } })
-        resume { {p: () => Unit / Process } => spawn(cast(box p)); true } 
+        queue = queue.pushFront(box { resume { {p} => false } })
+        // here we first run it in its original place and then also handle Process
+        spawn(box { resume { {p} => p(); true }})
       }
       def exit() = ()
     }

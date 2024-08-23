@@ -33,6 +33,8 @@
             self.packages.${system}.clang_18_preserve_none
           ];
           buildInputs = [
+            (texliveSmall.withPackages (ps: with ps; [ libertine ]))
+
             gnumake
             gdb
             vim
