@@ -1,6 +1,6 @@
 {
-  "name": "lexi-vscode-extension",
-  "displayName": "lexi-vscode-extension",
+  "name": "lexa-lsp",
+  "displayName": "lexa-lsp",
   "description": "this is an extension for lexi on vscode",
   "version": "0.0.1",
   "engines": {
@@ -14,15 +14,15 @@
   "contributes": {
     "commands": [
         {
-            "command": "lexi-vscode-extension.setBinaryPath",
+            "command": "lexa-lsp.setBinaryPath",
             "title": "Set Binary Path"
         },
         {
-            "command": "lexi-vscode-extension.checkBinaryPath",
+            "command": "lexa-lsp.checkBinaryPath",
             "title": "Check Binary Path"
         },
         {
-            "command": "lexi-vscode-extension.compileFile",
+            "command": "lexa-lsp.compileFile",
             "title": "Compile File"
         }
     ]
