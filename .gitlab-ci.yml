@@ -18,6 +18,11 @@ unit-test-job:
   script:
     - echo TODO
 
+benchmarks-test-job:
+  stage: test
+  script:
+    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "dune runtest ./test/benchmarks"
+
 compile-test-job:
   stage: test
   script:
