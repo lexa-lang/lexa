@@ -8,7 +8,7 @@ See the paper "Lexical Effect Handlers, Directly" for more information.
 ## Getting Started
 
 ### Prerequisites
-To build and compile files with Lexa, you will need to set up your development environment using Nix.
+We currently only support x86-64 platform.
 
 ### Setup
 1. **Install Nix**: Follow the instructions at [NixOS](https://nixos.org/download.html) to install Nix on your system.
@@ -21,3 +21,4 @@ To run the Lexa compiler, use the following command:
 ```bash
 ./lexa <source_file>
 ```
+See `./casestudies  `  and `./test` for exmaple Lexa programs.
