@@ -45,7 +45,7 @@ def bench(path, run_command, input, adjust_warmup, quick=False):
     if quick:
         hyperfine_cmd = f"hyperfine --shell none --warmup 0 -M 2 --time-unit millisecond '{run_command.format(IN=input)}'"
     else:
-        hyperfine_cmd = f"hyperfine --shell none --warmup 3 --time-unit millisecond '{run_command.format(IN=input)}'"
+        hyperfine_cmd = f"hyperfine --shell none --warmup 5 --min-runs 100 --time-unit millisecond '{run_command.format(IN=input)}'"
     # NB: use five spaces so that the command can be parsed out later
     taskset_cmd = f"taskset -c {CPU} {hyperfine_cmd} "
     result = run_processe(taskset_cmd, path)
