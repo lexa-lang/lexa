@@ -44,7 +44,7 @@ typedef struct {
 
 FAST_SWITCH_DECORATOR
 __attribute__((noinline))
-i64 double_save_switch_and_run_handler(i64* env, i64 index, i64 arg, void* func, void** exc) {
+i64 double_save_switch_and_run_handler(i64* env, i64 arg, void* func, void** exc) {
     resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
     k->ctx_sp = exc;
     __asm__ (
@@ -61,7 +61,59 @@ i64 double_save_switch_and_run_handler(i64* env, i64 index, i64 arg, void* func,
 
 FAST_SWITCH_DECORATOR
 __attribute__((noinline))
-i64 save_switch_and_run_handler(i64* env, i64 index, i64 arg, void* func, void** exc) {
+i64 double_save_switch_and_run_handler_2(i64* env, i64 arg0, i64 arg1, void* func, void** exc) {
+    resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
+    k->ctx_sp = exc;
+    __asm__ (
+        "popq %%rax\n\t" // Pop the dummy slot that is used to align the stack. It is inserted by the compiler, and is needed because of the malloc call. We pop it off because we want to expose the return address
+        "movq 8(%%rcx), %%r8\n\t" // Get the exchanger from the resumption
+        "movq 0(%%r8), %%rax\n\t" // Get the context stack from the exchanger
+        "movq %%rsp, 0(%%r8)\n\t" // Save the current stack pointer to the exchanger. Later when switching back, just need to run a ret
+        "movq %%rsp, 0(%%rcx)\n\t" // Save the current stack pointer to the resumption
+        "movq %%rax, %%rsp\n\t" // Switch to the context stack
+        "jmpq *%%rbx\n\t" // Call the handler, the first three arguments are already in the right registers
+        :: "D"(env), "S"(arg0), "d"(arg1), "c"(k), "b"(func)
+    );
+}
+
+FAST_SWITCH_DECORATOR
+__attribute__((noinline))
+i64 double_save_switch_and_run_handler_3(i64* env, i64 arg0, i64 arg1, i64 arg2, void* func, void** exc) {
+    resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
+    k->ctx_sp = exc;
+    __asm__ (
+        "popq %%r8\n\t" // Pop the dummy slot that is used to align the stack. It is inserted by the compiler, and is needed because of the malloc call. We pop it off because we want to expose the return address
+        "movq 8(%%rbx), %%r8\n\t" // Get the exchanger from the resumption
+        "movq 0(%%r8), %%r9\n\t" // Get the context stack from the exchanger
+        "movq %%rsp, 0(%%r8)\n\t" // Save the current stack pointer to the exchanger. Later when switching back, just need to run a ret
+        "movq %%rsp, 0(%%rbx)\n\t" // Save the current stack pointer to the resumption
+        "movq %%r9, %%rsp\n\t" // Switch to the context stack
+        "movq %%rbx, %%r8\n\t" // move argument to register
+        "jmpq *%%rax\n\t" // Call the handler, the first three arguments are already in the right registers
+        :: "D"(env), "S"(arg0), "d"(arg1), "c"(arg2), "b"(k), "a"(func)
+    );
+}
+
+FAST_SWITCH_DECORATOR
+__attribute__((noinline))
+i64 double_save_switch_and_run_handler_0(i64* env, void* func, void** exc) {
+    resumption_t* k = (resumption_t*)xmalloc(sizeof(resumption_t));
+    k->ctx_sp = exc;
+    __asm__ (
+        "popq %%rax\n\t" // Pop the dummy slot that is used to align the stack. It is inserted by the compiler, and is needed because of the malloc call. We pop it off because we want to expose the return address
+        "movq 8(%%rsi), %%r8\n\t" // Get the exchanger from the resumption
+        "movq 0(%%r8), %%rax\n\t" // Get the context stack from the exchanger
+        "movq %%rsp, 0(%%r8)\n\t" // Save the current stack pointer to the exchanger. Later when switching back, just need to run a ret
+        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to the resumption
+        "movq %%rax, %%rsp\n\t" // Switch to the context stack
+        "jmpq *%%rdx\n\t" // Call the handler, the first three arguments are already in the right registers
+        :: "D"(env), "S"(k), "d"(func)
+    );
+}
+
+FAST_SWITCH_DECORATOR
+__attribute__((noinline))
+i64 save_switch_and_run_handler(i64* env, i64 arg, void* func, void** exc) {
     __asm__ (
         "movq 0(%%rdx), %%rax\n\t" // Start to swap the context stack with the current stack
         "movq %%rsp, 0(%%rdx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
@@ -71,7 +123,46 @@ i64 save_switch_and_run_handler(i64* env, i64 index, i64 arg, void* func, void**
     );
 }
 
-i64 switch_free_and_run_handler(i64* env, i64 index, i64 arg, void* func, void** exc) {
+// handler: env, arg 0, arg 1, k -> rdi rsi rdx rcx r8 r9
+FAST_SWITCH_DECORATOR
+__attribute__((noinline))
+i64 save_switch_and_run_handler_2(i64* env, i64 arg0, i64 arg1, void* func, void** exc) {
+    __asm__ (
+        "movq 0(%%rcx), %%rax\n\t" // Start to swap the context stack with the current stack
+        "movq %%rsp, 0(%%rcx)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
+        "movq %%rax, %%rsp\n\t" // Switch to the context stack
+        "jmpq *%%rbx\n\t" // Call the handler, the first three arguments are already in the right registers
+        :: "D"(env), "S"(arg0), "d"(arg1), "c"(exc), "b"(func)
+    );
+}
+
+FAST_SWITCH_DECORATOR
+__attribute__((noinline))
+i64 save_switch_and_run_handler_3(i64* env, i64 arg0, i64 arg1, i64 arg2, void* func, void** exc) {
+    __asm__ (
+        "movq 0(%%rax), %%r8\n\t" // Start to swap the context stack with the current stack
+        "movq %%rsp, 0(%%rax)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
+        "movq %%r8, %%rsp\n\t" // Switch to the context stack
+        "movq %%rax, %%r8\n\t" // move argument to register
+        "jmpq *%%rbx\n\t" // Call the handler, the first three arguments are already in the right registers
+        :: "D"(env), "S"(arg0), "d"(arg1), "c"(arg2), "b"(func), "a"(exc)
+    );
+}
+
+FAST_SWITCH_DECORATOR
+__attribute__((noinline))
+i64 save_switch_and_run_handler_0(i64* env, void* func, void** exc) {
+    __asm__ (
+        "movq 0(%%rsi), %%rax\n\t" // Start to swap the context stack with the current stack
+        "movq %%rsp, 0(%%rsi)\n\t" // Save the current stack pointer to exchanger. Later when switching back, just need to run a ret
+        "movq %%rax, %%rsp\n\t" // Switch to the context stack
+        "jmpq *%%rdx\n\t" // Call the handler, the first three arguments are already in the right registers
+        :: "D"(env), "S"(exc), "d"(func)
+    );
+}
+
+FAST_SWITCH_DECORATOR
+i64 switch_free_and_run_handler(i64* env, i64 arg, void* func, void** exc) {
     void* target_sp = *(void**)exc;
     void* curr_sp;
     __asm__ (
@@ -83,6 +174,54 @@ i64 switch_free_and_run_handler(i64* env, i64 index, i64 arg, void* func, void**
         "movq %2, %%rsp\n\t"
         "jmpq *%3\n\t"
         :: "D"(env), "S"(arg), "r"(target_sp), "r"(func)
+    ); 
+}
+
+FAST_SWITCH_DECORATOR
+i64 switch_free_and_run_handler_2(i64* env, i64 arg0, i64 arg1, void* func, void** exc) {
+    void* target_sp = *(void**)exc;
+    void* curr_sp;
+    __asm__ (
+        "movq %%rsp, %0\n\t"
+        : "=r"(curr_sp)
+    );
+    free_stack_on_abort(curr_sp, target_sp);
+    __asm__ (
+        "movq %3, %%rsp\n\t"
+        "jmpq *%4\n\t"
+        :: "D"(env), "S"(arg0), "d"(arg1), "r"(target_sp), "r"(func)
+    ); 
+}
+
+FAST_SWITCH_DECORATOR
+i64 switch_free_and_run_handler_3(i64* env, i64 arg0, i64 arg1, i64 arg2, void* func, void** exc) {
+    void* target_sp = *(void**)exc;
+    void* curr_sp;
+    __asm__ (
+        "movq %%rsp, %0\n\t"
+        : "=r"(curr_sp)
+    );
+    free_stack_on_abort(curr_sp, target_sp);
+    __asm__ (
+        "movq %4, %%rsp\n\t"
+        "jmpq *%5\n\t"
+        :: "D"(env), "S"(arg0), "d"(arg1), "c"(arg2), "r"(target_sp), "r"(func)
+    ); 
+}
+
+FAST_SWITCH_DECORATOR
+i64 switch_free_and_run_handler_0(i64* env, void* func, void** exc) {
+    void* target_sp = *(void**)exc;
+    void* curr_sp;
+    __asm__ (
+        "movq %%rsp, %0\n\t"
+        : "=r"(curr_sp)
+    );
+    free_stack_on_abort(curr_sp, target_sp);
+    __asm__ (
+        "movq %1, %%rsp\n\t"
+        "jmpq *%2\n\t"
+        :: "D"(env), "r"(target_sp), "r"(func)
     ); 
 }
 
@@ -264,16 +403,46 @@ i64 save_and_restore(i64 arg, void** exc, void* rsp_sp) {
     out; \
     })
 
-static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(i64* env, i64 index, i64 arg, void* func, void** exc) = {
-    (long (FAST_SWITCH_DECORATOR*)(i64*, i64, i64, void*, void**) )switch_free_and_run_handler,
+static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions[4])(i64* env, i64 arg, void* func, void** exc) = {
+    (long (FAST_SWITCH_DECORATOR*)(i64*, i64, void*, void**) )switch_free_and_run_handler,
     save_switch_and_run_handler,
     double_save_switch_and_run_handler,
-    (long (FAST_SWITCH_DECORATOR*)(i64*, i64, i64, void*, void**) )run_1_arg_handler_in_place
+    // (long (FAST_SWITCH_DECORATOR*)(i64*, i64, i64, void*, void**) )run_1_arg_handler_in_place
+};
+
+static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions_2[3])(i64* env, i64 arg0, i64 arg1, void* func, void** exc) = {
+    (long (FAST_SWITCH_DECORATOR*)(i64*, i64, i64, void*, void**) )switch_free_and_run_handler_2,
+    save_switch_and_run_handler_2,
+    double_save_switch_and_run_handler_2,
+};
+
+static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions_3[3])(i64* env, i64 arg0, i64 arg1, i64 arg2, void* func, void** exc) = {
+    (long (FAST_SWITCH_DECORATOR*)(i64*, i64, i64, i64, void*, void**) )switch_free_and_run_handler_3,
+    save_switch_and_run_handler_3,
+    double_save_switch_and_run_handler_3,
+};
+
+static i64 (FAST_SWITCH_DECORATOR* stack_switching_functions_0[3])(i64* env, void* func, void** exc) = {
+    (long (FAST_SWITCH_DECORATOR*)(i64*, void*, void**) )switch_free_and_run_handler_0,
+    save_switch_and_run_handler_0,
+    double_save_switch_and_run_handler_0,
 };
 
 // this is slightly faster than the above function
 i64 stack_switching(meta_t* stub, i64 index, i64 arg) {
-    return stack_switching_functions[stub->defs[index].mode]((i64*)stub->env, index, arg, (void*)stub->defs[index].func, (void**)stub->sp_exchanger);
+    return stack_switching_functions[stub->defs[index].mode]((i64*)stub->env, arg, (void*)stub->defs[index].func, (void**)stub->sp_exchanger);
+}
+
+i64 stack_switching_2(meta_t* stub, i64 index, i64 arg0, i64 arg1) {
+    return stack_switching_functions_2[stub->defs[index].mode]((i64*)stub->env, arg0, arg1, (void*)stub->defs[index].func, (void**)stub->sp_exchanger);
+}
+
+i64 stack_switching_3(meta_t* stub, i64 index, i64 arg0, i64 arg1, i64 arg2) {
+    return stack_switching_functions_3[stub->defs[index].mode]((i64*)stub->env, arg0, arg1, arg2, (void*)stub->defs[index].func, (void**)stub->sp_exchanger);
+}
+
+i64 stack_switching_0(meta_t* stub, i64 index) {
+    return stack_switching_functions_0[stub->defs[index].mode]((i64*)stub->env, (void*)stub->defs[index].func, (void**)stub->sp_exchanger);
 }
 
 // TODO:
@@ -301,8 +470,17 @@ i64 stack_switching(meta_t* stub, i64 index, i64 arg) {
             exit(EXIT_FAILURE); \
         } \
     } else { \
-        if (nargs != 1) { printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); } \
-        out = stack_switching(stub, index, args[0]); \
+        if (nargs == 1) { \
+            out = stack_switching(stub, index, args[0]); \
+        } else if (nargs == 2) { \
+            out = stack_switching_2(stub, index, args[0], args[1]); \
+        } else if (nargs == 3) { \
+            out = stack_switching_3(stub, index, args[0], args[1], args[2]); \
+        } else if (nargs == 0) { \
+            out = stack_switching_0(stub, index); \
+        } else { \
+            printf("Number of args to raise unsupported\n"); exit(EXIT_FAILURE); \
+        } \
     } \
     _Pragma("clang diagnostic pop") \
     out; \

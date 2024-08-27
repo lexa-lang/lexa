@@ -1,0 +1,50 @@
+effect E {
+    dcl op
+}
+
+def main() {
+    run();
+    0
+}
+
+def run() {
+    val out = handle {
+        val out = raise multi_stub.op();
+        ~printInt(out);
+        0
+    } with multi_stub : E {
+        hdl_s op(k) {
+            resume k 10;
+            resume_final k 20;
+            0
+        }
+    };
+    ~printInt(out);
+    
+    val out = handle {
+        val out = raise single_stub.op();
+        ~printInt(out);
+        0
+    } with single_stub : E {
+        hdl_1 op(k) {
+            ~printInt(10);
+            resume_final k 20;
+            30
+        }
+    };
+    ~printInt(out);
+    
+    val out = handle {
+        val out = raise abort_stub.op();
+        ~printInt(out);
+        0
+    } with abort_stub : E {
+        exc op() {
+            ~printInt(10);
+            ~printInt(20);
+            30
+        }
+    };
+    ~printInt(out);
+    0
+}
