@@ -10,12 +10,15 @@
 ### On plg2
 1. SSH into plg2
 2. Clone this repo
-3. Move the custom nix binary at `./dev/bin/nix` into PATH
-4. Run `mkdir -p ~/.config/nix; echo 'experimental-features = nix-command flakes' > ~/.config/nix/nix.conf`
-5. Re-enter the shell, run `nix run nixpkgs#hello` and make sure there's no error
-6. Install `direnv`: `nix profile install nixpkgs#direnv`
-7. Hook up `direnv` with your shell following [instructions](https://direnv.net/docs/hook.html)
-8. Re-enter the shell
+3. Move the custom nix binary at `./support/nix` into PATH. 
+4. Re-enter the shell, make sure `nix --version` works.
+5. Run `mkdir -p ~/.config/nix; echo 'experimental-features = nix-command flakes' > ~/.config/nix/nix.conf`
+6. Re-enter the shell, make sure `nix run nixpkgs#hello` works.
+7. Install `direnv`: `nix profile install nixpkgs#direnv`
+8. Add `$HOME/.nix-profile/bin` to the PATH
+9. Re-enter the shell, make sure `direnv --version` works.
+10. Hook up `direnv` with your shell following [instructions](https://direnv.net/docs/hook.html)
+11. Re-enter the shell
 
 ### Check if everything is setup correctly
 1. Run `dune build` to build the project
