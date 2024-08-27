@@ -51,7 +51,6 @@ out
 main
 results.csv
 results.json
-runtimes.txt
 plot.png
 .koka
 
