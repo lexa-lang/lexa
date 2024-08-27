@@ -217,7 +217,7 @@ def main():
     config_tups = [(platform, benchmark, 0, params) for (platform, benchmark), params in config.items()]
     with ThreadPoolExecutor(max_workers=len(bench_CPUs)) as executor:
         executor.map(
-            lambda c: build(f"../benchmarks/{c[0]}/{c[1]}", c[3]["build"]),
+            lambda c: build(f"../benchmarks/{c[0]}/{c[1]}", c[3]["build"]) if "fail_reason" not in c[3] else None,
             config_tups
         )
 
