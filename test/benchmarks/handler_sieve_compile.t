@@ -29,10 +29,10 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_2__;
   run->env = (i64)NULL;
-  primes = malloc(sizeof(closure_t));
+  primes = xmalloc(sizeof(closure_t));
   primes->func_pointer = (i64)__primes_lifted_1__;
   primes->env = (i64)NULL;
   

@@ -159,7 +159,7 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
     | Int i -> string_of_int i
     | Float f -> string_of_float f
     | Bool b -> if b then "1" else "0"
-    | Str s -> sprintf "({i64* __s__ = (i64*) malloc(%d*sizeof(char));strcpy((char*)__s__, \"%s\"); __s__;})" ((String.length s) + 1) s
+    | Str s -> sprintf "({i64* __s__ = (i64*) xmalloc(%d*sizeof(char));strcpy((char*)__s__, \"%s\"); __s__;})" ((String.length s) + 1) s
     | Char c -> "\'" ^ Char.escaped c ^ "\'"
     | Prim prim ->
         String.sub prim 1 ((String.length prim) - 1)
@@ -214,7 +214,7 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
         in let assign_fields = String.concat "" 
           (List.mapi (fun i _ -> sprintf "__newref__[%d] = __field_%d__;" i i) fields)
         in
-        sprintf "({%s\ni64* __newref__ = malloc(%d * sizeof(i64));\n%s\n(i64)__newref__;})"
+        sprintf "({%s\ni64* __newref__ = xmalloc(%d * sizeof(i64));\n%s\n(i64)__newref__;})"
           init_fields size assign_fields
     | Get (e1, e2) ->
         sprintf "((i64*)%s)[%s]" (gen_expr e1) (gen_expr e2)
@@ -240,7 +240,7 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
         if Varset.is_empty free_vars then
           "__c__->env = (i64)NULL;"
         else
-          sprintf "__c__->env = (i64)malloc(%d * sizeof(i64));" (Varset.cardinal free_vars)
+          sprintf "__c__->env = (i64)xmalloc(%d * sizeof(i64));" (Varset.cardinal free_vars)
       in
       let copy_fv : string =
         String.concat "\n" (List.mapi 
@@ -249,7 +249,7 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
       in
       let closure_creation : string =
         sprintf 
-{|({closure_t* __c__ = malloc(sizeof(closure_t));
+{|({closure_t* __c__ = xmalloc(sizeof(closure_t));
 __c__->func_pointer = (i64)%s;
 %s
 %s
@@ -294,14 +294,14 @@ i64 __env__ = (i64)(__clo__->env);
     | Recdef (clo_map, e) -> 
       let malloc_closures = String.concat "" 
         (List.map 
-          (fun (x, _) -> sprintf "closure_t* %s = malloc(sizeof(closure_t));\n" x) 
+          (fun (x, _) -> sprintf "closure_t* %s = xmalloc(sizeof(closure_t));\n" x) 
           clo_map)
       in
       let closure_creation (name, {entry; fv}) =
         if Varset.is_empty fv then
           sprintf "%s->env = (i64)NULL;\n" name
         else
-          sprintf "%s->env = (i64)malloc(%d * sizeof(i64));\n" name (Varset.cardinal fv)
+          sprintf "%s->env = (i64)xmalloc(%d * sizeof(i64));\n" name (Varset.cardinal fv)
         ^
         String.concat "" (List.mapi 
           (fun i x -> sprintf "((i64*)(%s->env))[%d] = (i64)%s;\n" name i x)
@@ -413,7 +413,7 @@ let gen_top_level (tl : top_level) =
     let rec init_closures l = (match l with
     | [] -> ""
     | (original_name, lifted_name) :: xs -> 
-(sprintf {|%s = malloc(sizeof(closure_t));
+(sprintf {|%s = xmalloc(sizeof(closure_t));
 %s->func_pointer = (i64)%s;
 %s->env = (i64)NULL;
 |} original_name original_name lifted_name original_name) ^ init_closures xs) in  

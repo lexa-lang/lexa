@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/resource.h>
 #include <common.h>
 #include <datastructure.h>
 
@@ -61,12 +62,36 @@ char* dup_stack(char* sp) {
 static char* buffer = 0;
 static uint64_t bitmap;
 static void *system_stack_lower, *system_stack_upper;
-static const int SYSTEM_STACK_SIZE = 8 * 1024 * 1024;
+
+bool is_main_stack(char* stack) {
+    return system_stack_lower <= (void*)stack && (void*)stack < system_stack_upper;
+}
+
+char* GC_recorded_main_stack_sp;
+void GC_set_main_stack_sp() {
+    char* sp;
+    __asm__("movq %%rsp, %0" : "=r"(sp));
+    if (is_main_stack(sp)) {
+        GC_recorded_main_stack_sp = sp;
+    } else {
+    }
+}
+
+char* GC_get_main_stack_sp() {
+    char* sp;
+    __asm__("movq %%rsp, %0" : "=r"(sp));
+    if (is_main_stack(sp)) {
+        return sp;
+    } else {
+        return GC_recorded_main_stack_sp;
+    }
+}
 
 void init_stack_pool() {
-    buffer = (char*)aligned_alloc(STACK_SIZE, STACK_SIZE * PREALLOCATED_STACKS);
-    bitmap = -1;
 
+    struct rlimit limit;
+    getrlimit(RLIMIT_STACK, &limit);
+    long system_stack_size_limit = limit.rlim_cur;
     FILE *fp = fopen("/proc/self/maps", "r");
     if (fp == NULL) {
         perror("Failed to open /proc/self/maps");
@@ -75,19 +100,26 @@ void init_stack_pool() {
     char line[256];
     while (fgets(line, sizeof(line), fp)) {
         if (strstr(line, "[stack]")) { 
-            sscanf(line, "%lx-%lx", &system_stack_lower, &system_stack_upper); 
-            system_stack_lower = (void*)((intptr_t)system_stack_upper - SYSTEM_STACK_SIZE);
+            sscanf(line, "%lx-%lx", (unsigned long *)&system_stack_lower, (unsigned long *)&system_stack_upper); 
+            system_stack_lower = (void*)((intptr_t)system_stack_upper - system_stack_size_limit);
             break;
         }
     }
+
+    GC_register_get_sp_func_callback(GC_get_main_stack_sp);
+    GC_init();
+
+    buffer = (char*)GC_memalign(STACK_SIZE, STACK_SIZE * PREALLOCATED_STACKS);
+    bitmap = -1;
+
+    // TODO: more granular GC https://git.uwaterloo.ca/z33ge/sstal/-/issues/67
+    // GC_allow_register_threads();
 }
 
 void destroy_stack_pool() {
-    free(buffer);
-    bitmap = 0;
+    // NB: the program is about to exit, no need to really clean up
 }
 
-// HACK! TODO: scheduler_ocaml needs the following attribute for correctness
 char* get_stack() {
     if (!buffer) {
         init_stack_pool();
@@ -99,7 +131,8 @@ char* get_stack() {
     }
     index -= 1;
     bitmap &= ~(1ULL << index);
-    return buffer + (index * STACK_SIZE) + STACK_SIZE;
+    char* stack_bottom = buffer + (index * STACK_SIZE) + STACK_SIZE;
+    return stack_bottom;
 }
 
 void free_stack(char* stack) {
@@ -111,12 +144,12 @@ void free_stack(char* stack) {
         // Because an empty stack is +STACK_SIZE from the beginning of the buffer,
         // If we don't -1, the stack pointer will be pointing to the start of the next stack.
         char* stack_start = (char*)(((intptr_t)stack - 1) / STACK_SIZE * STACK_SIZE);
-        free(stack_start);
+        // free(stack_start);
     }
 }
 
 void free_stack_on_abort(char* curr_stack, char* target_stack) {
-    if (system_stack_lower <= curr_stack && curr_stack < system_stack_upper) {
+    if (is_main_stack(curr_stack)) {
         // We are currently on the main stack, no need to free
         return;
     }

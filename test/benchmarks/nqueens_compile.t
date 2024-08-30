@@ -47,16 +47,16 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  loop = malloc(sizeof(closure_t));
+  loop = xmalloc(sizeof(closure_t));
   loop->func_pointer = (i64)__loop_lifted_4__;
   loop->env = (i64)NULL;
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_3__;
   run->env = (i64)NULL;
-  place = malloc(sizeof(closure_t));
+  place = xmalloc(sizeof(closure_t));
   place->func_pointer = (i64)__place_lifted_2__;
   place->env = (i64)NULL;
-  safe = malloc(sizeof(closure_t));
+  safe = xmalloc(sizeof(closure_t));
   safe->func_pointer = (i64)__safe_lifted_1__;
   safe->env = (i64)NULL;
   

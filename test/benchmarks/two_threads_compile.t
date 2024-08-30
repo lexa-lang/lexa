@@ -74,7 +74,7 @@
   
   static i64 __run_lifted_7__(i64 __env__,i64 n_jobs,i64 init) {
   return(({i64 c = (i64)(({i64 __field_0__ = (i64)init;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   ({(HANDLE(__handle_body_lifted_16__, ({TAIL, __tick_stub_lifted_17___tick}), ((i64)c, (i64)jobs, (i64)n_jobs, (i64)scheduler)));
@@ -92,31 +92,31 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  repeat = malloc(sizeof(closure_t));
+  repeat = xmalloc(sizeof(closure_t));
   repeat->func_pointer = (i64)__repeat_lifted_9__;
   repeat->env = (i64)NULL;
-  step = malloc(sizeof(closure_t));
+  step = xmalloc(sizeof(closure_t));
   step->func_pointer = (i64)__step_lifted_8__;
   step->env = (i64)NULL;
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_7__;
   run->env = (i64)NULL;
-  scheduler = malloc(sizeof(closure_t));
+  scheduler = xmalloc(sizeof(closure_t));
   scheduler->func_pointer = (i64)__scheduler_lifted_6__;
   scheduler->env = (i64)NULL;
-  spawn = malloc(sizeof(closure_t));
+  spawn = xmalloc(sizeof(closure_t));
   spawn->func_pointer = (i64)__spawn_lifted_5__;
   spawn->env = (i64)NULL;
-  driver = malloc(sizeof(closure_t));
+  driver = xmalloc(sizeof(closure_t));
   driver->func_pointer = (i64)__driver_lifted_4__;
   driver->env = (i64)NULL;
-  jobs = malloc(sizeof(closure_t));
+  jobs = xmalloc(sizeof(closure_t));
   jobs->func_pointer = (i64)__jobs_lifted_3__;
   jobs->env = (i64)NULL;
-  job = malloc(sizeof(closure_t));
+  job = xmalloc(sizeof(closure_t));
   job->func_pointer = (i64)__job_lifted_2__;
   job->env = (i64)NULL;
-  queueDeqExn = malloc(sizeof(closure_t));
+  queueDeqExn = xmalloc(sizeof(closure_t));
   queueDeqExn->func_pointer = (i64)__queueDeqExn_lifted_1__;
   queueDeqExn->env = (i64)NULL;
   
@@ -140,9 +140,9 @@
   ({i64 jobs = (i64)(((i64*)__env__)[1]);
   ({i64 n_jobs = (i64)(((i64*)__env__)[2]);
   ({i64 scheduler = (i64)(((i64*)__env__)[3]);
-  (((i64(*)(i64, i64))__scheduler_lifted_6__)(0,(({closure_t* __c__ = malloc(sizeof(closure_t));
+  (((i64(*)(i64, i64))__scheduler_lifted_6__)(0,(({closure_t* __c__ = xmalloc(sizeof(closure_t));
   __c__->func_pointer = (i64)__fun_lifted_15__;
-  __c__->env = (i64)malloc(3 * sizeof(i64));
+  __c__->env = (i64)xmalloc(3 * sizeof(i64));
   ((i64*)(__c__->env))[0] = (i64)jobs;
   ((i64*)(__c__->env))[1] = (i64)n_jobs;
   ((i64*)(__c__->env))[2] = (i64)tick_stub;

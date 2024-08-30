@@ -9,14 +9,6 @@
 #include <assert.h>
 #include <math.h>
 
-#define xmalloc(size) ({                \
-    void *_ptr = malloc(size);          \
-    if (_ptr == NULL) {                 \
-        exit(EXIT_FAILURE);             \
-    }                                   \
-    _ptr;                               \
-})
-
 typedef struct node_t {
     int64_t value;
     struct node_t* next;
@@ -230,7 +222,7 @@ int64_t queueDeq(queue_t* q) {
   int64_t value = q->front->value;
   node_t* old_front = q->front;
   q->front = q->front->next;
-  free(old_front);
+  // free(old_front);
   return value;
 }
 
@@ -417,7 +409,7 @@ DEBUG_ATTRIBUTE
 int64_t arrayPush(array_t* a, int64_t value) {
   if (a->size == a->capacity) {
     a->capacity = a->capacity * 2 + 1;
-    a->data = (int64_t*)realloc(a->data, a->capacity * sizeof(int64_t));
+    a->data = (int64_t*)GC_realloc(a->data, a->capacity * sizeof(int64_t));
   }
   a->data[a->size] = value;
   a->size++;
@@ -475,7 +467,7 @@ int64_t strPrint(char* s) {
 
 DEBUG_ATTRIBUTE
 int64_t strConcat(char* s1, char* s2) {
-    char *result = malloc(strlen(s1) + strlen(s2) + 1);
+    char *result = xmalloc(strlen(s1) + strlen(s2) + 1);
     strcpy(result, s1);
     strcat(result, s2);
     return (int64_t)result;

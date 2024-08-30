@@ -1,0 +1,76 @@
+From a0c9b17c14353247108a48728ca7f2224686d224 Mon Sep 17 00:00:00 2001
+From: Cong Ma <cong.ma@uwaterloo.ca>
+Date: Thu, 29 Aug 2024 16:47:02 -0400
+Subject: [PATCH] integration
+
+---
+ include/gc/gc.h           |  4 ++++
+ include/private/gc_priv.h |  2 --
+ mark_rts.c                | 23 +++--------------------
+ 3 files changed, 7 insertions(+), 22 deletions(-)
+
+diff --git a/include/gc/gc.h b/include/gc/gc.h
+index 93fed616..59c63716 100644
+--- a/include/gc/gc.h
++++ b/include/gc/gc.h
+@@ -2360,6 +2360,10 @@ GC_API int GC_CALL GC_get_force_unmap_on_gcollect(void);
+                     GC_INIT_CONF_IGNORE_WARN; \
+                     GC_INIT_CONF_INITIAL_HEAP_SIZE; }
+ 
++typedef char* (GC_CALLBACK * GC_get_sp_func)(void);
++extern GC_get_sp_func GC_approx_sp;
++GC_API void GC_CALL GC_register_get_sp_func_callback(GC_get_sp_func);
++
+ /* win32s may not free all resources on process exit.                   */
+ /* This explicitly deallocates the heap.  Defined only for Windows.     */
+ GC_API void GC_CALL GC_win32_free_heap(void);
+diff --git a/include/private/gc_priv.h b/include/private/gc_priv.h
+index 4b78d7cb..6328e31e 100644
+--- a/include/private/gc_priv.h
++++ b/include/private/gc_priv.h
+@@ -1932,8 +1932,6 @@ struct GC_traced_stack_sect_s {
+ 
+ /* Important internal collector routines */
+ 
+-GC_INNER ptr_t GC_approx_sp(void);
+-
+ GC_INNER GC_bool GC_should_collect(void);
+ 
+ GC_INNER struct hblk * GC_next_block(struct hblk *h, GC_bool allow_free);
+diff --git a/mark_rts.c b/mark_rts.c
+index 4a0a13ea..1d2a6f32 100644
+--- a/mark_rts.c
++++ b/mark_rts.c
+@@ -524,26 +524,9 @@ STATIC void GC_remove_roots_inner(ptr_t b, ptr_t e)
+   }
+ #endif /* !NO_DEBUGGING */
+ 
+-GC_INNER ptr_t GC_approx_sp(void)
+-{
+-    volatile ptr_t sp;
+-#   if ((defined(E2K) && defined(__clang__)) \
+-        || (defined(S390) && (__clang_major__ < 8))) && !defined(CPPCHECK)
+-        /* Workaround some bugs in clang:                                   */
+-        /* "undefined reference to llvm.frameaddress" error (clang-9/e2k);  */
+-        /* a crash in SystemZTargetLowering of libLLVM-3.8 (S390).          */
+-        sp = (ptr_t)(&sp);
+-#   elif defined(CPPCHECK) || (__GNUC__ >= 4 /* GC_GNUC_PREREQ(4, 0) */ \
+-                               && !defined(STACK_NOT_SCANNED))
+-        /* TODO: Use GC_GNUC_PREREQ after fixing a bug in cppcheck. */
+-        sp = (ptr_t)__builtin_frame_address(0);
+-#   else
+-        sp = (ptr_t)(&sp);
+-#   endif
+-                /* Also force stack to grow if necessary. Otherwise the */
+-                /* later accesses might cause the kernel to think we're */
+-                /* doing something wrong.                               */
+-    return (/* no volatile */ ptr_t)sp;
++GC_get_sp_func GC_approx_sp = 0;
++GC_API void GC_CALL GC_register_get_sp_func_callback(GC_get_sp_func callback) {
++    GC_approx_sp = callback;
+ }
+ 
+ /*
+-- 
+2.44.1
+

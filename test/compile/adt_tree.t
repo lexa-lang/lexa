@@ -28,10 +28,10 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  traverse = malloc(sizeof(closure_t));
+  traverse = xmalloc(sizeof(closure_t));
   traverse->func_pointer = (i64)__traverse_lifted_3__;
   traverse->env = (i64)NULL;
-  make = malloc(sizeof(closure_t));
+  make = xmalloc(sizeof(closure_t));
   make->func_pointer = (i64)__make_lifted_2__;
   make->env = (i64)NULL;
   

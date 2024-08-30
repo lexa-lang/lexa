@@ -47,19 +47,19 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_5__;
   run->env = (i64)NULL;
-  loop = malloc(sizeof(closure_t));
+  loop = xmalloc(sizeof(closure_t));
   loop->func_pointer = (i64)__loop_lifted_4__;
   loop->env = (i64)NULL;
-  runProduct = malloc(sizeof(closure_t));
+  runProduct = xmalloc(sizeof(closure_t));
   runProduct->func_pointer = (i64)__runProduct_lifted_3__;
   runProduct->env = (i64)NULL;
-  enumerate = malloc(sizeof(closure_t));
+  enumerate = xmalloc(sizeof(closure_t));
   enumerate->func_pointer = (i64)__enumerate_lifted_2__;
   enumerate->env = (i64)NULL;
-  product = malloc(sizeof(closure_t));
+  product = xmalloc(sizeof(closure_t));
   product->func_pointer = (i64)__product_lifted_1__;
   product->env = (i64)NULL;
   

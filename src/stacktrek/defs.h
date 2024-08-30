@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stack_pool.h>
+#include <common.h>
 
 #define i64 intptr_t
 
@@ -30,14 +31,6 @@ typedef struct {
     void* rsp_sp;
     void** ctx_sp;
 } resumption_t;
-
-#define xmalloc(size) ({                \
-    void *_ptr = malloc(size);          \
-    if (_ptr == NULL) {                 \
-        exit(EXIT_FAILURE);             \
-    }                                   \
-    _ptr;                               \
-})
 
 #define ARG_N(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
 #define NARGS(...) ARG_N(_, ## __VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
@@ -342,6 +335,7 @@ i64 save_and_restore(i64 arg, void** exc, void* rsp_sp) {
         memcpy(new_sp, _env, sizeof(_env)); \
         stub->env = (i64*)new_sp; \
         new_sp = (char*)((i64)new_sp & ~0xF); \
+        GC_set_main_stack_sp(); \
         out = save_switch_and_run_body(stub->env, stub, stub->sp_exchanger, new_sp, body); \
     } \
     out; \
@@ -490,6 +484,7 @@ i64 stack_switching_0(meta_t* stub, i64 index) {
     ({ \
     i64 out; \
     char* new_sp = dup_stack((char*)((resumption_t*)k)->rsp_sp); \
+    GC_set_main_stack_sp(); \
     out = save_and_restore(arg, ((resumption_t*)k)->ctx_sp, new_sp); \
     out; \
     })
@@ -497,6 +492,7 @@ i64 stack_switching_0(meta_t* stub, i64 index) {
 #define FINAL_THROW(k, arg) \
     ({ \
     i64 out; \
+    GC_set_main_stack_sp(); \
     out = save_and_restore(arg, ((resumption_t*)k)->ctx_sp, ((resumption_t*)k)->rsp_sp); \
     out; \
     })

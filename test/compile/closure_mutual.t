@@ -13,14 +13,14 @@
   static i64 __is_even_lifted_1__(i64,i64);
   static closure_t* is_even;
   static i64 __is_even_lifted_1__(i64 __env__,i64 n) {
-  return(({closure_t* is_even = malloc(sizeof(closure_t));
-  closure_t* is_odd = malloc(sizeof(closure_t));
+  return(({closure_t* is_even = xmalloc(sizeof(closure_t));
+  closure_t* is_odd = xmalloc(sizeof(closure_t));
   
-  is_even->env = (i64)malloc(1 * sizeof(i64));
+  is_even->env = (i64)xmalloc(1 * sizeof(i64));
   ((i64*)(is_even->env))[0] = (i64)is_odd;
   is_even->func_pointer = (i64)__is_even_lifted_3__;
   
-  is_odd->env = (i64)malloc(1 * sizeof(i64));
+  is_odd->env = (i64)xmalloc(1 * sizeof(i64));
   ((i64*)(is_odd->env))[0] = (i64)is_even;
   is_odd->func_pointer = (i64)__is_odd_lifted_4__;
   
@@ -33,7 +33,7 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  is_even = malloc(sizeof(closure_t));
+  is_even = xmalloc(sizeof(closure_t));
   is_even->func_pointer = (i64)__is_even_lifted_1__;
   is_even->env = (i64)NULL;
   

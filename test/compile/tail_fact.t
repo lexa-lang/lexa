@@ -14,10 +14,10 @@
   static closure_t* fact_nontail;
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  fact_tail = malloc(sizeof(closure_t));
+  fact_tail = xmalloc(sizeof(closure_t));
   fact_tail->func_pointer = (i64)__fact_tail_lifted_3__;
   fact_tail->env = (i64)NULL;
-  fact_nontail = malloc(sizeof(closure_t));
+  fact_nontail = xmalloc(sizeof(closure_t));
   fact_nontail->func_pointer = (i64)__fact_nontail_lifted_2__;
   fact_nontail->env = (i64)NULL;
   

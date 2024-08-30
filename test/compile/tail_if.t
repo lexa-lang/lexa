@@ -14,10 +14,10 @@
   static closure_t* bar;
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  foo = malloc(sizeof(closure_t));
+  foo = xmalloc(sizeof(closure_t));
   foo->func_pointer = (i64)__foo_lifted_3__;
   foo->env = (i64)NULL;
-  bar = malloc(sizeof(closure_t));
+  bar = xmalloc(sizeof(closure_t));
   bar->func_pointer = (i64)__bar_lifted_2__;
   bar->env = (i64)NULL;
   

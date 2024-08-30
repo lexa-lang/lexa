@@ -41,16 +41,16 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  repeat = malloc(sizeof(closure_t));
+  repeat = xmalloc(sizeof(closure_t));
   repeat->func_pointer = (i64)__repeat_lifted_4__;
   repeat->env = (i64)NULL;
-  step = malloc(sizeof(closure_t));
+  step = xmalloc(sizeof(closure_t));
   step->func_pointer = (i64)__step_lifted_3__;
   step->env = (i64)NULL;
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_2__;
   run->env = (i64)NULL;
-  loop = malloc(sizeof(closure_t));
+  loop = xmalloc(sizeof(closure_t));
   loop->func_pointer = (i64)__loop_lifted_1__;
   loop->env = (i64)NULL;
   

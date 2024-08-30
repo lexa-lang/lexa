@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "stack_pool.h"
 #include "datastructure.h"
 
 float epsilon = 1e-5;
@@ -8,6 +9,8 @@ int eq_floats(float a, float b) {
 }
 
 int main() {
+  init_stack_pool();
+
   queue_t* q = queueMake();
   assert(queueIsEmpty(q));
   queueEnq(q, 1);
@@ -20,7 +23,6 @@ int main() {
   queueEnq(q, 4);
   assert(queueDeq(q) == 4);
   assert(queueIsEmpty(q));
-  free(q);
 
   int64_t f1 = boxFloat(1.1);
   int64_t f2 = boxFloat(0.1);
