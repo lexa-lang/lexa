@@ -11,7 +11,7 @@ build-job:
 c-lib-test-job:
   stage: test
   script:
-    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "cd src/stacktrek && clang -g -O1 -I . test.c -o test -lm && ./test"
+    - nix --extra-experimental-features "nix-command flakes" develop --print-build-logs --verbose --command bash -c "cd src/stacktrek && clang -g -O1 -I . test.c -o test -lm -lgc && ./test"
 
 unit-test-job:
   stage: test

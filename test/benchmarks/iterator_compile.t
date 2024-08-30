@@ -24,7 +24,7 @@
   
   static i64 __run_lifted_2__(i64 __env__,i64 n) {
   return(({i64 s = (i64)(({i64 __field_0__ = (i64)0;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   ({(HANDLE(__handle_body_lifted_4__, ({TAIL, __emit_stub_lifted_5___emit}), ((i64)n, (i64)range, (i64)s)));
@@ -33,10 +33,10 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_2__;
   run->env = (i64)NULL;
-  range = malloc(sizeof(closure_t));
+  range = xmalloc(sizeof(closure_t));
   range->func_pointer = (i64)__range_lifted_1__;
   range->env = (i64)NULL;
   

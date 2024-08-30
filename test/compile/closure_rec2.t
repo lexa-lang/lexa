@@ -15,14 +15,14 @@
   static i64 __f_lifted_1__(i64 __env__) {
   return(({i64 env_var1 = (i64)100;
   ({i64 env_var2 = (i64)200;
-  ({closure_t* f = malloc(sizeof(closure_t));
-  closure_t* g = malloc(sizeof(closure_t));
+  ({closure_t* f = xmalloc(sizeof(closure_t));
+  closure_t* g = xmalloc(sizeof(closure_t));
   
-  f->env = (i64)malloc(1 * sizeof(i64));
+  f->env = (i64)xmalloc(1 * sizeof(i64));
   ((i64*)(f->env))[0] = (i64)g;
   f->func_pointer = (i64)__f_lifted_3__;
   
-  g->env = (i64)malloc(2 * sizeof(i64));
+  g->env = (i64)xmalloc(2 * sizeof(i64));
   ((i64*)(g->env))[0] = (i64)env_var1;
   ((i64*)(g->env))[1] = (i64)env_var2;
   g->func_pointer = (i64)__g_lifted_4__;
@@ -36,7 +36,7 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  f = malloc(sizeof(closure_t));
+  f = xmalloc(sizeof(closure_t));
   f->func_pointer = (i64)__f_lifted_1__;
   f->env = (i64)NULL;
   

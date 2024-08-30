@@ -26,7 +26,7 @@
   
   static i64 __run_lifted_2__(i64 __env__,i64 n) {
   return(({i64 s = (i64)(({i64 __field_0__ = (i64)n;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   (HANDLE(__handle_body_lifted_4__, ({TAIL, __state_stub_lifted_5___get}, {TAIL, __state_stub_lifted_5___set}), ((i64)countdown, (i64)s)));}));
@@ -34,10 +34,10 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_2__;
   run->env = (i64)NULL;
-  countdown = malloc(sizeof(closure_t));
+  countdown = xmalloc(sizeof(closure_t));
   countdown->func_pointer = (i64)__countdown_lifted_1__;
   countdown->env = (i64)NULL;
   

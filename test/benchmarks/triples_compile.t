@@ -44,16 +44,16 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  hash = malloc(sizeof(closure_t));
+  hash = xmalloc(sizeof(closure_t));
   hash->func_pointer = (i64)__hash_lifted_4__;
   hash->env = (i64)NULL;
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_3__;
   run->env = (i64)NULL;
-  triple = malloc(sizeof(closure_t));
+  triple = xmalloc(sizeof(closure_t));
   triple->func_pointer = (i64)__triple_lifted_2__;
   triple->env = (i64)NULL;
-  choice = malloc(sizeof(closure_t));
+  choice = xmalloc(sizeof(closure_t));
   choice->func_pointer = (i64)__choice_lifted_1__;
   choice->env = (i64)NULL;
   

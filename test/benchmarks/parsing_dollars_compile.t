@@ -62,7 +62,7 @@
   
   static i64 __sum_lifted_5__(i64 __env__,i64 action,i64 n) {
   return(({i64 s = (i64)(({i64 __field_0__ = (i64)0;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   ({(HANDLE(__handle_body_lifted_14__, ({TAIL, __emit_stub_lifted_15___emit}), ((i64)action, (i64)n, (i64)s)));
@@ -75,11 +75,11 @@
   
   static i64 __feed_lifted_7__(i64 __env__,i64 n,i64 action,i64 stop_stub,i64 emit_stub) {
   return(({i64 i_ref = (i64)(({i64 __field_0__ = (i64)0;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   ({i64 j_ref = (i64)(({i64 __field_0__ = (i64)0;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   (HANDLE(__handle_body_lifted_18__, ({TAIL, __read_stub_lifted_19___read}), ((i64)action, (i64)dollar, (i64)emit_stub, (i64)i_ref, (i64)j_ref, (i64)n, (i64)newline, (i64)stop_stub)));});}));
@@ -114,40 +114,40 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_12__;
   run->env = (i64)NULL;
-  catch_action = malloc(sizeof(closure_t));
+  catch_action = xmalloc(sizeof(closure_t));
   catch_action->func_pointer = (i64)__catch_action_lifted_11__;
   catch_action->env = (i64)NULL;
-  sum_action = malloc(sizeof(closure_t));
+  sum_action = xmalloc(sizeof(closure_t));
   sum_action->func_pointer = (i64)__sum_action_lifted_10__;
   sum_action->env = (i64)NULL;
-  feed_action = malloc(sizeof(closure_t));
+  feed_action = xmalloc(sizeof(closure_t));
   feed_action->func_pointer = (i64)__feed_action_lifted_9__;
   feed_action->env = (i64)NULL;
-  parse = malloc(sizeof(closure_t));
+  parse = xmalloc(sizeof(closure_t));
   parse->func_pointer = (i64)__parse_lifted_8__;
   parse->env = (i64)NULL;
-  feed = malloc(sizeof(closure_t));
+  feed = xmalloc(sizeof(closure_t));
   feed->func_pointer = (i64)__feed_lifted_7__;
   feed->env = (i64)NULL;
-  catch = malloc(sizeof(closure_t));
+  catch = xmalloc(sizeof(closure_t));
   catch->func_pointer = (i64)__catch_lifted_6__;
   catch->env = (i64)NULL;
-  sum = malloc(sizeof(closure_t));
+  sum = xmalloc(sizeof(closure_t));
   sum->func_pointer = (i64)__sum_lifted_5__;
   sum->env = (i64)NULL;
-  is_dollar = malloc(sizeof(closure_t));
+  is_dollar = xmalloc(sizeof(closure_t));
   is_dollar->func_pointer = (i64)__is_dollar_lifted_4__;
   is_dollar->env = (i64)NULL;
-  dollar = malloc(sizeof(closure_t));
+  dollar = xmalloc(sizeof(closure_t));
   dollar->func_pointer = (i64)__dollar_lifted_3__;
   dollar->env = (i64)NULL;
-  is_newline = malloc(sizeof(closure_t));
+  is_newline = xmalloc(sizeof(closure_t));
   is_newline->func_pointer = (i64)__is_newline_lifted_2__;
   is_newline->env = (i64)NULL;
-  newline = malloc(sizeof(closure_t));
+  newline = xmalloc(sizeof(closure_t));
   newline->func_pointer = (i64)__newline_lifted_1__;
   newline->env = (i64)NULL;
   

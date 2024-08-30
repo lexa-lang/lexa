@@ -12,9 +12,9 @@
   static i64 __make_adder_lifted_1__(i64,i64);
   static closure_t* make_adder;
   static i64 __make_adder_lifted_1__(i64 __env__,i64 a) {
-  return(({i64 res = (i64)(({closure_t* __c__ = malloc(sizeof(closure_t));
+  return(({i64 res = (i64)(({closure_t* __c__ = xmalloc(sizeof(closure_t));
   __c__->func_pointer = (i64)__fun_lifted_3__;
-  __c__->env = (i64)malloc(1 * sizeof(i64));
+  __c__->env = (i64)xmalloc(1 * sizeof(i64));
   ((i64*)(__c__->env))[0] = (i64)a;
   (i64)__c__;}));
   res;}));
@@ -22,7 +22,7 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  make_adder = malloc(sizeof(closure_t));
+  make_adder = xmalloc(sizeof(closure_t));
   make_adder->func_pointer = (i64)__make_adder_lifted_1__;
   make_adder->env = (i64)NULL;
   

@@ -28,6 +28,7 @@
         packages.clang_18_preserve_none = pkgs.callPackage ./nix/clang18.nix { };
         packages.effekt_0_2_2 = pkgs.callPackage ./nix/effekt_0_2_2.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
         packages.effect_latest = pkgs.callPackage ./nix/effekt_latest.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
+        packages.bdwgc = pkgs.callPackage ./nix/bdwgc.nix { };
         devShell = with pkgs; mkShell {
           nativeBuildInputs = [
             self.packages.${system}.clang_18_preserve_none
@@ -70,7 +71,7 @@
             valgrind
             jemalloc
             gperftools
-            boehmgc
+            self.packages.${system}.bdwgc
 
             ghostscript
             graphviz

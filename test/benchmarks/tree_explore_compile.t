@@ -80,9 +80,9 @@
   }
   
   static i64 __list_max_lifted_2__(i64 __env__,i64 l) {
-  return(({closure_t* list_max_rec = malloc(sizeof(closure_t));
+  return(({closure_t* list_max_rec = xmalloc(sizeof(closure_t));
   
-  list_max_rec->env = (i64)malloc(1 * sizeof(i64));
+  list_max_rec->env = (i64)xmalloc(1 * sizeof(i64));
   ((i64*)(list_max_rec->env))[0] = (i64)list_max_rec;
   list_max_rec->func_pointer = (i64)__list_max_rec_lifted_10__;
   
@@ -147,7 +147,7 @@
   static i64 __run_lifted_8__(i64 __env__,i64 n) {
   return(({i64 tre = (i64)(((i64(*)(i64, i64))__make_lifted_4__)(0,n));
   ({i64 state = (i64)(({i64 __field_0__ = (i64)0;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   (((i64(*)(i64, i64, i64, i64))__loop_lifted_7__)(0,state,tre,10));});}));
@@ -155,28 +155,28 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_8__;
   run->env = (i64)NULL;
-  loop = malloc(sizeof(closure_t));
+  loop = xmalloc(sizeof(closure_t));
   loop->func_pointer = (i64)__loop_lifted_7__;
   loop->env = (i64)NULL;
-  paths = malloc(sizeof(closure_t));
+  paths = xmalloc(sizeof(closure_t));
   paths->func_pointer = (i64)__paths_lifted_6__;
   paths->env = (i64)NULL;
-  explore = malloc(sizeof(closure_t));
+  explore = xmalloc(sizeof(closure_t));
   explore->func_pointer = (i64)__explore_lifted_5__;
   explore->env = (i64)NULL;
-  make = malloc(sizeof(closure_t));
+  make = xmalloc(sizeof(closure_t));
   make->func_pointer = (i64)__make_lifted_4__;
   make->env = (i64)NULL;
-  operator = malloc(sizeof(closure_t));
+  operator = xmalloc(sizeof(closure_t));
   operator->func_pointer = (i64)__operator_lifted_3__;
   operator->env = (i64)NULL;
-  list_max = malloc(sizeof(closure_t));
+  list_max = xmalloc(sizeof(closure_t));
   list_max->func_pointer = (i64)__list_max_lifted_2__;
   list_max->env = (i64)NULL;
-  append = malloc(sizeof(closure_t));
+  append = xmalloc(sizeof(closure_t));
   append->func_pointer = (i64)__append_lifted_1__;
   append->env = (i64)NULL;
   

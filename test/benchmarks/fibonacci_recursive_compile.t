@@ -16,7 +16,7 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  fib = malloc(sizeof(closure_t));
+  fib = xmalloc(sizeof(closure_t));
   fib->func_pointer = (i64)__fib_lifted_1__;
   fib->env = (i64)NULL;
   

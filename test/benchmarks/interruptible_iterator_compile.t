@@ -36,7 +36,7 @@
   return(({(HANDLE(__handle_body_lifted_9__, ({TAIL, __replace_stub_lifted_10___replace}), ((i64)behead_stub, (i64)it, (i64)yield_stub)));
   ({i64 it_tail = (i64)(((i64)(listTail((node_t*)it))));
   ({i64 beheaded = (i64)(({i64 __field_0__ = (i64)0;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   ({i64 newtl = (i64)((((i64)(listIsEmpty((node_t*)it_tail)))) ? (((i64)(listEnd()))) : (HANDLE(__handle_body_lifted_7__, ({TAIL, __behead_stub_lifted_8___behead}), ((i64)beheaded, (i64)it_tail, (i64)loop, (i64)yield_stub))));
@@ -54,7 +54,7 @@
   static i64 __run_lifted_3__(i64 __env__,i64 n) {
   return(({i64 l = (i64)(((i64)(listRange((int64_t)(0 - n), (int64_t)n))));
   ({i64 beheaded = (i64)(({i64 __field_0__ = (i64)0;
-  i64* __newref__ = malloc(1 * sizeof(i64));
+  i64* __newref__ = xmalloc(1 * sizeof(i64));
   __newref__[0] = __field_0__;
   (i64)__newref__;}));
   ({i64 newtl = (i64)(HANDLE(__handle_body_lifted_13__, ({TAIL, __behead_main_stub_lifted_14___behead}), ((i64)beheaded, (i64)l, (i64)loop)));
@@ -74,19 +74,19 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  repeat = malloc(sizeof(closure_t));
+  repeat = xmalloc(sizeof(closure_t));
   repeat->func_pointer = (i64)__repeat_lifted_5__;
   repeat->env = (i64)NULL;
-  step = malloc(sizeof(closure_t));
+  step = xmalloc(sizeof(closure_t));
   step->func_pointer = (i64)__step_lifted_4__;
   step->env = (i64)NULL;
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_3__;
   run->env = (i64)NULL;
-  listSum = malloc(sizeof(closure_t));
+  listSum = xmalloc(sizeof(closure_t));
   listSum->func_pointer = (i64)__listSum_lifted_2__;
   listSum->env = (i64)NULL;
-  loop = malloc(sizeof(closure_t));
+  loop = xmalloc(sizeof(closure_t));
   loop->func_pointer = (i64)__loop_lifted_1__;
   loop->env = (i64)NULL;
   

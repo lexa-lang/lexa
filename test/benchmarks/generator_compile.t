@@ -105,9 +105,9 @@
   }
   
   static i64 __run_lifted_5__(i64 __env__,i64 n) {
-  return(({i64 f = (i64)(({closure_t* __c__ = malloc(sizeof(closure_t));
+  return(({i64 f = (i64)(({closure_t* __c__ = xmalloc(sizeof(closure_t));
   __c__->func_pointer = (i64)__fun_lifted_9__;
-  __c__->env = (i64)malloc(3 * sizeof(i64));
+  __c__->env = (i64)xmalloc(3 * sizeof(i64));
   ((i64*)(__c__->env))[0] = (i64)iterate;
   ((i64*)(__c__->env))[1] = (i64)make;
   ((i64*)(__c__->env))[2] = (i64)n;
@@ -117,19 +117,19 @@
   
   int main(int argc, char *argv[]) {
   init_stack_pool();
-  run = malloc(sizeof(closure_t));
+  run = xmalloc(sizeof(closure_t));
   run->func_pointer = (i64)__run_lifted_5__;
   run->env = (i64)NULL;
-  sum = malloc(sizeof(closure_t));
+  sum = xmalloc(sizeof(closure_t));
   sum->func_pointer = (i64)__sum_lifted_4__;
   sum->env = (i64)NULL;
-  generate = malloc(sizeof(closure_t));
+  generate = xmalloc(sizeof(closure_t));
   generate->func_pointer = (i64)__generate_lifted_3__;
   generate->env = (i64)NULL;
-  iterate = malloc(sizeof(closure_t));
+  iterate = xmalloc(sizeof(closure_t));
   iterate->func_pointer = (i64)__iterate_lifted_2__;
   iterate->env = (i64)NULL;
-  make = malloc(sizeof(closure_t));
+  make = xmalloc(sizeof(closure_t));
   make->func_pointer = (i64)__make_lifted_1__;
   make->env = (i64)NULL;
   
