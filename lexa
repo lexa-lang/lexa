@@ -14,7 +14,7 @@ def run_commands(source_file, output_file):
         dune_command = ["dune", "exec", "lexa", "--", source_file, "-o", temp_file]
         subprocess.run(dune_command, check=True)
 
-        clang_command = ["clang", "-g", "-O3", "-I", "./src/stacktrek", temp_file, "-o", output_file, "-lm"]
+        clang_command = ["clang", "-g", "-O3", "-I", "./src/stacktrek", temp_file, "-o", output_file, "-lm", "-lgc"]
         subprocess.run(clang_command, check=True)
     finally:
         shutil.rmtree(temp_dir)
