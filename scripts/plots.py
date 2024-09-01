@@ -14,6 +14,8 @@ import numpy as np
 plt.rcParams['pdf.fonttype'] = 42
 plt.rcParams['ps.fonttype'] = 42
 
+pd.options.mode.copy_on_write = True
+
 matplotlib.use("pgf")
 preamble = r'\usepackage{fontspec}\setmainfont{Linux Libertine O}\setmonofont[Scale=MatchLowercase]{JetBrains Mono}\usepackage{xcolor}'
 params = {
@@ -99,6 +101,10 @@ def plot_df(df, dirname):
         "koka_named": "x",
         "ocaml": "x",
     }
+
+    # remove effekt's scheduler from df as it is already shown on the other plot
+    df = df[~((df['platform'] == "effekt") & (df['benchmark'] == "scheduler"))]
+
     fig, axs = plt.subplots(4, 4, figsize=(10, 13))
     fig.supxlabel('Input size', fontsize=14)
     fig.supylabel('Running time (s)', fontsize=14)
