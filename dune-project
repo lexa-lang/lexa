@@ -1,22 +1,15 @@
 (lang dune 3.10)
 
-(name sstal)
+(name lexa)
 
 (source
- (github username/reponame))
+ (github lexa-lang/lexa))
 
-(authors "Author Name")
-
-(maintainers "Maintainer Name")
-
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+(license MIT)
 
 (package
- (name sstal)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (name lexa)
+ (description "The Lexa programming language")
  (depends 
   ocaml
   dune 

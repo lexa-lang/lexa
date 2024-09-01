@@ -1,5 +1,5 @@
 (executable
- (public_name sstal)
+ (public_name lexa)
  (name main)
  (libraries syntax IRParser codegen unix)
  (modes byte exe))

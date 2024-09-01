@@ -3,7 +3,7 @@ open Codegen
 
 module StringSet = Syntax__Varset
 
-let usage_msg = "sstal <file1> -o <output> -r "
+let usage_msg = "lexa <file1> -o <output> -r "
 
 let input_file = ref ""
 let output_file = ref ""

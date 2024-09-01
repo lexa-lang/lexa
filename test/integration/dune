@@ -1,6 +1,6 @@
 (cram
  (deps 
-  %{bin:sstal} 
+  %{bin:lexa} 
   (glob_files_rec ../lexa_snippets/*.lx)
   (glob_files_rec ../../src/stacktrek/*.h)
   (glob_files_rec ../lexa_snippets/*)))

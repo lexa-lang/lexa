@@ -181,7 +181,7 @@ def main():
         result_txt = "plotting_runtimes2.txt"
         result_csv = "plotting_runtimes2.csv"
         for benchmark in ["scheduler_notick"]:
-            LEXA_BUILD_COMMAND = "flock /tmp/dune_lockfile -c 'dune exec -- sstal main.lx -o main.c' && clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc"
+            LEXA_BUILD_COMMAND = "flock /tmp/dune_lockfile -c 'dune exec -- lexa main.lx -o main.c' && clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc"
             LEXA_RUN_COMMAND = "./main {IN}"
             config[("lexa", benchmark)] = {
                 "build": LEXA_BUILD_COMMAND, "run": LEXA_RUN_COMMAND,

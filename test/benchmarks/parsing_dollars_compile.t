@@ -1,11 +1,11 @@
-  $ sstal ../../benchmarks/lexa/parsing_dollars/main.lx -o main.c
+  $ lexa ../../benchmarks/lexa/parsing_dollars/main.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>
   #include <stdio.h>
   #include <stdbool.h>
   #include <string.h>
-  #include <defs.h>
+  #include <stacktrek.h>
   #include <datastructure.h>
   
   static i64 __handle_body_lifted_14__(i64,i64);

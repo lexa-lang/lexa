@@ -1,5 +1,5 @@
 (cram
  (deps 
-  %{bin:sstal} 
+  %{bin:lexa} 
   (glob_files_rec ../../benchmarks/lexa/*.lx)
   (glob_files_rec ../../src/stacktrek/*.h)))
