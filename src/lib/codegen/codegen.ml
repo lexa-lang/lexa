@@ -478,7 +478,7 @@ return((int)__res__);}|}
 
 let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (string * string) list)) ~tail =
   tail_call_opt := tail;
-  let header = "#include <stdint.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>\n#include <defs.h>\n#include <datastructure.h>\n"
+  let header = "#include <stdint.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>\n#include <stacktrek.h>\n#include <datastructure.h>\n"
   in
   let eff_sig_env = sig_pass toplevels in
   let eff_type_env = eff_type_pass toplevels in

@@ -16,7 +16,7 @@ function activate(context) {
     const setBinaryPathCommand = vscode.commands.registerCommand('lexa-lsp.setBinaryPath', async function () {
         const newBinaryPath = await vscode.window.showInputBox({
             prompt: 'Enter the path to your binary for the build',
-            value: binaryPath || `/u/${os.userInfo().username}/sstal/_build/default/bin/main.exe`
+            value: binaryPath || `/u/${os.userInfo().username}/lexa/_build/default/bin/main.exe`
         });
 
         if (newBinaryPath) {

@@ -30,18 +30,18 @@ test: build
 
 build:
 	echo "Building programs..."
-	cd countdown ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc 
-	cd fibonacci_recursive ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd product_early ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd iterator ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd nqueens ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd tree_explore ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd triples ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd resume_nontail ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd parsing_dollars ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd handler_sieve ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd scheduler ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
-	cd interruptible_iterator ; dune exec -- sstal main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd countdown ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc 
+	cd fibonacci_recursive ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd product_early ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd iterator ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd nqueens ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd tree_explore ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd triples ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd resume_nontail ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd parsing_dollars ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd handler_sieve ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd scheduler ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
+	cd interruptible_iterator ; dune exec -- lexa main.lx -o main.c; clang-format -i main.c; clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc
 	
 
 

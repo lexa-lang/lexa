@@ -1,11 +1,11 @@
-  $ sstal ../lexa_snippets/tail_fact.lx -o main.c --no-tail
+  $ lexa ../lexa_snippets/tail_fact.lx -o main.c --no-tail
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>
   #include <stdio.h>
   #include <stdbool.h>
   #include <string.h>
-  #include <defs.h>
+  #include <stacktrek.h>
   #include <datastructure.h>
   
   static i64 __fact_tail_lifted_3__(i64,i64,i64);

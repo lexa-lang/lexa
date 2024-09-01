@@ -11,7 +11,7 @@ def run_commands(source_file, output_file):
         base_name = os.path.basename(source_file)
         temp_file = os.path.join(temp_dir, os.path.splitext(base_name)[0] + ".c")
 
-        dune_command = ["dune", "exec", "sstal", "--", source_file, "-o", temp_file]
+        dune_command = ["dune", "exec", "lexa", "--", source_file, "-o", temp_file]
         subprocess.run(dune_command, check=True)
 
         clang_command = ["clang", "-g", "-O3", "-I", "./src/stacktrek", temp_file, "-o", output_file, "-lm"]

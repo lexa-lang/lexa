@@ -112,7 +112,7 @@ void init_stack_pool() {
     buffer = (char*)GC_memalign(STACK_SIZE, STACK_SIZE * PREALLOCATED_STACKS);
     bitmap = -1;
 
-    // TODO: more granular GC https://git.uwaterloo.ca/z33ge/sstal/-/issues/67
+    // TODO: more granular GC https://git.uwaterloo.ca/z33ge/lexa/-/issues/67
     // GC_allow_register_threads();
 }
 

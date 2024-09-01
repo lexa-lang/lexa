@@ -10,7 +10,7 @@ the full power of multishot handler. But it is still a good example.
 
 To run:
 ```
-dune exec -- sstal lambdaman.lx -o lambdaman.c
+dune exec -- lexa lambdaman.lx -o lambdaman.c
 echo "$(cat API.h lambdaman.c)" > lambdaman.c
 clang -I ../../stacktrek -g -O3 lambdaman.c -o lambdaman
 ```

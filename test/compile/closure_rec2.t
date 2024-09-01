@@ -1,11 +1,11 @@
-  $ sstal ../lexa_snippets/closure_rec2.lx -o main.c
+  $ lexa ../lexa_snippets/closure_rec2.lx -o main.c
   $ cat main.c
   #include <stdint.h>
   #include <stdlib.h>
   #include <stdio.h>
   #include <stdbool.h>
   #include <string.h>
-  #include <defs.h>
+  #include <stacktrek.h>
   #include <datastructure.h>
   
   static i64 __f_lifted_3__(i64);
