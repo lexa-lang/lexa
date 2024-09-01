@@ -4,7 +4,12 @@ import pwd
 
 # On my machine with i5-13600K, the 6 performance cores
 # uses hyperthreading, so we have 6 physical cores as follow
-if pwd.getpwuid(os.geteuid()).pw_name == "congm":
+with open('/proc/cpuinfo') as f:
+    for line in f:
+        if 'model name' in line:
+            cpu_model = line.split(': ')[1].strip()
+            break
+if "i5-13600K" in cpu_model:
     bench_CPUs = ["0", "2", "4", "6", "8", "10"]
 else:
     # list all the physical cores
