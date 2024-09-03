@@ -29,12 +29,12 @@ To run the Lexa compiler, use the following command:
 ```
 See `./casestudies`  and `./test` for exmaple Lexa programs.
 
-### Reproduce the result in OOPSLA'24 paper
+## Reproduce the result in OOPSLA'24 paper
 1. Follow the instructions above to setup the project.
 2. **Figure 2**: Run `cd scripts; python ./plots.py --tick-plot --plot-only ./final_plotting_runtimes2.csv`, the plot will be saved in `./scaling_plots/two_scaling_plot.pdf`. To plot using fresh data, run `python ./plots.py --tick-plot`.
 3. **Table 1**: Run `cd scripts; python bench.py`, the result will be saved in `./runtimes.csv`.
 4. **Figure 16**: Run `cd scripts; python ./plots.py --plot-only ./final_plotting_runtimes.csv`, the plot will be saved in `./scaling_plots/scaling_plot.pdf`. To plot using fresh data, run `python ./plots.py`.
 5. **Test formalized translation**: Run `cd src/formalized_translation; racket artifact.rkt`.
 
-### Contact/Contribute
+## Contact/Contribute
 Please reach out to Cong Ma(cong.ma@uwaterloo.ca) for any questions. We welcome contributions to the project.
