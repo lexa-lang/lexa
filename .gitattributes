@@ -1,0 +1,3 @@
+*.lx linguist-language=lexa
+test/**/*.t linguist-detectable=false
+casestudies/**/*.t linguist-detectable=false
