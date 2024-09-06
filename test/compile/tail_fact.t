@@ -22,19 +22,19 @@
   fact_nontail->env = (i64)NULL;
   
   i64 __res__ = ({i64 x = (i64)(((i64)(readInt())));
-  ({i64 r1 = (i64)(((i64(*)(i64, i64))__fact_nontail_lifted_2__)(0,x));
-  ({i64 r2 = (i64)(((i64(*)(i64, i64, i64))__fact_tail_lifted_3__)(0,x,1));
+  ({i64 r1 = (i64)(((i64(*)(i64, i64))__fact_nontail_lifted_2__)((i64)0, (i64)x));
+  ({i64 r2 = (i64)(((i64(*)(i64, i64, i64))__fact_tail_lifted_3__)((i64)0, (i64)x, (i64)1));
   ({i64 _ = (i64)(((i64)(printInt((int64_t)r1))));
   ({i64 _ = (i64)(((i64)(printInt((int64_t)r2))));
   0;});});});});});
   destroy_stack_pool();
   return((int)__res__);}
   static i64 __fact_nontail_lifted_2__(i64 __env__,i64 x) {
-  return(((x < 2) ? 1 : (x * (((i64(*)(i64, i64))__fact_nontail_lifted_2__)(0,(x - 1))))));
+  return(((x < 2) ? 1 : (x * (((i64(*)(i64, i64))__fact_nontail_lifted_2__)((i64)0, (i64)(x - 1))))));
   }
   
   static i64 __fact_tail_lifted_3__(i64 __env__,i64 x,i64 acc) {
   return(((x < 2) ? acc : (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64))__fact_tail_lifted_3__)(0,(x - 1),(x * acc)); 0;}))));
+   return ((i64(*)(i64, i64, i64))__fact_tail_lifted_3__)((i64)0, (i64)(x - 1), (i64)(x * acc)); 0;}))));
   }
   

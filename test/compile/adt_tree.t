@@ -35,8 +35,8 @@
   make->func_pointer = (i64)__make_lifted_2__;
   make->env = (i64)NULL;
   
-  i64 __res__ = ({i64 t = (i64)(((i64(*)(i64, i64))__make_lifted_2__)(0,(((i64)(readInt())))));
-  ({(((i64(*)(i64, i64))__traverse_lifted_3__)(0,t));
+  i64 __res__ = ({i64 t = (i64)(((i64(*)(i64, i64))__make_lifted_2__)((i64)0, (i64)(((i64)(readInt())))));
+  ({(((i64(*)(i64, i64))__traverse_lifted_3__)((i64)0, (i64)t));
   0;});});
   destroy_stack_pool();
   return((int)__res__);}
@@ -49,8 +49,8 @@
   (i64)__t__;})
   ) : (({
   i64 __arg_0__ = (i64)i;
-  i64 __arg_1__ = (i64)(((i64(*)(i64, i64))__make_lifted_2__)(0,(i - 1)));
-  i64 __arg_2__ = (i64)(((i64(*)(i64, i64))__make_lifted_2__)(0,(i - 1)));
+  i64 __arg_1__ = (i64)(((i64(*)(i64, i64))__make_lifted_2__)((i64)0, (i64)(i - 1)));
+  i64 __arg_2__ = (i64)(((i64(*)(i64, i64))__make_lifted_2__)((i64)0, (i64)(i - 1)));
   
   tree* __t__ = (tree*)xmalloc(sizeof(tree));
   __t__->tag = Node;
@@ -71,8 +71,8 @@
   i64 r = (i64)(__expr_res__->Node[2]);
   
   ({(((i64)(printInt((int64_t)i))));
-  ({(((i64(*)(i64, i64))__traverse_lifted_3__)(0,l));
-  ({(((i64(*)(i64, i64))__traverse_lifted_3__)(0,r));
+  ({(((i64(*)(i64, i64))__traverse_lifted_3__)((i64)0, (i64)l));
+  ({(((i64(*)(i64, i64))__traverse_lifted_3__)((i64)0, (i64)r));
   0;});});});});}
   __match_res__;})));
   }

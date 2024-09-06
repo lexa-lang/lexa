@@ -21,7 +21,7 @@
   return(({i64 i = (i64)(RAISE(state_stub, get, ((i64)0)));
   ((i == 0) ? i : ({(RAISE(state_stub, set, ((i64)i-1)));
   (({__attribute__((musttail))
-   return ((i64(*)(i64, i64))__countdown_lifted_1__)(0,state_stub); 0;}));}));}));
+   return ((i64(*)(i64, i64))__countdown_lifted_1__)((i64)0, (i64)state_stub); 0;}));}));}));
   }
   
   static i64 __run_lifted_2__(i64 __env__,i64 n) {
@@ -41,7 +41,7 @@
   countdown->func_pointer = (i64)__countdown_lifted_1__;
   countdown->env = (i64)NULL;
   
-  i64 __res__ = ({(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__run_lifted_2__)(0,(((i64)(readInt())))))))));
+  i64 __res__ = ({(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__run_lifted_2__)((i64)0, (i64)(((i64)(readInt())))))))));
   0;});
   destroy_stack_pool();
   return((int)__res__);}
@@ -61,6 +61,6 @@
   static i64 __handle_body_lifted_4__(i64 __env__,i64 state_stub) {
   return(({i64 countdown = (i64)(((i64*)__env__)[0]);
   ({i64 s = (i64)(((i64*)__env__)[1]);
-  (((i64(*)(i64, i64))__countdown_lifted_1__)(0,state_stub));});}));
+  (((i64(*)(i64, i64))__countdown_lifted_1__)((i64)0, (i64)state_stub));});}));
   }
   

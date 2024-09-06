@@ -198,7 +198,7 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
               s :: list_repeat (n - 1) s in
             let cast_func_str =
               sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length args) "i64")) in
-            sprintf "((%s)%s)%s" cast_func_str (gen_expr e1) (gen_args args)) in
+            sprintf "((%s)%s)%s" cast_func_str (gen_expr e1) (gen_args args ~cast:true)) in
         let do_tail = is_tail && (match e1 with
         | Var callee_name -> callee_name = !cur_toplevel
         | _ -> false) in 

@@ -24,14 +24,14 @@
   
   static i64 __choice_lifted_1__(i64 __env__,i64 n,i64 choice_stub) {
   return(((n < 1) ? (RAISE(choice_stub, fail, ((i64)0))) : ((RAISE(choice_stub, flip, ((i64)0))) ? n : (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64))__choice_lifted_1__)(0,(n - 1),choice_stub); 0;})))));
+   return ((i64(*)(i64, i64, i64))__choice_lifted_1__)((i64)0, (i64)(n - 1), (i64)choice_stub); 0;})))));
   }
   
   static i64 __triple_lifted_2__(i64 __env__,i64 n,i64 s,i64 choice_stub) {
-  return(({i64 i = (i64)(((i64(*)(i64, i64, i64))__choice_lifted_1__)(0,n,choice_stub));
-  ({i64 j = (i64)(((i64(*)(i64, i64, i64))__choice_lifted_1__)(0,(i - 1),choice_stub));
-  ({i64 k = (i64)(((i64(*)(i64, i64, i64))__choice_lifted_1__)(0,(j - 1),choice_stub));
-  ((((i + j) + k) == s) ? (((i64(*)(i64, i64, i64, i64))__hash_lifted_4__)(0,i,j,k)) : (RAISE(choice_stub, fail, ((i64)0))));});});}));
+  return(({i64 i = (i64)(((i64(*)(i64, i64, i64))__choice_lifted_1__)((i64)0, (i64)n, (i64)choice_stub));
+  ({i64 j = (i64)(((i64(*)(i64, i64, i64))__choice_lifted_1__)((i64)0, (i64)(i - 1), (i64)choice_stub));
+  ({i64 k = (i64)(((i64(*)(i64, i64, i64))__choice_lifted_1__)((i64)0, (i64)(j - 1), (i64)choice_stub));
+  ((((i + j) + k) == s) ? (((i64(*)(i64, i64, i64, i64))__hash_lifted_4__)((i64)0, (i64)i, (i64)j, (i64)k)) : (RAISE(choice_stub, fail, ((i64)0))));});});}));
   }
   
   static i64 __run_lifted_3__(i64 __env__,i64 n,i64 s) {
@@ -58,7 +58,7 @@
   choice->env = (i64)NULL;
   
   i64 __res__ = ({i64 n = (i64)(((i64)(readInt())));
-  ({i64 res = (i64)(((i64(*)(i64, i64, i64))__run_lifted_3__)(0,n,n));
+  ({i64 res = (i64)(((i64(*)(i64, i64, i64))__run_lifted_3__)((i64)0, (i64)n, (i64)n));
   ({(((i64)(printInt((int64_t)res))));
   0;});});});
   destroy_stack_pool();
@@ -82,6 +82,6 @@
   return(({i64 n = (i64)(((i64*)__env__)[0]);
   ({i64 s = (i64)(((i64*)__env__)[1]);
   ({i64 triple = (i64)(((i64*)__env__)[2]);
-  (((i64(*)(i64, i64, i64, i64))__triple_lifted_2__)(0,n,s,choice_stub));});});}));
+  (((i64(*)(i64, i64, i64, i64))__triple_lifted_2__)((i64)0, (i64)n, (i64)s, (i64)choice_stub));});});}));
   }
   
