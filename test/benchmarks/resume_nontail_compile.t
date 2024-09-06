@@ -24,7 +24,7 @@
   static i64 __loop_lifted_1__(i64 __env__,i64 i,i64 s,i64 operator_stub) {
   return(((i == 0) ? s : ({(RAISE(operator_stub, operator, ((i64)i)));
   (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64, i64))__loop_lifted_1__)(0,(i - 1),s,operator_stub); 0;}));})));
+   return ((i64(*)(i64, i64, i64, i64))__loop_lifted_1__)((i64)0, (i64)(i - 1), (i64)s, (i64)operator_stub); 0;}));})));
   }
   
   static i64 __run_lifted_2__(i64 __env__,i64 n,i64 s) {
@@ -33,11 +33,11 @@
   
   static i64 __step_lifted_3__(i64 __env__,i64 l,i64 s,i64 n) {
   return(((l == 0) ? s : (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64, i64))__step_lifted_3__)(0,(l - 1),(((i64(*)(i64, i64, i64))__run_lifted_2__)(0,n,s)),n); 0;}))));
+   return ((i64(*)(i64, i64, i64, i64))__step_lifted_3__)((i64)0, (i64)(l - 1), (i64)(((i64(*)(i64, i64, i64))__run_lifted_2__)((i64)0, (i64)n, (i64)s)), (i64)n); 0;}))));
   }
   
   static i64 __repeat_lifted_4__(i64 __env__,i64 n) {
-  return((((i64(*)(i64, i64, i64, i64))__step_lifted_3__)(0,1000,0,n)));
+  return((((i64(*)(i64, i64, i64, i64))__step_lifted_3__)((i64)0, (i64)1000, (i64)0, (i64)n)));
   }
   
   int main(int argc, char *argv[]) {
@@ -55,7 +55,7 @@
   loop->func_pointer = (i64)__loop_lifted_1__;
   loop->env = (i64)NULL;
   
-  i64 __res__ = ({(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__repeat_lifted_4__)(0,(((i64)(readInt())))))))));
+  i64 __res__ = ({(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__repeat_lifted_4__)((i64)0, (i64)(((i64)(readInt())))))))));
   0;});
   destroy_stack_pool();
   return((int)__res__);}
@@ -72,6 +72,6 @@
   return(({i64 loop = (i64)(((i64*)__env__)[0]);
   ({i64 n = (i64)(((i64*)__env__)[1]);
   ({i64 s = (i64)(((i64*)__env__)[2]);
-  (((i64(*)(i64, i64, i64, i64))__loop_lifted_1__)(0,n,s,operator_stub));});});}));
+  (((i64(*)(i64, i64, i64, i64))__loop_lifted_1__)((i64)0, (i64)n, (i64)s, (i64)operator_stub));});});}));
   }
   

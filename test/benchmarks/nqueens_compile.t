@@ -27,13 +27,13 @@
   (is_empty ? 1 : ({i64 q = (i64)(((i64)(listHead((node_t*)xs))));
   ({i64 qs = (i64)(((i64)(listTail((node_t*)xs))));
   ((((queen != q) && (queen != (q + diag))) && (queen != (q - diag))) ? (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)(0,queen,(diag + 1),qs); 0;})) : 0);});}));}));
+   return ((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)((i64)0, (i64)queen, (i64)(diag + 1), (i64)qs); 0;})) : 0);});}));}));
   }
   
   static i64 __place_lifted_2__(i64 __env__,i64 size,i64 column,i64 search_stub) {
-  return(((column == 0) ? (((i64)(listEnd()))) : ({i64 rest = (i64)(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)(0,size,(column - 1),search_stub));
+  return(((column == 0) ? (((i64)(listEnd()))) : ({i64 rest = (i64)(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)((i64)0, (i64)size, (i64)(column - 1), (i64)search_stub));
   ({i64 next = (i64)(RAISE(search_stub, pick, ((i64)size)));
-  ((((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)(0,next,1,rest)) ? (((i64)(listNode((int64_t)next, (node_t*)rest)))) : (RAISE(search_stub, fail, ((i64)0))));});})));
+  ((((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)((i64)0, (i64)next, (i64)1, (i64)rest)) ? (((i64)(listNode((int64_t)next, (node_t*)rest)))) : (RAISE(search_stub, fail, ((i64)0))));});})));
   }
   
   static i64 __run_lifted_3__(i64 __env__,i64 n) {
@@ -42,7 +42,7 @@
   
   static i64 __loop_lifted_4__(i64 __env__,i64 i,i64 a,i64 size,i64 k) {
   return(((i == size) ? (a + (FINAL_THROW(k, i))) : (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_4__)(0,(i + 1),(a + (THROW(k, i))),size,k); 0;}))));
+   return ((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_4__)((i64)0, (i64)(i + 1), (i64)(a + (THROW(k, i))), (i64)size, (i64)k); 0;}))));
   }
   
   int main(int argc, char *argv[]) {
@@ -61,7 +61,7 @@
   safe->env = (i64)NULL;
   
   i64 __res__ = ({i64 n = (i64)(((i64)(readInt())));
-  ({i64 run_res = (i64)(((i64(*)(i64, i64))__run_lifted_3__)(0,n));
+  ({i64 run_res = (i64)(((i64(*)(i64, i64))__run_lifted_3__)((i64)0, (i64)n));
   ({(((i64)(printInt((int64_t)run_res))));
   0;});});});
   destroy_stack_pool();
@@ -78,14 +78,14 @@
   return(({i64 loop = (i64)(((i64*)__env__)[0]);
   ({i64 n = (i64)(((i64*)__env__)[1]);
   ({i64 place = (i64)(((i64*)__env__)[2]);
-  (((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_4__)(0,1,0,size,k));});});}));
+  (((i64(*)(i64, i64, i64, i64, i64))__loop_lifted_4__)((i64)0, (i64)1, (i64)0, (i64)size, (i64)k));});});}));
   }
   
   static i64 __handle_body_lifted_6__(i64 __env__,i64 search_stub) {
   return(({i64 loop = (i64)(((i64*)__env__)[0]);
   ({i64 n = (i64)(((i64*)__env__)[1]);
   ({i64 place = (i64)(((i64*)__env__)[2]);
-  ({(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)(0,n,n,search_stub));
+  ({(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)((i64)0, (i64)n, (i64)n, (i64)search_stub));
   1;});});});}));
   }
   

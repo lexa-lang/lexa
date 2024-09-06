@@ -59,7 +59,7 @@
   __t__->tag = Leaf;
   
   (i64)__t__;})
-  ) : ({i64 t = (i64)(((i64(*)(i64, i64))__make_lifted_1__)(0,(n - 1)));
+  ) : ({i64 t = (i64)(((i64(*)(i64, i64))__make_lifted_1__)((i64)0, (i64)(n - 1)));
   (({
   i64 __arg_0__ = (i64)n;
   i64 __arg_1__ = (i64)t;
@@ -83,9 +83,9 @@
   i64 left = (i64)(__expr_res__->Node[1]);
   i64 right = (i64)(__expr_res__->Node[2]);
   
-  ({(((i64(*)(i64, i64, i64))__iterate_lifted_2__)(0,left,yield_stub));
+  ({(((i64(*)(i64, i64, i64))__iterate_lifted_2__)((i64)0, (i64)left, (i64)yield_stub));
   ({(RAISE(yield_stub, yield, ((i64)value)));
-  (((i64(*)(i64, i64, i64))__iterate_lifted_2__)(0,right,yield_stub));});});});}
+  (((i64(*)(i64, i64, i64))__iterate_lifted_2__)((i64)0, (i64)right, (i64)yield_stub));});});});}
   __match_res__;})));
   }
   
@@ -100,7 +100,7 @@
   else if (__expr_res__->tag == Thunk) {__match_res__=({i64 v = (i64)(__expr_res__->Thunk[0]);
   i64 f = (i64)(__expr_res__->Thunk[1]);
   
-  (((i64(*)(i64, i64, i64))__sum_lifted_4__)(0,(v + a),(FINAL_THROW(f, 0))));});}
+  (((i64(*)(i64, i64, i64))__sum_lifted_4__)((i64)0, (i64)(v + a), (i64)(FINAL_THROW(f, 0))));});}
   __match_res__;})));
   }
   
@@ -112,7 +112,7 @@
   ((i64*)(__c__->env))[1] = (i64)make;
   ((i64*)(__c__->env))[2] = (i64)n;
   (i64)__c__;}));
-  (((i64(*)(i64, i64, i64))__sum_lifted_4__)(0,0,(((i64(*)(i64, i64))__generate_lifted_3__)(0,f))));}));
+  (((i64(*)(i64, i64, i64))__sum_lifted_4__)((i64)0, (i64)0, (i64)(((i64(*)(i64, i64))__generate_lifted_3__)((i64)0, (i64)f))));}));
   }
   
   int main(int argc, char *argv[]) {
@@ -133,7 +133,7 @@
   make->func_pointer = (i64)__make_lifted_1__;
   make->env = (i64)NULL;
   
-  i64 __res__ = ({(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__run_lifted_5__)(0,(((i64)(readInt())))))))));
+  i64 __res__ = ({(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__run_lifted_5__)((i64)0, (i64)(((i64)(readInt())))))))));
   0;});
   destroy_stack_pool();
   return((int)__res__);}
@@ -141,7 +141,7 @@
   return(({i64 iterate = (i64)(((i64*)__env__)[0]);
   ({i64 make = (i64)(((i64*)__env__)[1]);
   ({i64 n = (i64)(((i64*)__env__)[2]);
-  (((i64(*)(i64, i64, i64))__iterate_lifted_2__)(0,(((i64(*)(i64, i64))__make_lifted_1__)(0,n)),yield_stub));});});}));
+  (((i64(*)(i64, i64, i64))__iterate_lifted_2__)((i64)0, (i64)(((i64(*)(i64, i64))__make_lifted_1__)((i64)0, (i64)n)), (i64)yield_stub));});});}));
   }
   
   FAST_SWITCH_DECORATOR

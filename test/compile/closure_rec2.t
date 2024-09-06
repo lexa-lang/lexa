@@ -40,7 +40,7 @@
   f->func_pointer = (i64)__f_lifted_1__;
   f->env = (i64)NULL;
   
-  i64 __res__ = ({i64 _ = (i64)(((i64(*)(i64))__f_lifted_1__)(0));
+  i64 __res__ = ({i64 _ = (i64)(((i64(*)(i64))__f_lifted_1__)((i64)0));
   0;});
   destroy_stack_pool();
   return((int)__res__);}

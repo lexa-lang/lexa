@@ -87,29 +87,29 @@
   
   static i64 __parse_lifted_8__(i64 __env__,i64 a,i64 read_stub,i64 emit_stub,i64 stop_stub) {
   return(({i64 c = (i64)(RAISE(read_stub, read, ((i64)0)));
-  ((((i64(*)(i64, i64))__is_dollar_lifted_4__)(0,c)) ? (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64, i64, i64))__parse_lifted_8__)(0,(a + 1),read_stub,emit_stub,stop_stub); 0;})) : ((((i64(*)(i64, i64))__is_newline_lifted_2__)(0,c)) ? ({(RAISE(emit_stub, emit, ((i64)a)));
+  ((((i64(*)(i64, i64))__is_dollar_lifted_4__)((i64)0, (i64)c)) ? (({__attribute__((musttail))
+   return ((i64(*)(i64, i64, i64, i64, i64))__parse_lifted_8__)((i64)0, (i64)(a + 1), (i64)read_stub, (i64)emit_stub, (i64)stop_stub); 0;})) : ((((i64(*)(i64, i64))__is_newline_lifted_2__)((i64)0, (i64)c)) ? ({(RAISE(emit_stub, emit, ((i64)a)));
   (({__attribute__((musttail))
-   return ((i64(*)(i64, i64, i64, i64, i64))__parse_lifted_8__)(0,0,read_stub,emit_stub,stop_stub); 0;}));}) : (RAISE(stop_stub, stop, ((i64)0)))));}));
+   return ((i64(*)(i64, i64, i64, i64, i64))__parse_lifted_8__)((i64)0, (i64)0, (i64)read_stub, (i64)emit_stub, (i64)stop_stub); 0;}));}) : (RAISE(stop_stub, stop, ((i64)0)))));}));
   }
   
   static i64 __feed_action_lifted_9__(i64 __env__,i64 read_stub,i64 emit_stub,i64 stop_stub) {
-  return((((i64(*)(i64, i64, i64, i64, i64))__parse_lifted_8__)(0,0,read_stub,emit_stub,stop_stub)));
+  return((((i64(*)(i64, i64, i64, i64, i64))__parse_lifted_8__)((i64)0, (i64)0, (i64)read_stub, (i64)emit_stub, (i64)stop_stub)));
   }
   
   static i64 __sum_action_lifted_10__(i64 __env__,i64 emit_stub,i64 n) {
   return(({i64 catch_action_i64 = (i64)catch_action;
-  (((i64(*)(i64, i64, i64, i64))__catch_lifted_6__)(0,catch_action_i64,emit_stub,n));}));
+  (((i64(*)(i64, i64, i64, i64))__catch_lifted_6__)((i64)0, (i64)catch_action_i64, (i64)emit_stub, (i64)n));}));
   }
   
   static i64 __catch_action_lifted_11__(i64 __env__,i64 stop_stub,i64 emit_stub,i64 n) {
   return(({i64 feed_action_i64 = (i64)feed_action;
-  (((i64(*)(i64, i64, i64, i64, i64))__feed_lifted_7__)(0,n,feed_action_i64,stop_stub,emit_stub));}));
+  (((i64(*)(i64, i64, i64, i64, i64))__feed_lifted_7__)((i64)0, (i64)n, (i64)feed_action_i64, (i64)stop_stub, (i64)emit_stub));}));
   }
   
   static i64 __run_lifted_12__(i64 __env__,i64 n) {
   return(({i64 sum_action_i64 = (i64)sum_action;
-  (((i64(*)(i64, i64, i64))__sum_lifted_5__)(0,sum_action_i64,n));}));
+  (((i64(*)(i64, i64, i64))__sum_lifted_5__)((i64)0, (i64)sum_action_i64, (i64)n));}));
   }
   
   int main(int argc, char *argv[]) {
@@ -152,7 +152,7 @@
   newline->env = (i64)NULL;
   
   i64 __res__ = ({i64 n = (i64)(((i64)(readInt())));
-  ({i64 run_result = (i64)(((i64(*)(i64, i64))__run_lifted_12__)(0,n));
+  ({i64 run_result = (i64)(((i64(*)(i64, i64))__run_lifted_12__)((i64)0, (i64)n));
   ({(((i64)(printInt((int64_t)run_result))));
   0;});});});
   destroy_stack_pool();
@@ -170,8 +170,8 @@
   ({i64 j = (i64)(((i64*)j_ref)[0]);
   ((i > n) ? (RAISE(stop_stub, stop, ((i64)0))) : ((j == 0) ? ({(((i64*)i_ref)[0] = (i + 1));
   ({(((i64*)j_ref)[0] = (i + 1));
-  (((i64(*)(i64))__newline_lifted_1__)(0));});}) : ({(((i64*)j_ref)[0] = (j - 1));
-  (((i64(*)(i64))__dollar_lifted_3__)(0));})));});});});});});});});});});}));
+  (((i64(*)(i64))__newline_lifted_1__)((i64)0));});}) : ({(((i64*)j_ref)[0] = (j - 1));
+  (((i64(*)(i64))__dollar_lifted_3__)((i64)0));})));});});});});});});});});});}));
   }
   
   static i64 __handle_body_lifted_18__(i64 __env__,i64 read_stub) {
