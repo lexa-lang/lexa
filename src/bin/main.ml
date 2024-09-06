@@ -27,10 +27,10 @@ let clang_format code =
   result
 
 let rec get_open_filenames filename =
-  let toplevels = IRParser.Main.parseFile ((Filename.dirname !input_file) ^ "/" ^ filename) in
+  let toplevels = IRParser.Main.parseFile filename in
   (* Get the list of filenames opened from a toplevel list *)
   let get_cur_open_filenames = function
-    | Syntax.TLOpen x -> Some x
+    | Syntax.TLOpen x -> Some ((Filename.dirname filename) ^ "/" ^ x)
     | _ -> None
   in
   let cur_opens = List.filter_map get_cur_open_filenames toplevels in
@@ -50,7 +50,7 @@ let rec dedup l acc =
 let compile_file filename =
   let open_filenames = dedup (get_open_filenames filename) [] in
   let all_toplevels = List.concat_map
-    (fun fn -> IRParser.Main.parseFile ((Filename.dirname !input_file) ^ "/" ^ fn))
+    (fun fn -> IRParser.Main.parseFile fn)
     open_filenames
   in
   
@@ -62,7 +62,7 @@ let compile_file filename =
   
 let () = 
   Arg.parse speclist (fun file -> input_file := file) usage_msg;  
-  let compiled_str = compile_file (Filename.basename !input_file) in
+  let compiled_str = compile_file !input_file in
   let oc = open_out (!output_file) in
   Printf.fprintf oc "%s\n" compiled_str;
   ();
