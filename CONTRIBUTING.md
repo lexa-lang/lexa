@@ -1,24 +1,16 @@
 
-## Setup(Assuming you have a local devbox and have access to plg2.cs.uwaterloo.ca)
+## Setup(Assuming you have a local devbox and have access to apple.cs.uwaterloo.ca)
 ### On Local Devbox
 1. Install VSCode and extention [Remote - SSH
 ](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
-2. Setup VSCode SSH extension with plg2 following [instructions](https://code.visualstudio.com/docs/remote/ssh#_connect-to-a-remote-host)
-3. Connect to plg2
-4. Install additional extensions on plg2: [direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) and [OCaml Platform](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform)
+2. Setup VSCode SSH extension with `apple` following [instructions](https://code.visualstudio.com/docs/remote/ssh#_connect-to-a-remote-host)
+3. Connect to `apple`
+4. Install additional VSCode extensions on `apple`: [direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) and [OCaml Platform](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform)
 
-### On plg2
-1. SSH into plg2
-2. Clone this repo
-3. Move the custom nix binary at `./support/nix` into PATH. 
-4. Re-enter the shell, make sure `nix --version` works.
-5. Run `mkdir -p ~/.config/nix; echo 'experimental-features = nix-command flakes' > ~/.config/nix/nix.conf`
-6. Re-enter the shell, make sure `nix run nixpkgs#hello` works.
-7. Install `direnv`: `nix profile install nixpkgs#direnv`
-8. Add `$HOME/.nix-profile/bin` to the PATH
-9. Re-enter the shell, make sure `direnv --version` works.
-10. Hook up `direnv` with your shell following [instructions](https://direnv.net/docs/hook.html)
-11. Re-enter the shell
+### On `apple`
+1. Install `direnv`: `nix profile install nixpkgs#direnv`. Hook up `direnv` with your shell following [instructions](https://direnv.net/docs/hook.html) (You can also use `home-manager` to do it in a declarative way. Highly recommended)
+2. Clone this repository; `cd` into the directory
+3. Run `direnv allow`
 
 ### Check if everything is setup correctly
 1. Run `dune build` to build the project
