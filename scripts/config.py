@@ -14,6 +14,9 @@ if "i5-13600K" in cpu_model:
 else:
     # list all the physical cores
     bench_CPUs = list(range(psutil.cpu_count()))
+    if bench_CPUs > 4:
+        # do not use too much CI resources
+        bench_CPUs = bench_CPUs[:4]
 
 benchmarks = ["countdown", "fibonacci_recursive", "product_early", "iterator", "nqueens", "generator", "tree_explore", "triples", "resume_nontail", "parsing_dollars", "handler_sieve", "resume_nontail_2", "scheduler", "interruptible_iterator"]
 platforms = ["lexa", "effekt", "koka_named", "koka", "ocaml"]
