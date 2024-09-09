@@ -3,12 +3,12 @@
 ### On Local Devbox
 1. Install VSCode and extention [Remote - SSH
 ](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
-2. Setup VSCode SSH extension with `apple` following [instructions](https://code.visualstudio.com/docs/remote/ssh#_connect-to-a-remote-host)
+2. Setup VSCode SSH extension to `apple.cs.uwaterloo.ca` following [instructions](https://code.visualstudio.com/docs/remote/ssh#_connect-to-a-remote-host)
 3. Connect to `apple`
 4. Install additional VSCode extensions on `apple`: [direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) and [OCaml Platform](https://marketplace.visualstudio.com/items?itemName=ocamllabs.ocaml-platform)
 
-### On `apple`
-1. Install `direnv`: `nix profile install nixpkgs#direnv`. Hook up `direnv` with your shell following [instructions](https://direnv.net/docs/hook.html) (You can also use `home-manager` to do it in a declarative way. Highly recommended)
+### On `apple`(Read [FAQ](https://docs.google.com/document/d/1kmJdBhl-ugQLXV8p6yBBJAXeuFDlzoiIaVsteCdgv4k/edit?usp=sharing) before proceeding)
+1. Install `direnv` using `home-manager`.
 2. Clone this repository; `cd` into the directory
 3. Run `direnv allow`
 
