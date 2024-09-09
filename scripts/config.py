@@ -14,7 +14,7 @@ if "i5-13600K" in cpu_model:
 else:
     # list all the physical cores
     bench_CPUs = list(range(psutil.cpu_count()))
-    if bench_CPUs > 4:
+    if len(bench_CPUs) > 4:
         # do not use too much CI resources
         bench_CPUs = bench_CPUs[:4]
 
