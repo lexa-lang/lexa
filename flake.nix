@@ -28,12 +28,16 @@
         packages.clang_18_preserve_none = pkgs.callPackage ./nix/clang18.nix { };
         packages.effect_latest = pkgs.callPackage ./nix/effekt_latest.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
         packages.bdwgc = pkgs.callPackage ./nix/bdwgc.nix { };
+        packages.jetbrains-mono = pkgs.callPackage ./nix/jetbrains-mono.nix { };
         devShell = with pkgs; mkShell {
+          FONTCONFIG_FILE = makeFontsConf { 
+            fontDirectories = [ self.packages.${system}.jetbrains-mono libertine ];
+          };
           nativeBuildInputs = [
             self.packages.${system}.clang_18_preserve_none
           ];
           buildInputs = [
-            (texliveSmall.withPackages (ps: with ps; [ libertine ]))
+            texliveSmall
 
             gnumake
             gdb
