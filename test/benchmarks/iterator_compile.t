@@ -40,7 +40,7 @@
   range->func_pointer = (i64)__range_lifted_1__;
   range->env = (i64)NULL;
   
-  i64 __res__ = ({(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__run_lifted_2__)((i64)0, (i64)(((i64)(readInt())))))))));
+  i64 __res__ = ({((i64)(printInt((int64_t)(((i64(*)(i64, i64))__run_lifted_2__)((i64)0, (i64)((i64)(readInt())))))));
   0;});
   destroy_stack_pool();
   return((int)__res__);}

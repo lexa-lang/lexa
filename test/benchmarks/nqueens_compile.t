@@ -23,17 +23,17 @@
   enum Search {pick,fail};
   
   static i64 __safe_lifted_1__(i64 __env__,i64 queen,i64 diag,i64 xs) {
-  return(({i64 is_empty = (i64)(((i64)(listIsEmpty((node_t*)xs))));
-  (is_empty ? 1 : ({i64 q = (i64)(((i64)(listHead((node_t*)xs))));
-  ({i64 qs = (i64)(((i64)(listTail((node_t*)xs))));
+  return(({i64 is_empty = (i64)((i64)(listIsEmpty((node_t*)xs)));
+  (is_empty ? 1 : ({i64 q = (i64)((i64)(listHead((node_t*)xs)));
+  ({i64 qs = (i64)((i64)(listTail((node_t*)xs)));
   ((((queen != q) && (queen != (q + diag))) && (queen != (q - diag))) ? (({__attribute__((musttail))
    return ((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)((i64)0, (i64)queen, (i64)(diag + 1), (i64)qs); 0;})) : 0);});}));}));
   }
   
   static i64 __place_lifted_2__(i64 __env__,i64 size,i64 column,i64 search_stub) {
-  return(((column == 0) ? (((i64)(listEnd()))) : ({i64 rest = (i64)(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)((i64)0, (i64)size, (i64)(column - 1), (i64)search_stub));
+  return(((column == 0) ? ((i64)(listEnd())) : ({i64 rest = (i64)(((i64(*)(i64, i64, i64, i64))__place_lifted_2__)((i64)0, (i64)size, (i64)(column - 1), (i64)search_stub));
   ({i64 next = (i64)(RAISE(search_stub, pick, ((i64)size)));
-  ((((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)((i64)0, (i64)next, (i64)1, (i64)rest)) ? (((i64)(listNode((int64_t)next, (node_t*)rest)))) : (RAISE(search_stub, fail, ((i64)0))));});})));
+  ((((i64(*)(i64, i64, i64, i64))__safe_lifted_1__)((i64)0, (i64)next, (i64)1, (i64)rest)) ? ((i64)(listNode((int64_t)next, (node_t*)rest))) : (RAISE(search_stub, fail, ((i64)0))));});})));
   }
   
   static i64 __run_lifted_3__(i64 __env__,i64 n) {
@@ -60,9 +60,9 @@
   safe->func_pointer = (i64)__safe_lifted_1__;
   safe->env = (i64)NULL;
   
-  i64 __res__ = ({i64 n = (i64)(((i64)(readInt())));
+  i64 __res__ = ({i64 n = (i64)((i64)(readInt()));
   ({i64 run_res = (i64)(((i64(*)(i64, i64))__run_lifted_3__)((i64)0, (i64)n));
-  ({(((i64)(printInt((int64_t)run_res))));
+  ({((i64)(printInt((int64_t)run_res)));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}

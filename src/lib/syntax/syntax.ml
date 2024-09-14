@@ -5,6 +5,7 @@ type top_level =
   | TLEffSig of var * var list
   | TLType of typedef list
   | TLOpen of var
+  | TLOpenC of var
 
 and fundef = { name : var;
                params : var list;

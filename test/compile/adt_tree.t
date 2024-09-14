@@ -35,7 +35,7 @@
   make->func_pointer = (i64)__make_lifted_2__;
   make->env = (i64)NULL;
   
-  i64 __res__ = ({i64 t = (i64)(((i64(*)(i64, i64))__make_lifted_2__)((i64)0, (i64)(((i64)(readInt())))));
+  i64 __res__ = ({i64 t = (i64)(((i64(*)(i64, i64))__make_lifted_2__)((i64)0, (i64)((i64)(readInt()))));
   ({(((i64(*)(i64, i64))__traverse_lifted_3__)((i64)0, (i64)t));
   0;});});
   destroy_stack_pool();
@@ -70,7 +70,7 @@
   i64 l = (i64)(__expr_res__->Node[1]);
   i64 r = (i64)(__expr_res__->Node[2]);
   
-  ({(((i64)(printInt((int64_t)i))));
+  ({((i64)(printInt((int64_t)i)));
   ({(((i64(*)(i64, i64))__traverse_lifted_3__)((i64)0, (i64)l));
   ({(((i64(*)(i64, i64))__traverse_lifted_3__)((i64)0, (i64)r));
   0;});});});});}

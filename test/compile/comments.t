@@ -28,16 +28,16 @@
   
   i64 __res__ = ({i64 adder5 = (i64)(((i64(*)(i64, i64))__make_adder_lifted_1__)((i64)0, (i64)5));
   ({i64 adder10 = (i64)(((i64(*)(i64, i64))__make_adder_lifted_1__)((i64)0, (i64)10));
-  ({i64 _ = (i64)(((i64)(printInt((int64_t)(({closure_t* __clo__ = (closure_t*)adder5;
+  ({i64 _ = (i64)((i64)(printInt((int64_t)(({closure_t* __clo__ = (closure_t*)adder5;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);
   ((i64(*)(i64, i64))__f__)(__env__,7);
-  }))))));
-  ({i64 _ = (i64)(((i64)(printInt((int64_t)(({closure_t* __clo__ = (closure_t*)adder10;
+  })))));
+  ({i64 _ = (i64)((i64)(printInt((int64_t)(({closure_t* __clo__ = (closure_t*)adder10;
   i64 __f__ = (i64)(__clo__->func_pointer);
   i64 __env__ = (i64)(__clo__->env);
   ((i64(*)(i64, i64))__f__)(__env__,7);
-  }))))));
+  })))));
   0;});});});});
   destroy_stack_pool();
   return((int)__res__);}
