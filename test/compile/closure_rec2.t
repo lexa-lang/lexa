@@ -47,8 +47,8 @@
   static i64 __g_lifted_4__(i64 __env__) {
   return(({i64 env_var1 = (i64)(((i64*)__env__)[0]);
   ({i64 env_var2 = (i64)(((i64*)__env__)[1]);
-  ({i64 _ = (i64)(((i64)(printInt((int64_t)env_var1))));
-  (((i64)(printInt((int64_t)env_var2))));});});}));
+  ({i64 _ = (i64)((i64)(printInt((int64_t)env_var1)));
+  ((i64)(printInt((int64_t)env_var2)));});});}));
   }
   
   static i64 __f_lifted_3__(i64 __env__) {

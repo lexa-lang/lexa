@@ -74,6 +74,7 @@ rule read =
   | "&&" { CONJ }
   | "||" { DISJ }
   | "!" { NEG }
+  | "open_c_header" { OPEN_C_HEADER }
   | '"' { read_string (Buffer.create 17) lexbuf }
   | '\'' { read_char (Buffer.create 17) lexbuf }
   | float { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }

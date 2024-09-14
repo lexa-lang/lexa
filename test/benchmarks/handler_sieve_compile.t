@@ -36,9 +36,9 @@
   primes->func_pointer = (i64)__primes_lifted_1__;
   primes->env = (i64)NULL;
   
-  i64 __res__ = ({i64 arg1 = (i64)(((i64)(readInt())));
+  i64 __res__ = ({i64 arg1 = (i64)((i64)(readInt()));
   ({i64 arg2 = (i64)(((i64(*)(i64, i64))__run_lifted_2__)((i64)0, (i64)arg1));
-  ({(((i64)(printInt((int64_t)arg2))));
+  ({((i64)(printInt((int64_t)arg2)));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}

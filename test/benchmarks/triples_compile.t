@@ -57,9 +57,9 @@
   choice->func_pointer = (i64)__choice_lifted_1__;
   choice->env = (i64)NULL;
   
-  i64 __res__ = ({i64 n = (i64)(((i64)(readInt())));
+  i64 __res__ = ({i64 n = (i64)((i64)(readInt()));
   ({i64 res = (i64)(((i64(*)(i64, i64, i64))__run_lifted_3__)((i64)0, (i64)n, (i64)n));
-  ({(((i64)(printInt((int64_t)res))));
+  ({((i64)(printInt((int64_t)res)));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}

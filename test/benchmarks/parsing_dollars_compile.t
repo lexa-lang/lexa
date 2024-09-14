@@ -151,9 +151,9 @@
   newline->func_pointer = (i64)__newline_lifted_1__;
   newline->env = (i64)NULL;
   
-  i64 __res__ = ({i64 n = (i64)(((i64)(readInt())));
+  i64 __res__ = ({i64 n = (i64)((i64)(readInt()));
   ({i64 run_result = (i64)(((i64(*)(i64, i64))__run_lifted_12__)((i64)0, (i64)n));
-  ({(((i64)(printInt((int64_t)run_result))));
+  ({((i64)(printInt((int64_t)run_result)));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}

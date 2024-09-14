@@ -37,7 +37,7 @@
   is_even->func_pointer = (i64)__is_even_lifted_1__;
   is_even->env = (i64)NULL;
   
-  i64 __res__ = ({i64 _ = (i64)(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__is_even_lifted_1__)((i64)0, (i64)(((i64)(readInt())))))))));
+  i64 __res__ = ({i64 _ = (i64)((i64)(printInt((int64_t)(((i64(*)(i64, i64))__is_even_lifted_1__)((i64)0, (i64)((i64)(readInt())))))));
   0;});
   destroy_stack_pool();
   return((int)__res__);}

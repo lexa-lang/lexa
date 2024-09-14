@@ -55,7 +55,7 @@
   loop->func_pointer = (i64)__loop_lifted_1__;
   loop->env = (i64)NULL;
   
-  i64 __res__ = ({(((i64)(printInt((int64_t)(((i64(*)(i64, i64))__repeat_lifted_4__)((i64)0, (i64)(((i64)(readInt())))))))));
+  i64 __res__ = ({((i64)(printInt((int64_t)(((i64(*)(i64, i64))__repeat_lifted_4__)((i64)0, (i64)((i64)(readInt())))))));
   0;});
   destroy_stack_pool();
   return((int)__res__);}
@@ -65,7 +65,7 @@
   ({i64 n = (i64)(((i64*)__env__)[1]);
   ({i64 s = (i64)(((i64*)__env__)[2]);
   ({i64 y = (i64)(FINAL_THROW(k, 0));
-  ((((i64)(mathAbs((int64_t)((x - (503 * y)) + 37))))) % 1009);});});});}));
+  (((i64)(mathAbs((int64_t)((x - (503 * y)) + 37)))) % 1009);});});});}));
   }
   
   static i64 __handle_body_lifted_6__(i64 __env__,i64 operator_stub) {

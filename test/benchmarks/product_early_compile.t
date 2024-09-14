@@ -23,13 +23,13 @@
   enum Abort {done};
   
   static i64 __product_lifted_1__(i64 __env__,i64 xs,i64 abort_stub) {
-  return(((((i64)(listIsEmpty((node_t*)xs)))) ? 0 : ({i64 y = (i64)(((i64)(listHead((node_t*)xs))));
-  ({i64 ys = (i64)(((i64)(listTail((node_t*)xs))));
+  return((((i64)(listIsEmpty((node_t*)xs))) ? 0 : ({i64 y = (i64)((i64)(listHead((node_t*)xs)));
+  ({i64 ys = (i64)((i64)(listTail((node_t*)xs)));
   ((y == 0) ? (RAISE(abort_stub, done, ((i64)0))) : (y * (((i64(*)(i64, i64, i64))__product_lifted_1__)((i64)0, (i64)ys, (i64)abort_stub))));});})));
   }
   
   static i64 __enumerate_lifted_2__(i64 __env__,i64 i) {
-  return(((i < 0) ? (((i64)(listEnd()))) : (((i64)(listNode((int64_t)i, (node_t*)(((i64(*)(i64, i64))__enumerate_lifted_2__)((i64)0, (i64)(i - 1)))))))));
+  return(((i < 0) ? ((i64)(listEnd())) : ((i64)(listNode((int64_t)i, (node_t*)(((i64(*)(i64, i64))__enumerate_lifted_2__)((i64)0, (i64)(i - 1))))))));
   }
   
   static i64 __runProduct_lifted_3__(i64 __env__,i64 xs) {
@@ -63,9 +63,9 @@
   product->func_pointer = (i64)__product_lifted_1__;
   product->env = (i64)NULL;
   
-  i64 __res__ = ({i64 arg1 = (i64)(((i64)(readInt())));
+  i64 __res__ = ({i64 arg1 = (i64)((i64)(readInt()));
   ({i64 arg2 = (i64)(((i64(*)(i64, i64))__run_lifted_5__)((i64)0, (i64)arg1));
-  ({(((i64)(printInt((int64_t)arg2))));
+  ({((i64)(printInt((int64_t)arg2)));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}

@@ -67,6 +67,7 @@
 %token CONJ
 %token DISJ
 %token NEG
+%token OPEN_C_HEADER
 
 %start <Syntax.top_level list> prog
 
@@ -101,6 +102,7 @@ top_level:
   | EFFECT name = CAPITALIZED_VAR LCB l = list(effect_sig) RCB { TLEffSig (name, l) }
   | TYPE l = separated_nonempty_list(AND, type_def) { TLType l }
   | OPEN filename = STRING { TLOpen filename }
+  | OPEN_C_HEADER filename = STRING { TLOpenC filename }
       
 effect_sig:
   | DCL v = VAR { v }

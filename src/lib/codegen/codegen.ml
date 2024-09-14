@@ -173,32 +173,34 @@ and gen_expr ?(is_tail = false) (e : Syntax__Closure.t) =
     | Let (x, e1, e2) ->
         sprintf "{i64 %s = (i64)%s;\n%s;}" x (gen_expr e1 ~is_tail:false) (gen_expr e2 ~is_tail:is_tail)
     | App (e1, args) ->
+        let func_cast =
+          sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length args) "i64")) in
         let s =
           (match e1 with
           | Prim _ -> 
             let name = gen_expr e1 in (* name is prim with leading ~ stripped *)
-            (* The name here should have ~ stripped *)
+            let param_types = (match List.assoc_opt name prim_env with
+              (* If the function is not defined in primitive.ml, cast everything to i64 *)
+              | None -> list_repeat (List.length args) PTI64 
+              | Some x -> x) in
+            
             (* TODO: Remove duplicate code here and in AppClosure *)
             let cast_args (name : string) (args : t list) : string list =
-              match List.assoc_opt name prim_env with
-              | None -> raise (UndefinedPrimitive name)
-              | Some param_types -> 
-                  let rec cast args pt =
-                    (match args, pt with
-                    | [], [] -> []
-                    | args_h :: args_t, pt_h :: pt_t ->
-                      ((gen_prim_type pt_h) ^ (gen_expr args_h)) :: (cast args_t pt_t)
-                    | _, _ -> raise (InvalidPrimitiveCall name)) in
-                  cast args param_types in
+              let rec cast args pt =
+                (match args, pt with
+                | [], [] -> []
+                | args_h :: args_t, pt_h :: pt_t ->
+                  ((gen_prim_type pt_h) ^ (gen_expr args_h)) :: (cast args_t pt_t)
+                | _, _ -> raise (InvalidPrimitiveCall name)) in
+              cast args param_types in
             let casted_args = cast_args name args in
-            sprintf "((i64)(%s(%s)))" name (String.concat ", " casted_args) 
+            
+            if (List.mem_assoc name prim_env) then
+              sprintf "(i64)(%s(%s))" name (String.concat ", " casted_args)
+            else
+              sprintf "((%s)%s)(%s)" func_cast name (String.concat ", " casted_args) 
           | _ -> 
-            let rec list_repeat n s =
-              if n = 0 then [] else
-              s :: list_repeat (n - 1) s in
-            let cast_func_str =
-              sprintf "i64(*)(%s)" (String.concat ", " (list_repeat (List.length args) "i64")) in
-            sprintf "((%s)%s)%s" cast_func_str (gen_expr e1) (gen_args args ~cast:true)) in
+            sprintf "((%s)%s)%s" func_cast (gen_expr e1) (gen_args args ~cast:true)) in
         let do_tail = is_tail && (match e1 with
         | Var callee_name -> callee_name = !cur_toplevel
         | _ -> false) in 
@@ -475,6 +477,7 @@ return((int)__res__);}|}
     in
     String.concat "\n" (List.map gen_typedef typedefs)
   | TLOpen _ -> ""
+  | TLOpenC filename -> sprintf "#include \"%s\"" filename
 
 let gen_top_level_s ((toplevels, toplevel_closures) : ((top_level list) * (string * string) list)) ~tail =
   tail_call_opt := tail;

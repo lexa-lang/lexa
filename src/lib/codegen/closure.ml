@@ -130,7 +130,7 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
     Recdef (List.map convert_fun funs, convert_expr e Varset.(union (of_list names) env))
   | Syntax.App (e, es) -> 
     (match e with
-    | Var name -> if not (Varset.mem name env) then
+    | Syntax.Var name -> if not (Varset.mem name env) then
         (* Function name is not in the environment, callee must be a top level function *)
         let lifted_name = 
           (match (List.assoc_opt name !toplevel_lifted_name_map) with
@@ -141,6 +141,7 @@ let rec convert_expr (e : Syntax.expr) (env : Varset.t) =
         App (Var lifted_name, Int 0 :: (List.map (fun x -> convert_expr x env) es))
       else
         AppClosure(convert_expr e env, List.map (fun x -> convert_expr x env) es)
+    | Syntax.Prim p -> App (Prim p, List.map (fun x -> convert_expr x env) es)
     | _ -> AppClosure(convert_expr e env, List.map (fun x -> convert_expr x env) es))
   | Syntax.Typecon (con_name, args) ->
     Typecon (con_name, List.map (fun x -> convert_expr x env) args)
@@ -168,6 +169,7 @@ let closure_convert_toplevels (tls : Syntax.top_level list) =
       TLEffSig (name, dcls)
     | Syntax.TLType typedefs -> TLType typedefs
     | Syntax.TLOpen filename -> TLOpen filename
+    | Syntax.TLOpenC filename -> TLOpenC filename
   in
   let converted_original_toplevels = (List.map closure_convert_toplevel tls) in
   (converted_original_toplevels @ !extra_toplevels, !toplevel_closures)

@@ -1,0 +1,27 @@
+open_c_header "stdio.h"
+open_c_header "unistd.h"
+
+def main() {
+    val file = ~fopen("./a.txt", "r");
+
+    if file == 0 then ~error("Error opening file.\n") else 0;
+
+    ~fseek(file, 0, 2); // 2 is SEEK_END
+    val file_size = ~ftell(file);
+    ~rewind(file);
+    
+    val buffer = ~malloc((file_size + 1) * 8);
+
+    if buffer == 0 then ~error("Memory allocation failed.\n") else 0;
+
+    // Read the content of the file into the buffer
+    ~fread(buffer, 8, file_size, file);
+    
+    // Null-terminate the string
+    buffer[file_size] := 0;
+
+    ~printf("File Content:\n%s", buffer);
+
+    ~fclose(file);
+    0
+}

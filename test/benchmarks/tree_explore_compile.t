@@ -94,7 +94,7 @@
   }
   
   static i64 __operator_lifted_3__(i64 __env__,i64 x,i64 y) {
-  return(((((i64)(mathAbs((int64_t)((x - (503 * y)) + 37))))) % 1009));
+  return((((i64)(mathAbs((int64_t)((x - (503 * y)) + 37)))) % 1009));
   }
   
   static i64 __make_lifted_4__(i64 __env__,i64 n) {
@@ -180,9 +180,9 @@
   append->func_pointer = (i64)__append_lifted_1__;
   append->env = (i64)NULL;
   
-  i64 __res__ = ({i64 n = (i64)(((i64)(readInt())));
+  i64 __res__ = ({i64 n = (i64)((i64)(readInt()));
   ({i64 res = (i64)(((i64(*)(i64, i64))__run_lifted_8__)((i64)0, (i64)n));
-  ({(((i64)(printInt((int64_t)res))));
+  ({((i64)(printInt((int64_t)res)));
   0;});});});
   destroy_stack_pool();
   return((int)__res__);}
