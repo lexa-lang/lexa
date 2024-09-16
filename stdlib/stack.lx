@@ -1,0 +1,34 @@
+open "list.lx"
+
+def stack_make() {
+    newref{Nil, 0}
+}
+
+def stack_push(s, v) {
+    val c = s[0];
+    val len = s[1];
+    s[0] := Cons(v, c);
+    s[1] := s[1] + 1
+}
+
+def stack_pop(s) {
+    val c = s[0];
+    match c with
+    | Cons (hd, tl) -> { s[0] := tl; s[1] := s[1] - 1; hd }
+    | Nil -> { ~error("Empty stack") }
+}
+
+def stack_size(s) {
+    s[1]
+}
+
+def stack_is_empty(s) {
+    s[1] == 0
+}
+
+def stack_peek(s) {
+    val c = s[0];
+    match c with
+    | Cons (hd, tl) -> { hd }
+    | Nil -> { ~error("Empty stack") }
+}

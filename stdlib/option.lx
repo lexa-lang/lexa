@@ -1,0 +1,33 @@
+type option = 
+    | None
+    | Some of int
+
+def option_get(o) {
+    match o with
+    | None -> { ~error("option is None") }
+    | Some(x) -> { x }
+}
+
+def option_bind(o, f) {
+    match o with
+    | None -> { None }
+    | Some(v) -> { f(v) }
+}
+
+def option_map(o, f) {
+    match o with
+    | None -> { None }
+    | Some(v) -> { Some(f(v)) }
+}
+
+def is_none(o) {
+    match o with
+    | None -> { true }
+    | Some(_) -> { false }
+}
+
+def is_some(o) {
+    match o with
+    | None -> { false }
+    | Some(_) -> { true }
+}

@@ -1,0 +1,9 @@
+open "../../../stdlib/assert.lx"
+
+def main() {
+    assert(true);
+    ~strPrint("assertion passed\n");
+    assert(false);
+    ~strPrint("unreachable");
+    0
+}

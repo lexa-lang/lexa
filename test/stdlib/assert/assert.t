@@ -1,0 +1,6 @@
+  $ lexa ./assert.lx -o main.c
+  $ clang -O3 -I ../../../src/stacktrek main.c -o main -lm -lgc &> /dev/null
+  $ ./main
+  Error: assertion failed
+  assertion passed
+  [1]
