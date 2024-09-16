@@ -1,0 +1,46 @@
+open "../../../stdlib/assert.lx"
+open "../../../stdlib/pair.lx"
+
+def test_fst() {
+    assert(fst(Pair(3, 4)) == 3)
+}
+
+def test_snd() {
+    assert(snd(Pair(3, 4)) == 4)
+}
+
+def test_swap() {
+    val out = swap(Pair(3, 4));
+    assert(fst(out) == 4 && snd(out) == 3)
+}
+
+def test_pair_fold() {
+    assert(pair_fold(fun(x, y) { x + y }, Pair(3, 4)) == 7)
+}
+
+def test_pair_map() {
+    val out = pair_map(fun(x) { x + 1 }, fun(x) { x + 2 }, Pair(1, 2));
+    assert(fst(out) == 2 && snd(out) == 4)
+}
+
+def test_pair_eq_prim() {
+    assert(pair_eq_prim(
+        Pair(1, 2),
+        Pair(1, 2)
+    ));
+    assert(!pair_eq_prim(
+        Pair(1, 2),
+        Pair(2, 3)
+    ))
+}
+
+def main() {
+    test_fst();
+    test_snd();
+    test_swap();
+    test_pair_fold();
+    test_pair_map();
+    test_pair_eq_prim();
+    ~strPrint("OK");
+    0
+}

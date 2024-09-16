@@ -1,0 +1,46 @@
+type cell =
+    | Nil
+    | Cons of cell_ref
+
+def queue_make() {
+    // first, last, length
+    newref {Nil, Nil, 0}
+}
+
+def queue_clear(q) {
+    q[0] := Nil;
+    q[1] := Nil;
+    q[2] := 0
+}
+
+def queue_enqueue(q, x) {
+    val new_cell = Cons (newref {x, Nil});
+    match q[1] with
+    | Nil -> { q[2] := 1; q[0] := new_cell; q[1] := new_cell }
+    | Cons (last_cell) -> { q[2] := q[2] + 1; last_cell[1] := new_cell; q[1] := new_cell }
+}
+
+def queue_dequeue(q) {
+    match q[0] with
+    | Nil -> { ~error("Empty queue") }
+    | Cons (first_cell) -> {
+        val next = first_cell[1];
+        match next with
+        | Nil -> { queue_clear(q); first_cell[0] }
+        | Cons (next_cell) -> { q[0] := first_cell[1]; q[2] := q[2] - 1; first_cell[0] }
+    }
+}
+
+def queue_peek(q) {
+    match q[0] with
+    | Nil -> { ~error("Empty queue") }
+    | Cons (cell_ref) -> { cell_ref[0] }
+}
+
+def queue_size(q) {
+    q[2]
+}
+
+def queue_is_empty(q) {
+    q[2] == 0
+}

@@ -1,0 +1,262 @@
+open "option.lx"
+open "pair.lx"
+
+type list = 
+    | Nil
+    | Cons of int * list
+
+// l1, l2 must be lists of primitive types
+def list_eq_prim(l1, l2) {
+    match l1 with
+    | Nil -> {
+        match l2 with
+        | Nil -> { true }
+        | Cons (h2, t2) -> { false }
+    }
+    | Cons (h1, t1) -> {
+        match l2 with
+        | Nil -> { false }
+        | Cons (h2, t2) -> { h1 == h2 && list_eq_prim(t1, t2) }
+    }
+}
+
+def list_eq(f, l1, l2) {
+    match l1 with
+    | Nil -> {
+        match l2 with
+        | Nil -> { true }
+        | Cons (h2, t2) -> { false }
+    }
+    | Cons (h1, t1) -> {
+        match l2 with
+        | Nil -> { false }
+        | Cons (h2, t2) -> { f(h1, h2) && list_eq(f, t1, t2) }
+    }
+}
+
+def list_length(l) {
+    match l with
+    | Nil -> { 0 }
+    | Cons (h, t) -> { 1 + list_length(t) }
+}
+
+def hd(l) {
+    match l with
+    | Nil -> { ~error("hd") }
+    | Cons (h, t) -> { h }
+}
+
+def tl(l) {
+    match l with
+    | Nil -> { ~error("tl") }
+    | Cons (h, t) -> { t }
+}
+
+def nth(l, n) {
+    match l with
+    | Nil -> { ~error("nth") }
+    | Cons (h, t) -> {
+        if n == 0 then
+            h
+        else
+            nth(t, n - 1)
+    }
+}
+
+def nth_opt(l, n) {
+    match l with
+    | Nil -> { None }
+    | Cons (h, t) -> {
+        if n == 0 then
+            Some(h)
+        else
+            nth_opt(t, n - 1)
+    }
+}
+
+def hd_opt(l) {
+    match l with
+    | Nil -> { None }
+    | Cons (h, t) -> { Some(h) }
+}
+
+def tl_opt(l) {
+    match l with
+    | Nil -> { None }
+    | Cons (h, t) -> { Some(t) }
+}
+
+def zip(l1, l2) {
+    match l1 with
+    | Nil -> { Nil }
+    | Cons (h1, t1) -> {
+        match l2 with
+        | Nil -> { Nil }
+        | Cons (h2, t2) -> {
+            Cons (Pair (h1, h2), zip(t1, t2))
+        }
+    }
+}
+
+def list_map(f, l) {
+    match l with
+    | Nil -> { Nil }
+    | Cons (h, t) -> {
+        Cons (f(h), list_map(f, t))
+    }
+}
+
+def list_mapi(f, l) {
+    rec def mapi_aux(f, i, l) {
+        match l with
+        | Nil -> { Nil }
+        | Cons (h, t) -> { Cons (f(i, h), mapi_aux(f, i + 1, t)) }
+    };
+    mapi_aux(f, 0, l)
+}
+
+def list_iter(f, l) {
+    match l with
+    | Nil -> { 0 }
+    | Cons (h, t) -> {
+       f(h);
+       list_iter(f, t)
+    }
+}
+
+def list_iteri(f, l) {
+    rec def iteri_aux(f, i, l) {
+        match l with
+        | Nil -> { 0 }
+        | Cons (h, t) -> { f(i, h); iteri_aux(f, i + 1, t) }
+    };
+    iteri_aux(f, 0, l)
+}
+
+def list_foldl(f, acc, l) {
+    match l with
+    | Nil -> { acc }
+    | Cons (h, t) -> { list_foldl(f, f(h, acc), t) }
+}
+
+def list_foldr(f, acc, l) {
+    match l with
+    | Nil -> { acc }
+    | Cons (h, t) -> { f(h, list_foldr(f, acc, t)) }
+}
+
+def list_range(l, r) {
+    if l > r then
+        Nil
+    else
+        Cons (l, list_range(l + 1, r))
+}
+
+def list_append(l1, l2) {
+    match l1 with
+    | Nil -> { l2 }
+    | Cons (h, t) -> {
+        Cons (h, list_append(t, l2))
+    }
+}
+
+def list_for_all(f, l) {
+    match l with
+    | Nil -> { true }
+    | Cons (h, t) -> { f(h) && list_for_all(f, t) }
+}
+
+def list_exists(f, l) {
+    match l with
+    | Nil -> { true }
+    | Cons (h, t) -> { f(h) || list_exists(f, t) }
+}
+
+def list_mem(l, x) {
+    match l with
+    | Nil -> { false }
+    | Cons (h, t) -> {
+        if h == x then
+            true
+        else
+            list_mem(t, x)
+    }
+}
+
+def list_intersection(l1, l2) {
+    match l1 with
+    | Nil -> { Nil }
+    | Cons (h, t) -> {
+        if list_mem(l2, h) then
+            Cons (h, list_intersection(t, l2))
+        else
+            list_intersection(t, l2)
+    }
+}
+
+def list_subtract(l1, l2) {
+    match l1 with
+    | Nil -> { Nil }
+    | Cons (h, t) -> {
+        if list_mem(l2, h) then
+            list_subtract(t, l2)
+        else
+            Cons (h, list_subtract(t, l2))
+    }
+}
+
+def assoc_list_mem(ass, k) {
+    match ass with
+    | Nil -> { false }
+    | Cons (p, t) -> {
+        if fst(p) == k then
+            true
+        else
+            assoc_list_mem(t, k)
+    }
+}
+
+def assoc_list_get_opt(ass, k) {
+    match ass with
+    | Nil -> { None }
+    | Cons (p, t) -> {
+        if fst(p) == k then
+            Some (snd(p))
+        else
+            assoc_list_get_opt(t, k)
+    }
+}
+
+def assoc_list_get_or_default(ass, k, d) {
+    val res = assoc_list_get_opt(ass, k);
+    match res with
+    | None -> { d }
+    | Some(x) -> { x }
+}
+
+def assoc_list_set(ass, k, v) {
+    match ass with
+    | Nil -> { Cons(Pair(k, v), Nil) }
+    | Cons(p, t) -> {
+        if k == fst(p) then
+            Cons(Pair(k, v), t)
+        else
+            Cons(p, assoc_list_set(t, k, v))
+    }
+}
+
+def assoc_list_dom(ass) {
+    match ass with
+    | Nil -> { Nil() }
+    | Cons (p, t) -> {
+        Cons(fst(p), assoc_list_dom(t))
+    }
+}
+
+def assoc_list_vals(ass) {
+    match ass with
+    | Nil -> { Nil() }
+    | Cons(p, t) -> {
+        Cons(snd(p), assoc_list_vals(t))
+    }
+}

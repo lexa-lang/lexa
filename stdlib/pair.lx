@@ -1,0 +1,35 @@
+type pair = 
+    | Pair of int * int
+
+def fst(p) {
+    match p with
+    | Pair(x, y) -> { x }
+}
+
+def snd(p) {
+    match p with
+    | Pair (x, y) -> { y }
+}
+
+def swap(p) {
+    match p with
+    | Pair (x, y) -> { Pair(y, x) }
+}
+
+def pair_fold(f, p) {
+    match p with
+    | Pair (x, y) -> { f(x, y) }
+}
+
+def pair_map(f, g, p) {
+    match p with
+    | Pair (x, y) -> { Pair (f(x), g(y)) }
+}
+
+def pair_eq_prim(p1, p2) {
+    match p1 with
+    | Pair (x1, y1) -> { 
+        match p2 with
+        | Pair (x2, y2) -> { x1 == x2 && y1 == y2 }
+    }
+}

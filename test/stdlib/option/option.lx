@@ -1,0 +1,37 @@
+open "../../../stdlib/assert.lx"
+open "../../../stdlib/option.lx"
+
+def test_option_get_success() {
+    assert(option_get(Some(3)) == 3)
+}
+
+def test_option_bind() {
+    assert(option_get(option_bind(Some(3), fun(x) { Some(x + 1) })) == 4);
+    assert(is_none(option_bind(Some(3), fun(_) { None })));
+    assert(is_none(option_bind(None, fun(x) { Some(x + 1) })))
+}
+
+def test_option_map() {
+    assert(option_get(option_map(Some(3), fun(x) { x + 1 })) == 4);
+    assert(is_none(option_map(None, fun(x) { x + 1 })))
+}
+
+def test_is_none() {
+    assert(is_none(None));
+    assert(!is_none(Some(2)))
+}
+
+def test_is_some() {
+    assert(!is_some(None));
+    assert(is_some(Some(2)))
+}
+
+def main() {
+    test_option_get_success();
+    test_option_bind();
+    test_option_map();
+    test_is_none();
+    test_is_some();
+    ~strPrint("OK");
+    0
+}

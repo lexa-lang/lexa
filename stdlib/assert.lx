@@ -1,0 +1,6 @@
+def assert(e) {
+    if e then
+        0
+    else
+        ~error("assertion failed")
+}

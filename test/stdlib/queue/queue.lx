@@ -1,0 +1,23 @@
+open "../../../stdlib/assert.lx"
+open "../../../stdlib/queue.lx"
+
+def test_queue() {
+    val q = queue_make();
+    queue_enqueue(q, 1);
+    queue_enqueue(q, 2);
+
+    queue_enqueue(q, 3);
+
+    assert(queue_dequeue(q) == 1);
+    assert(queue_peek(q) == 2);
+    assert(queue_dequeue(q) == 2);
+    assert(queue_dequeue(q) == 3);
+    assert(queue_is_empty(q));
+    0
+}
+
+def main() {
+    test_queue();
+    ~strPrint("OK");
+    0
+}

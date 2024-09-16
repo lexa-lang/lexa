@@ -1,0 +1,12 @@
+open "../../../stdlib/assert.lx"
+open "../../../stdlib/option.lx"
+
+def test_option_get_fail() {
+    option_get(None)
+}
+
+def main() {
+    test_option_get_fail();
+    ~strPrint("OK");
+    0
+}

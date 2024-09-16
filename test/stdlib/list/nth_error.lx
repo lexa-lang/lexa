@@ -1,0 +1,11 @@
+open "../../../stdlib/assert.lx"
+open "../../../stdlib/list.lx"
+
+def test_nth_error() {
+    nth(Cons(1, Cons(2, Cons(3, Nil))), 3)
+}
+
+def main() {
+    test_nth_error();
+    0
+}

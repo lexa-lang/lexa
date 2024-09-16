@@ -1,0 +1,204 @@
+open "../../../stdlib/assert.lx"
+open "../../../stdlib/list.lx"
+open "../../../stdlib/option.lx"
+open "../../../stdlib/pair.lx"
+
+def test_list_eq_prim() {
+    val l1 = Cons(1, Cons(2, Nil));
+    val l2 = Cons(1, Cons(2, Cons(3, Nil)));
+    assert(list_eq_prim(l1, Cons(1, Cons(2, Nil))));
+    assert(!list_eq_prim(l1, l2));
+    assert(!list_eq_prim(l1, Nil));
+    assert(list_eq_prim(Nil, Nil))
+}
+
+def test_list_eq() {
+    val l1 = Cons(Pair(1, 2), Cons(Pair(3, 4), Nil));
+    assert(list_eq(pair_eq_prim, l1, Cons(Pair(1, 2), Cons(Pair(3, 4), Nil))));
+    assert(!list_eq(pair_eq_prim, l1, Cons(Pair(2, 3), Nil)))
+}
+
+def test_list_length() {
+    assert(list_length(Nil) == 0);
+    assert(list_length(Cons(1, Cons(2, Nil))) == 2)
+}
+
+def test_nth() {
+    assert(nth(Cons(1, Cons(2, Cons(3, Nil))), 1) == 2);
+    assert(nth(Cons(1, Cons(2, Cons(3, Nil))), 2) == 3)
+}
+
+def test_nth_opt() {
+    assert(option_get(nth_opt(Cons(1, Cons(2, Cons(3, Nil))), 1)) == 2);
+    assert(is_none(nth_opt(Cons(1, Cons(2, Cons(3, Nil))), 3)))
+}
+
+def test_hd_opt() {
+    assert(option_get(hd_opt(Cons(1, Cons(2, Nil)))) == 1);
+    assert(is_none(hd_opt(Nil)))
+}
+
+def test_tl_opt() {
+    assert(hd(option_get(tl_opt(Cons(1, Cons(2, Nil))))) == 2);
+    assert(is_none(tl_opt(Nil)))
+}
+
+def test_zip() {
+    val l1 = Cons(1, Cons(3, Cons(5, Nil)));
+    val l2 = Cons(2, Cons(4, Cons(6, Nil)));
+    val out = zip(l1, l2);
+    val out1 = hd(out);
+    val out2 = nth(out, 1);
+    val out3 = nth(out, 2);
+    assert(fst(out1) == 1);
+    assert(snd(out1) == 2);
+    assert(fst(out2) == 3);
+    assert(snd(out2) == 4);
+    assert(fst(out3) == 5);
+    assert(snd(out3) == 6)
+}
+
+def test_list_map() {
+    val f = fun(x) {x + 1};
+    assert(list_eq_prim(
+        list_map(f, Cons(1, Cons(2, Nil))),
+        Cons(2, Cons(3, Nil)))
+    );
+    assert(list_eq_prim(
+        list_map(f, Nil),
+        Nil
+    ))
+}
+
+def test_list_mapi() {
+    val f = fun(i, x) {x + i};
+    assert(list_eq_prim(
+        list_mapi(f, Cons(1, Cons(2, Nil))),
+        Cons(1, Cons(3, Nil)))
+    );
+    assert(list_eq_prim(
+        list_mapi(f, Nil),
+        Nil
+    ))
+}
+
+def test_list_range() {
+    assert(list_eq_prim(
+        list_range(2,4),
+        Cons(2, Cons(3, Cons(4, Nil)))
+    ));
+    assert(list_eq_prim(
+        list_range(2,2),
+        Cons(2, Nil)
+    ))
+}
+
+def test_list_append() {
+    assert(list_eq_prim(
+        list_append(Cons(1, Cons(2, Nil)), Cons(3, Cons(4, Nil))),
+        Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
+    ));
+    assert(list_eq_prim(
+        list_append(Nil, Cons(3, Cons(4, Nil))),
+        Cons(3, Cons(4, Nil))
+    ));
+    assert(list_eq_prim(
+        list_append(Cons(1, Cons(2, Nil)), Nil),
+        Cons(1, Cons(2, Nil))
+    ))
+}
+
+def test_list_intersection() {
+    assert(list_eq_prim(
+        list_intersection(Cons(1, Cons(2, Nil)), Cons(1, Cons(2, Nil))),
+        Cons(1, Cons(2, Nil))
+    ));
+    assert(list_eq_prim(
+        list_intersection(Cons(3, Cons(4, Nil)), Cons(1, Cons(2, Nil))),
+        Nil
+    ))
+}
+
+def test_list_subtract() {
+    assert(list_eq_prim(
+        list_subtract(Cons(1, Cons(2, Nil)), Cons(1, Cons(2, Nil))),
+        Nil
+    ));
+    assert(list_eq_prim(
+        list_subtract(Cons(3, Cons(4, Nil)), Cons(1, Cons(2, Nil))),
+        Cons(3, Cons(4, Nil))
+    ))
+}
+
+def test_assoc_list_mem() {
+    assert(assoc_list_mem(Cons(Pair(0,2), Cons(Pair(1,4), Nil)), 0));
+    assert(!assoc_list_mem(Cons(Pair(0,2), Cons(Pair(1,4), Nil)), 2))
+}
+
+def test_assoc_list_get_opt() {
+    assert(option_get(assoc_list_get_opt(Cons(Pair(0,2), Cons(Pair(1,4), Nil)), 0)) == 2);
+    assert(is_none(assoc_list_get_opt(Cons(Pair(0,2), Cons(Pair(1,4), Nil)), 2)))
+}
+
+def test_assoc_list_get_or_default() {
+    assert(assoc_list_get_or_default(Cons(Pair(0,2), Cons(Pair(1,4), Nil)), 0, 4) == 2);
+    assert(assoc_list_get_or_default(Cons(Pair(0,2), Cons(Pair(1,4), Nil)), 2, 5) == 5)
+}
+
+def test_assoc_list_set() {
+    assert(option_get(
+        assoc_list_get_opt(assoc_list_set(Cons(Pair(0,2), Cons(Pair(1,4), Nil)), 0, 3), 0)
+    ) == 3);
+    assert(option_get(
+        assoc_list_get_opt(assoc_list_set(Cons(Pair(0,2), Cons(Pair(1,4), Nil)), 2, 3), 2)
+    ) == 3)
+}
+
+def test_assoc_list_dom() {
+    assert(list_eq_prim(
+        assoc_list_dom(Cons(Pair(0,2), Cons(Pair(1,4), Nil))),
+        Cons(0, Cons(1, Nil))
+    ));
+    assert(list_eq_prim(
+        assoc_list_dom(Nil),
+        Nil
+    ))
+}
+
+def test_assoc_list_vals() {
+    assert(list_eq_prim(
+        assoc_list_vals(Cons(Pair(0,2), Cons(Pair(1,4), Nil))),
+        Cons(2, Cons(4, Nil))
+    ));
+    assert(list_eq_prim(
+        assoc_list_vals(Nil),
+        Nil
+    ))
+}
+
+def main() {
+    test_list_eq_prim();
+    test_list_eq();
+    test_list_length();
+    test_nth();
+    test_nth_opt();
+    test_hd_opt();
+    test_tl_opt();
+    test_zip();
+    test_list_map();
+    test_list_mapi();
+    test_list_range();
+    test_list_append();
+    test_list_intersection();
+    test_list_subtract();
+
+    test_assoc_list_mem();
+    test_assoc_list_get_opt();
+    test_assoc_list_get_or_default();
+    test_assoc_list_set();
+    test_assoc_list_dom();
+    test_assoc_list_vals();
+    
+    ~strPrint("OK");
+    0
+}
