@@ -29,7 +29,11 @@
         packages.effect_latest = pkgs.callPackage ./nix/effekt_latest.nix { mkSbtDerivation = sbt.mkSbtDerivation;};
         packages.bdwgc = pkgs.callPackage ./nix/bdwgc.nix { };
         packages.jetbrains-mono = pkgs.callPackage ./nix/jetbrains-mono.nix { };
+        packages.science = pkgs.callPackage ./nix/SciencePlots.nix { };
         devShell = with pkgs; mkShell {
+          shellHook = ''
+            export PATH=${self}:$PATH
+          '';
           FONTCONFIG_FILE = makeFontsConf { 
             fontDirectories = [ self.packages.${system}.jetbrains-mono libertine ];
           };
@@ -38,6 +42,7 @@
           ];
           buildInputs = [
             texliveSmall
+            self.packages.${system}.science
 
             gnumake
             gdb
