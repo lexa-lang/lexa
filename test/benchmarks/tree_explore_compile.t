@@ -35,44 +35,44 @@
     Cons,
   };
   
-  typedef struct list {
+  typedef struct __list_t__ {
     enum __list_tag__ tag;
     union {
       i64 Nil[0];
       i64 Cons[2];
     };
-  } list;
+  } __list_t__;
   
   enum __tree_tag__ {
     Leaf,
     Node,
   };
   
-  typedef struct tree {
+  typedef struct __tree_t__ {
     enum __tree_tag__ tag;
     union {
       i64 Leaf[0];
       i64 Node[3];
     };
-  } tree;
+  } __tree_t__;
   
   static i64 __append_lifted_1__(i64 __env__, i64 l1, i64 l2) {
     return ((({
       i64 __match_res__;
-      list *__expr_res__ = (list *)l1;
-      if (__expr_res__->tag == Nil) {
+      i64 __expr_res__ = (i64)l1;
+      if (((__list_t__ *)__expr_res__)->tag == Nil) {
         __match_res__ = ({ l2; });
-      } else if (__expr_res__->tag == Cons) {
+      } else if (((__list_t__ *)__expr_res__)->tag == Cons) {
         __match_res__ = ({
-          i64 h = (i64)(__expr_res__->Cons[0]);
-          i64 t = (i64)(__expr_res__->Cons[1]);
+          i64 h = (i64)(((__list_t__ *)__expr_res__)->Cons[0]);
+          i64 t = (i64)(((__list_t__ *)__expr_res__)->Cons[1]);
   
           (({
             i64 __arg_0__ = (i64)h;
             i64 __arg_1__ = (i64)(((i64(*)(i64, i64, i64))__append_lifted_1__)(
                 (i64)0, (i64)t, (i64)l2));
   
-            list *__t__ = (list *)xmalloc(sizeof(list));
+            __list_t__ *__t__ = (__list_t__ *)xmalloc(sizeof(__list_t__));
             __t__->tag = Cons;
             __t__->Cons[0] = __arg_0__;
             __t__->Cons[1] = __arg_1__;
@@ -108,7 +108,7 @@
   
   static i64 __make_lifted_4__(i64 __env__, i64 n) {
     return (((n == 0) ? (({
-      tree *__t__ = (tree *)xmalloc(sizeof(tree));
+      __tree_t__ *__t__ = (__tree_t__ *)xmalloc(sizeof(__tree_t__));
       __t__->tag = Leaf;
   
       (i64) __t__;
@@ -121,7 +121,8 @@
                             i64 __arg_1__ = (i64)t;
                             i64 __arg_2__ = (i64)t;
   
-                            tree *__t__ = (tree *)xmalloc(sizeof(tree));
+                            __tree_t__ *__t__ =
+                                (__tree_t__ *)xmalloc(sizeof(__tree_t__));
                             __t__->tag = Node;
                             __t__->Node[0] = __arg_0__;
                             __t__->Node[1] = __arg_1__;
@@ -136,14 +137,14 @@
                                   i64 choice_stub) {
     return ((({
       i64 __match_res__;
-      tree *__expr_res__ = (tree *)tre;
-      if (__expr_res__->tag == Leaf) {
+      i64 __expr_res__ = (i64)tre;
+      if (((__tree_t__ *)__expr_res__)->tag == Leaf) {
         __match_res__ = ({ (((i64 *)state)[0]); });
-      } else if (__expr_res__->tag == Node) {
+      } else if (((__tree_t__ *)__expr_res__)->tag == Node) {
         __match_res__ = ({
-          i64 value = (i64)(__expr_res__->Node[0]);
-          i64 left = (i64)(__expr_res__->Node[1]);
-          i64 right = (i64)(__expr_res__->Node[2]);
+          i64 value = (i64)(((__tree_t__ *)__expr_res__)->Node[0]);
+          i64 left = (i64)(((__tree_t__ *)__expr_res__)->Node[1]);
+          i64 right = (i64)(((__tree_t__ *)__expr_res__)->Node[2]);
   
           ({
             i64 next =
@@ -278,13 +279,13 @@
                   (i64)(((i64(*)(i64, i64, i64, i64))__explore_lifted_5__)(
                       (i64)0, (i64)state, (i64)tre, (i64)choice_stub));
               i64 __arg_1__ = (i64)(({
-                list *__t__ = (list *)xmalloc(sizeof(list));
+                __list_t__ *__t__ = (__list_t__ *)xmalloc(sizeof(__list_t__));
                 __t__->tag = Nil;
   
                 (i64) __t__;
               }));
   
-              list *__t__ = (list *)xmalloc(sizeof(list));
+              __list_t__ *__t__ = (__list_t__ *)xmalloc(sizeof(__list_t__));
               __t__->tag = Cons;
               __t__->Cons[0] = __arg_0__;
               __t__->Cons[1] = __arg_1__;
@@ -302,13 +303,13 @@
       i64 list_max_rec = (i64)(((i64 *)__env__)[0]);
       (({
         i64 __match_res__;
-        list *__expr_res__ = (list *)l;
-        if (__expr_res__->tag == Nil) {
+        i64 __expr_res__ = (i64)l;
+        if (((__list_t__ *)__expr_res__)->tag == Nil) {
           __match_res__ = ({ acc; });
-        } else if (__expr_res__->tag == Cons) {
+        } else if (((__list_t__ *)__expr_res__)->tag == Cons) {
           __match_res__ = ({
-            i64 h = (i64)(__expr_res__->Cons[0]);
-            i64 t = (i64)(__expr_res__->Cons[1]);
+            i64 h = (i64)(((__list_t__ *)__expr_res__)->Cons[0]);
+            i64 t = (i64)(((__list_t__ *)__expr_res__)->Cons[1]);
   
             ((h > acc) ? (({
               closure_t *__clo__ = (closure_t *)list_max_rec;

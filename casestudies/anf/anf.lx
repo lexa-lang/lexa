@@ -61,7 +61,7 @@ def traverse(e, bind_stub, fresh_stub) {
     | Let(x, b, body) -> {
         CLet(x, 
              bind_here(fun(bind_stub, fresh_stub) {traverse(b, bind_stub, fresh_stub)}, fresh_stub),
-             bind_here(fun(bind_stub, fresh_stub) {traverse(body, bind_stub, fresh_stub)}), fresh_stub)
+             bind_here(fun(bind_stub, fresh_stub) {traverse(body, bind_stub, fresh_stub)}, fresh_stub))
     }
 }
 
