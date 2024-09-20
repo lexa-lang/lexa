@@ -29,30 +29,30 @@
     Node,
   };
   
-  typedef struct tree {
+  typedef struct __tree_t__ {
     enum __tree_tag__ tag;
     union {
       i64 Leaf[0];
       i64 Node[3];
     };
-  } tree;
+  } __tree_t__;
   
   enum __generator_tag__ {
     Empty,
     Thunk,
   };
   
-  typedef struct generator {
+  typedef struct __generator_t__ {
     enum __generator_tag__ tag;
     union {
       i64 Empty[0];
       i64 Thunk[2];
     };
-  } generator;
+  } __generator_t__;
   
   static i64 __make_lifted_1__(i64 __env__, i64 n) {
     return (((n == 0) ? (({
-      tree *__t__ = (tree *)xmalloc(sizeof(tree));
+      __tree_t__ *__t__ = (__tree_t__ *)xmalloc(sizeof(__tree_t__));
       __t__->tag = Leaf;
   
       (i64) __t__;
@@ -65,7 +65,8 @@
                             i64 __arg_1__ = (i64)t;
                             i64 __arg_2__ = (i64)t;
   
-                            tree *__t__ = (tree *)xmalloc(sizeof(tree));
+                            __tree_t__ *__t__ =
+                                (__tree_t__ *)xmalloc(sizeof(__tree_t__));
                             __t__->tag = Node;
                             __t__->Node[0] = __arg_0__;
                             __t__->Node[1] = __arg_1__;
@@ -79,14 +80,14 @@
   static i64 __iterate_lifted_2__(i64 __env__, i64 t, i64 yield_stub) {
     return ((({
       i64 __match_res__;
-      tree *__expr_res__ = (tree *)t;
-      if (__expr_res__->tag == Leaf) {
+      i64 __expr_res__ = (i64)t;
+      if (((__tree_t__ *)__expr_res__)->tag == Leaf) {
         __match_res__ = ({ 0; });
-      } else if (__expr_res__->tag == Node) {
+      } else if (((__tree_t__ *)__expr_res__)->tag == Node) {
         __match_res__ = ({
-          i64 value = (i64)(__expr_res__->Node[0]);
-          i64 left = (i64)(__expr_res__->Node[1]);
-          i64 right = (i64)(__expr_res__->Node[2]);
+          i64 value = (i64)(((__tree_t__ *)__expr_res__)->Node[0]);
+          i64 left = (i64)(((__tree_t__ *)__expr_res__)->Node[1]);
+          i64 right = (i64)(((__tree_t__ *)__expr_res__)->Node[2]);
   
           ({
             (((i64(*)(i64, i64, i64))__iterate_lifted_2__)((i64)0, (i64)left,
@@ -111,13 +112,13 @@
   static i64 __sum_lifted_4__(i64 __env__, i64 a, i64 g) {
     return ((({
       i64 __match_res__;
-      generator *__expr_res__ = (generator *)g;
-      if (__expr_res__->tag == Empty) {
+      i64 __expr_res__ = (i64)g;
+      if (((__generator_t__ *)__expr_res__)->tag == Empty) {
         __match_res__ = ({ a; });
-      } else if (__expr_res__->tag == Thunk) {
+      } else if (((__generator_t__ *)__expr_res__)->tag == Thunk) {
         __match_res__ = ({
-          i64 v = (i64)(__expr_res__->Thunk[0]);
-          i64 f = (i64)(__expr_res__->Thunk[1]);
+          i64 v = (i64)(((__generator_t__ *)__expr_res__)->Thunk[0]);
+          i64 f = (i64)(((__generator_t__ *)__expr_res__)->Thunk[1]);
   
           (((i64(*)(i64, i64, i64))__sum_lifted_4__)((i64)0, (i64)(v + a),
                                                      (i64)(FINAL_THROW(f, 0))));
@@ -194,7 +195,8 @@
         i64 __arg_0__ = (i64)x;
         i64 __arg_1__ = (i64)k;
   
-        generator *__t__ = (generator *)xmalloc(sizeof(generator));
+        __generator_t__ *__t__ =
+            (__generator_t__ *)xmalloc(sizeof(__generator_t__));
         __t__->tag = Thunk;
         __t__->Thunk[0] = __arg_0__;
         __t__->Thunk[1] = __arg_1__;
@@ -215,7 +217,8 @@
           ((i64(*)(i64, i64))__f__)(__env__, yield_stub);
         }));
         (({
-          generator *__t__ = (generator *)xmalloc(sizeof(generator));
+          __generator_t__ *__t__ =
+              (__generator_t__ *)xmalloc(sizeof(__generator_t__));
           __t__->tag = Empty;
   
           (i64) __t__;
