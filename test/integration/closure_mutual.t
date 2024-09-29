@@ -1,5 +1,4 @@
-  $ lexa ../lexa_snippets/closure_mutual.lx -o main.c
-  $ clang -O3 -I ../../src/stacktrek main.c -o main -lm -lgc &> /dev/null
+  $ lexa ../lexa_snippets/closure_mutual.lx -o main --output-c &> /dev/null
   $ ./main 6
   1
   $ ./main 0

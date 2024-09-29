@@ -1,5 +1,5 @@
-  $ lexa ../../benchmarks/lexa/resume_nontail/main.lx -o main.c
-  $ cat main.c
+  $ lexa ../../benchmarks/lexa/resume_nontail/main.lx -o main --output-c &> /dev/null
+  $ cat ../../benchmarks/lexa/resume_nontail/main.c
   #include <datastructure.h>
   #include <stacktrek.h>
   #include <stdbool.h>

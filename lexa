@@ -5,7 +5,7 @@ import tempfile
 import os
 import shutil
 
-def run_commands(source_file, output_file, output_c):
+def run_commands(source_file, output_file, output_c, lexac_args):
     src_path = os.path.abspath(source_file)
     temp_dir = tempfile.mkdtemp()
     try:
@@ -16,7 +16,9 @@ def run_commands(source_file, output_file, output_c):
             base_name = os.path.basename(src_path)
             c_file = os.path.join(temp_dir, os.path.splitext(base_name)[0] + ".c")
 
-        dune_command = ["dune", "exec", "lexa", "--", src_path, "-o", c_file]
+        dune_command = ["dune", "exec", "lexac", "--", src_path, "-o", c_file]
+        if lexac_args:
+            dune_command += lexac_args.split()
         subprocess.run(dune_command, check=True)
 
         clang_command = ["clang", "-g", "-O3", "-I", os.path.dirname(os.path.realpath(__file__)) + "/src/stacktrek", c_file, "-o", output_file, "-lm", "-lgc"]
@@ -29,10 +31,11 @@ def main():
     parser.add_argument("source_file", type=str, help="The source file to compile")
     parser.add_argument("--output-c", action="store_true", help="Output the generated C code")
     parser.add_argument("-o", "--output", type=str, default="a.out", help="The binary output file")
+    parser.add_argument("--lexac-args", type=str, default="", help="Arguments to pass to lexac")
     
     args = parser.parse_args()
 
-    run_commands(args.source_file, args.output, args.output_c)
+    run_commands(args.source_file, args.output, args.output_c, args.lexac_args)
 
 if __name__ == "__main__":
     main()
