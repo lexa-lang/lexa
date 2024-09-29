@@ -1,5 +1,5 @@
-  $ lexa ../lexa_snippets/diff_op_type.lx -o main.c
-  $ cat main.c
+  $ lexa ../lexa_snippets/diff_op_type.lx -o main --output-c &> /dev/null
+  $ cat ../lexa_snippets/diff_op_type.c
   #include <datastructure.h>
   #include <stacktrek.h>
   #include <stdbool.h>

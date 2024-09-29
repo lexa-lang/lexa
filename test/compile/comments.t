@@ -1,5 +1,5 @@
-  $ lexa ../lexa_snippets/comments.lx -o main.c
-  $ cat main.c
+  $ lexa ../lexa_snippets/comments.lx -o main --output-c &> /dev/null
+  $ cat ../lexa_snippets/comments.c
   #include <datastructure.h>
   #include <stacktrek.h>
   #include <stdbool.h>

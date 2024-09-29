@@ -1,5 +1,5 @@
-  $ lexa ../lexa_snippets/tail_if.lx -o main.c
-  $ cat main.c
+  $ lexa ../lexa_snippets/tail_if.lx -o main --output-c &> /dev/null
+  $ cat ../lexa_snippets/tail_if.c
   #include <datastructure.h>
   #include <stacktrek.h>
   #include <stdbool.h>

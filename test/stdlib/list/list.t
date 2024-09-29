@@ -1,10 +1,8 @@
-  $ lexa ./list.lx -o main.c
-  $ clang -O3 -I ../../../src/stacktrek main.c -o main -lm -lgc &> /dev/null
+  $ lexa ./list.lx -o main --output-c &> /dev/null
   $ ./main
   OK
 
-  $ lexa ./nth_error.lx -o main.c
-  $ clang -O3 -I ../../../src/stacktrek main.c -o main -lm -lgc &> /dev/null
+  $ lexa ./nth_error.lx -o main --output-c &> /dev/null
   $ ./main
   Error: nth
   [1]
