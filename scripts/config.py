@@ -24,7 +24,7 @@ platforms = ["lexa", "effekt", "koka_named", "koka", "ocaml"]
 config = {}
 
 for benchmark in benchmarks:
-    LEXA_BUILD_COMMAND = "flock /tmp/dune_lockfile -c 'dune exec -- lexa main.lx -o main.c' && clang -O3 -g -I ../../../src/stacktrek main.c -o main -lm -lgc"
+    LEXA_BUILD_COMMAND = "flock /tmp/dune_lockfile -c 'lexa main.lx -o main'"
     LEXA_RUN_COMMAND = "./main {IN}"
     config[("lexa", benchmark)] = {
         "build": LEXA_BUILD_COMMAND, "run": LEXA_RUN_COMMAND,
