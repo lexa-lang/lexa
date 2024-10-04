@@ -2,15 +2,22 @@
   open Parser
   open Lexing
   exception SyntaxError of string
+
+  let check_id s =
+    if String.starts_with ~prefix:"__" s && String.ends_with ~suffix:"__" s then
+      raise (SyntaxError (Printf.sprintf "illegal identifier %s" s))
+    else
+      s
 }
 
 let white = [' ' '\t']+
 let digit = ['0'-'9']
-let int = '-'? digit+
-let float = '-'? digit+ '.' digit+
+let int = digit+
+let float = digit+ '.' digit+
 let letter = ['a'-'z' 'A'-'Z']
-let id_s = ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
+let id_s = ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 let id = ['a'-'z' '_'] id_s
+
 let prim = ['~'] id_s
 let sig = ['A'-'Z'] id?
 let capitalized_var = ['A' - 'Z'] id_s
@@ -79,7 +86,7 @@ rule read =
   | '\'' { read_char (Buffer.create 17) lexbuf }
   | float { FLOAT (float_of_string (Lexing.lexeme lexbuf)) }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
-  | id { VAR (Lexing.lexeme lexbuf) }
+  | id { VAR (check_id (Lexing.lexeme lexbuf)) }
   | prim { PRIM (Lexing.lexeme lexbuf) }
   | capitalized_var { CAPITALIZED_VAR (Lexing.lexeme lexbuf) }
   | eof { EOF }

@@ -21,7 +21,7 @@
     return (({
       i64 i = (i64)(RAISE(state_stub, get, ((i64)0)));
       ((i == 0) ? i : ({
-        (RAISE(state_stub, set, ((i64)i - 1)));
+        (RAISE(state_stub, set, ((i64)(i - 1))));
         (({
           __attribute__((musttail)) return (
               (i64(*)(i64, i64))__countdown_lifted_1__)((i64)0, (i64)state_stub);
