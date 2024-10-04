@@ -170,7 +170,9 @@ expr:
 simple_expr:
   | VAR { Var $1 }
   | INT { Int $1 }
+  | SUB INT { Int (Int.neg $2) } 
   | FLOAT { Float $1 }
+  | SUB FLOAT { Float (Float.neg $2) }
   | TRUE { Bool true }
   | FALSE { Bool false }
   | s = STRING { Str s } 
