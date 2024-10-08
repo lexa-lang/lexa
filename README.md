@@ -1,40 +1,49 @@
-# Lexa Compiler
+# A compiler for the Lexa programming language
 
 ## Overview
-Lexa is a compiler designed to implement lexically scoped effect handlers, a language-design concept that equips algebraic effects with modular semantics for both robust local-reasoning and expressive control-flow management.
 
-See the paper "Lexical Effect Handlers, Directly" for more information.
+Lexa is a programming language supporting *lexically scoped effect handlers*.
+These effect handlers are a powerful means to express and manage [complex](https://dl.acm.org/doi/10.1145/3428207) control flow.
+They allow for [strong local-reasoning principles](https://dl.acm.org/doi/10.1145/3290318), too.
 
-## Getting Started
+This repository contains an implementation of Lexa. The compiler **translates high-level, modular algebraic effects to low-level, swift stack switching**.
+The design and implementation of the Lexa compiler are described in the following paper:
+
+> Cong Ma, Zhaoyi Ge, Edward Lee, Yizhou Zhang.  
+> [Lexical Effect Handlers, Directly](https://dl.acm.org/doi/10.1145/3689770).  
+> Proceedings of the ACM on Programming Languages (PACMPL), Volume 8, Issue OOPSLA2, October 2024.
+
+## Getting started
 
 ### Prerequisites
-We currently only support x86-64 platform. 32GB of RAM is recommended to build the project.
+* Supported platform: x86-64.
+* 32GB of RAM recommended for building.
 
-### Setup prebuilt project using Docker (recommended for evaluation)
+### Setup using Docker (recommended for evaluation)
 ```
 docker run -it hflsmax/lexa-lang:OOPSLA24
 ```
 
 ### Setup using Nix (recommended for development)
 1. **Install Nix**: Follow the [instructions](https://nixos.org/download.html) to install Nix on your system.
-2. **Clone the Repository**: Clone the Lexa repository to your local machine.
-3. **Build the Development Environment**: Run `nix develop` in the root directory of the repository. This could take more than 1 hour.
-4. **Build the Project**: Run `dune build` to build the compiler.
+2. **Clone the repository**: Clone the Lexa repo to your local machine.
+3. **Build the development environment**: Run `nix develop` in the repository root. This could take over an hour.
+4. **Build the project**: Run `dune build` to build the compiler.
 
 ### Running the Compiler
-To run the Lexa compiler, use the following command:
+To run the Lexa compiler, use the following commands:
 ```bash
 ./lexa <source_file>
 ./a.out
 ```
 See `./casestudies`  and `./test` for exmaple Lexa programs.
 
-## Reproduce the result in OOPSLA'24 paper
-1. Follow the instructions above to setup the project.
-2. **Figure 2**: Run `cd scripts; python ./plots.py --tick-plot --plot-only ./final_plotting_runtimes2.csv`, the plot will be saved in `./scaling_plots/two_scaling_plot.pdf`. To plot using fresh data, run `python ./plots.py --tick-plot`.
-3. **Table 1**: Run `cd scripts; python bench.py`, the result will be saved in `./runtimes.csv`.
-4. **Figure 16**: Run `cd scripts; python ./plots.py --plot-only ./final_plotting_runtimes.csv`, the plot will be saved in `./scaling_plots/scaling_plot.pdf`. To plot using fresh data, run `python ./plots.py`.
+## Reproducing the results in the OOPSLA 2024 paper
+1. Follow the instructions above to set up the project.
+2. **Figure 2**: Run `cd scripts; python ./plots.py --tick-plot --plot-only ./final_plotting_runtimes2.csv`. The plot will be saved in `./scaling_plots/two_scaling_plot.pdf`. To plot using fresh data, run `python ./plots.py --tick-plot`.
+3. **Table 1**: Run `cd scripts; python bench.py`. The result will be saved in `./runtimes.csv`.
+4. **Figure 16**: Run `cd scripts; python ./plots.py --plot-only ./final_plotting_runtimes.csv`. The plot will be saved in `./scaling_plots/scaling_plot.pdf`. To plot using fresh data, run `python ./plots.py`.
 5. **Test formalized translation**: Run `cd src/formalized_translation; racket artifact.rkt`.
 
 ## Contact/Contribute
-Please reach out to Cong Ma(cong.ma@uwaterloo.ca) for any questions. We welcome contributions to the project.
+Please reach out to Cong Ma (cong.ma@uwaterloo.ca) for any questions. We welcome contributions to the project.
