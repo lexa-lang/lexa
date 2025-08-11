@@ -42,11 +42,15 @@
         packages.libmprompt = pkgs.callPackage ./nix/libmprompt.nix { bdwgc = self.packages.${system}.bdwgc; };
         packages.jetbrains-mono = pkgs.callPackage ./nix/jetbrains-mono.nix { };
         packages.science = pkgs.callPackage ./nix/SciencePlots.nix { };
+        packages.lexac = pkgs.callPackage ./nix/lexac.nix { 
+          inherit (pkgs.ocaml-ng.ocamlPackages_5_1) buildDunePackage dune_3 menhir ppx_inline_test;
+        };
         
         devShells = {
           default = with pkgs; mkShell {
           shellHook = ''
             export PATH=$PWD:$PATH
+            export LEXA_MODE=dev
           '';
           FONTCONFIG_FILE = makeFontsConf { 
             fontDirectories = [ self.packages.${system}.jetbrains-mono libertine ];
@@ -122,6 +126,7 @@
           userShell = with pkgs; mkShell {
             shellHook = ''
               export PATH=$PWD:$PATH
+              export LEXA_MODE=user
             '';
             nativeBuildInputs = [
               self.packages.${system}.clang_18_preserve_none
@@ -142,6 +147,7 @@
               hyperfine
               self.packages.${system}.bdwgc
               self.packages.${system}.libmprompt
+              self.packages.${system}.lexac
             ]  ++ 
           (with ocaml-ng.ocamlPackages_5_1; [
               opam

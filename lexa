@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+Lexa compiler script.
+
+This script compiles Lexa programs. Depending on the LEXA_MODE environment variable, 
+it will use either the dune exec or the binary directly.
+- LEXA_MODE=dev (default): Uses 'dune exec lexac' for development
+- LEXA_MODE=user: Uses the 'lexac' binary directly for users
+"""
 import argparse
 import subprocess
 import os
@@ -9,17 +17,25 @@ def run_commands(source_file, output_file, lexac_args, output_ll, tl, stack_size
     if source_file.endswith(".c"):
         c_file = src_path
     else:
-        subprocess.run(["dune", "clean"], check=True)
-
         base_name = os.path.basename(src_path)
         c_file = os.path.dirname(src_path) + "/" + os.path.splitext(base_name)[0] + ".c"
 
-        dune_command = ["dune", "exec", "lexac", "--", src_path, "-o", c_file]
+        # Check if we're in user mode (using binary) or dev mode (using dune exec)
+        lexa_mode = os.environ.get("LEXA_MODE", "dev")
+        
+        if lexa_mode == "user":
+            # Use the binary directly
+            lexac_command = ["lexac", src_path, "-o", c_file]
+        else:
+            # Use dune exec (dev mode)
+            subprocess.run(["dune", "clean"], check=True)
+            lexac_command = ["dune", "exec", "lexac", "--", src_path, "-o", c_file]
+        
         if tl:
-            dune_command.append("--tl")
+            lexac_command.append("--tl")
         if lexac_args:
-            dune_command += lexac_args.split()
-        subprocess.run(dune_command, check=True)
+            lexac_command += lexac_args.split()
+        subprocess.run(lexac_command, check=True)
 
     passes = [
         "addNoCapture/AddNoCaptureToAsmPass.so", 
