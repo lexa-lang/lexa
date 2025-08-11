@@ -10,8 +10,17 @@ it will use either the dune exec or the binary directly.
 import argparse
 import subprocess
 import os
+import sys
 
-def run_commands(source_file, output_file, lexac_args, output_ll, tl, stack_size, gstack):
+def run_commands(source_file, output_file, lexac_args, output_ll, tl, stack_size, gstack, verbose):
+    # Set up output redirection based on verbose flag
+    if verbose:
+        stdout_redirect = None
+        stderr_redirect = None
+    else:
+        stdout_redirect = subprocess.DEVNULL
+        stderr_redirect = subprocess.DEVNULL
+    
     src_path = os.path.abspath(source_file)
 
     if source_file.endswith(".c"):
@@ -35,7 +44,8 @@ def run_commands(source_file, output_file, lexac_args, output_ll, tl, stack_size
             lexac_command.append("--tl")
         if lexac_args:
             lexac_command += lexac_args.split()
-        subprocess.run(lexac_command, check=True)
+        
+        subprocess.run(lexac_command, check=True, stdout=stdout_redirect, stderr=stderr_redirect)
 
     passes = [
         "addNoCapture/AddNoCaptureToAsmPass.so", 
@@ -50,7 +60,8 @@ def run_commands(source_file, output_file, lexac_args, output_ll, tl, stack_size
         clang_ll_command = ["clang", "-S", "-emit-llvm", "-O3", c_file, "-o", source_file.split(".")[0] + ".ll", "-DNO_OFFSET"] + include_paths
         for path in passes:
             clang_ll_command += ["-Xclang", "-fpass-plugin=" + os.path.dirname(os.path.realpath(__file__)) + "/passes/" + path]
-        subprocess.run(clang_ll_command, check=True)
+        
+        subprocess.run(clang_ll_command, check=True, stdout=stdout_redirect, stderr=stderr_redirect)
 
     compilation_unit = [c_file, os.path.dirname(os.path.realpath(__file__)) + "/src/stackwalk/stackwalk.c"]
     clang_command = ["clang", "-g", "-O3", "-o", output_file, "-lm", "-lgc", "-Wl,--section-start=.init=0x2000"] + compilation_unit + include_paths # -Wl,--section-start=.init=0x2000 is to make sure the code has a fixed address. This is not necessary when offset_functions.h is created automatically.
@@ -71,14 +82,16 @@ def run_commands(source_file, output_file, lexac_args, output_ll, tl, stack_size
         clang_command += ["-fuse-ld=lld", "-flto"]
 
     # We compile twice. The first time we produce the binary for analysis.
-    subprocess.run(clang_command + ["-DNO_OFFSET"], check=True)
+    subprocess.run(clang_command + ["-DNO_OFFSET"], check=True, stdout=stdout_redirect, stderr=stderr_redirect)
+    
     analyze_command = [os.path.dirname(os.path.realpath(__file__)) + "/src/stackwalk/analyze_binary.py", output_file, "--gen-offset", "--path", os.path.dirname(src_path)]
-    subprocess.run(analyze_command, check=True)
+    subprocess.run(analyze_command, check=True, stdout=stdout_redirect, stderr=stderr_redirect)
 
     # The second time we produce the binary for execution
-    subprocess.run(clang_command, check=True)
+    subprocess.run(clang_command, check=True, stdout=stdout_redirect, stderr=stderr_redirect)
+    
     analyze_command = [os.path.dirname(os.path.realpath(__file__)) + "/src/stackwalk/analyze_binary.py", output_file]
-    subprocess.run(analyze_command, check=True)
+    subprocess.run(analyze_command, check=True, stdout=stdout_redirect, stderr=stderr_redirect)
 
 
 def main():
@@ -90,10 +103,16 @@ def main():
     parser.add_argument("--lexac-args", type=str, default="", help="Arguments to pass to lexac")
     parser.add_argument("--tl", action="store_true", help="Compile with TL syntax")
     parser.add_argument("--gstack", action="store_true", default=True, help="Use growable stacks")
+    parser.add_argument("--verbose", action="store_true", help="Show verbose output including compiler warnings")
     
     args = parser.parse_args()
 
-    run_commands(args.source_file, args.output, args.lexac_args, args.output_ll, args.tl, args.stack_size, args.gstack)
+    try:
+        run_commands(args.source_file, args.output, args.lexac_args, args.output_ll, args.tl, args.stack_size, args.gstack, args.verbose)
+    except subprocess.CalledProcessError as e:
+        if not args.verbose:
+            print(f"Error during compilation. Use --verbose to see detailed error messages.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
