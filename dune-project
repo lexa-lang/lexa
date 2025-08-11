@@ -1,14 +1,11 @@
 (lang dune 3.10)
 
-(name lexa)
-
-(source
- (github lexa-lang/lexa))
+(name lexac)
 
 (license MIT)
 
 (package
- (name lexa)
+ (name lexac)
  (description "The Lexa programming language")
  (depends 
   ocaml
